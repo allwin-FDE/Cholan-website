@@ -7,10 +7,9 @@ const headerHeight = () =>
 
 // Home "Fed by the Kaveri" section.
 //
-// One finished painting of the Kallanai dam, with a band of out-of-focus grass
-// in front of it. Scrolling runs a slow camera move over the pair: the scene
-// drifts and pushes in while the grass travels further and faster, which is
-// what reads as depth — near things move more than far ones.
+// One finished painting of the Kallanai dam. Scrolling runs a slow camera move
+// over it: the scene drifts down while easing out of a push-in, with the copy
+// lifting slightly against it.
 export default function KallanaiSection() {
   const rootRef = useRef(null);
 
@@ -38,17 +37,7 @@ export default function KallanaiSection() {
         { yPercent: 5, scale: 1.02, duration: 1 },
         0,
       )
-        // The grass is nearest the lens, so it travels furthest and grows most.
-        .fromTo(
-          '.kallanai__grass',
-          // Scales up, never below the overhang the CSS insets provide: at a
-          // smaller scale the plate's painted edges pull inside the frame and
-          // show as a hard vertical cut.
-          { yPercent: 8, scale: 1.04 },
-          { yPercent: -6, scale: 1.18, duration: 1 },
-          0,
-        )
-        // The copy lifts very slightly against both, holding the frame together.
+        // The copy lifts very slightly against it, holding the frame together.
         .fromTo('.kallanai__copy', { yPercent: -4 }, { yPercent: 4, duration: 1 }, 0);
     }, root);
 
@@ -78,16 +67,6 @@ export default function KallanaiSection() {
             onto every grain we mill.
           </p>
         </div>
-
-        {/* Foreground foliage, blurred as if close to the lens. */}
-        <img
-          className="kallanai__grass"
-          src="/images/kallanai/grass.webp"
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          decoding="async"
-        />
       </div>
     </section>
   );

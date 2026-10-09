@@ -58,30 +58,6 @@
   background: radial-gradient(120% 95% at 50% 45%, #0000 56%, #2a1f0e2e 100%);
 }
 
-/* Out-of-focus foliage along the bottom, as if a hand's width from the lens.
-   The plate's two clumps sit at 16% and 85% of its width with a sparse gap
-   between; overhanging each side by 14% lands them at roughly 7% and 95% of
-   the frame, i.e. tucked into both corners with the dam clear between. */
-.kallanai__grass {
-  position: absolute;
-  z-index: 3;
-  left: -14%;
-  right: -14%;
-  bottom: -6%;
-  width: auto;
-  height: auto;
-  display: block;
-  pointer-events: none;
-  user-select: none;
-  will-change: transform;
-  /* Scale from the bottom edge, so the push-in grows the foliage upward into
-     frame rather than dragging it sideways across the dam. */
-  transform-origin: 50% 100%;
-  /* The plate is already painted soft; a touch more separates it from the
-     sharp dam behind. */
-  filter: blur(1.5px);
-}
-
 .kallanai__copy {
   position: absolute;
   z-index: 2;
