@@ -41,8 +41,11 @@ export default function KallanaiSection() {
         // The grass is nearest the lens, so it travels furthest and grows most.
         .fromTo(
           '.kallanai__grass',
-          { yPercent: 8, scale: 1.14 },
-          { yPercent: -6, scale: 1.02, duration: 1 },
+          // Scales up, never below the overhang the CSS insets provide: at a
+          // smaller scale the plate's painted edges pull inside the frame and
+          // show as a hard vertical cut.
+          { yPercent: 8, scale: 1.04 },
+          { yPercent: -6, scale: 1.18, duration: 1 },
           0,
         )
         // The copy lifts very slightly against both, holding the frame together.

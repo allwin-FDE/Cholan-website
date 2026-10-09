@@ -58,21 +58,15 @@
   background: radial-gradient(120% 95% at 50% 45%, #0000 56%, #2a1f0e2e 100%);
 }
 
-/* Out-of-focus foliage at the bottom corners, as if a hand's width from the
-   lens. It is oversized and hangs past the frame on every side so the camera
-   move can never pull its edges into view. */
+/* Out-of-focus foliage along the bottom, as if a hand's width from the lens.
+   The plate's two clumps sit at 16% and 85% of its width with a sparse gap
+   between; overhanging each side by 14% lands them at roughly 7% and 95% of
+   the frame, i.e. tucked into both corners with the dam clear between. */
 .kallanai__grass {
   position: absolute;
   z-index: 3;
-  /* Stretched between the two sides rather than given a width: the plate's
-     foliage is massed at its outer edges, so the edges have to stay pinned to
-     the frame's corners. A width here would fight the insets and pull the
-     right-hand cluster in off the corner. */
-  /* Pulled wider than the frame on both sides so each cluster is driven into
-     its corner; the plate's right-hand mass is lighter than its left, so it
-     needs the extra overhang to reach. */
-  left: -12%;
-  right: -12%;
+  left: -14%;
+  right: -14%;
   bottom: -6%;
   width: auto;
   height: auto;
@@ -81,7 +75,7 @@
   user-select: none;
   will-change: transform;
   /* Scale from the bottom edge, so the push-in grows the foliage upward into
-     frame instead of lifting it off the bottom corners. */
+     frame rather than dragging it sideways across the dam. */
   transform-origin: 50% 100%;
   /* The plate is already painted soft; a touch more separates it from the
      sharp dam behind. */
