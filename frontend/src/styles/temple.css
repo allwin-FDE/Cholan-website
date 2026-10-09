@@ -1,0 +1,186 @@
+/* "Why Millets" — editorial section: a centred header over four columns,
+   set on flat warm paper. No imagery or background pattern. */
+
+.millets {
+  --millets-ink: #211a0f;
+  --millets-ink-soft: #5a4a33;
+  --millets-rule: #cbbb9a;
+  /* Darkened from the brand gold so the kicker and measure labels clear
+     4.5:1 against every tone of the paper ground (min 5.02:1). */
+  --millets-gold: #7f5a0e;
+  --millets-paper: #f7f1e3;
+
+  background: var(--millets-paper);
+  color: var(--millets-ink);
+  min-height: calc(100vh - var(--header-h, 74px));
+  min-height: calc(100svh - var(--header-h, 74px));
+  isolation: isolate;
+  position: relative;
+  /* Grid rather than flex: a single centred cell holds the content block at
+     its own computed width, where a flex line would stretch it past the
+     gutter. */
+  display: grid;
+  align-content: center;
+  overflow: hidden;
+}
+
+/* Flat warm paper. No wash, pattern or imagery — nothing behind the type. */
+.millets__paper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--millets-paper);
+}
+
+.millets__inner {
+  position: relative;
+  z-index: 2;
+  width: min(var(--container), 100% - var(--gutter) * 2);
+  margin-inline: auto;
+  padding-block: clamp(56px, 9vh, 96px);
+}
+
+/* Also carries .section-head (for the shared reveal animation), so these
+   override that class's own width and spacing. */
+.millets__head.section-head {
+  max-width: 54ch;
+  margin-inline: auto;
+  margin-bottom: clamp(40px, 6vw, 72px);
+  text-align: center;
+}
+
+.millets__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.6rem, 7vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.millets__lede.lede {
+  max-width: 46ch;
+  margin: 18px auto 0;
+  font-size: clamp(1rem, 1.5vw, 1.12rem);
+  line-height: 1.6;
+  color: var(--millets-ink-soft);
+  text-wrap: pretty;
+}
+
+/* Four columns on the page, like a printed spread. */
+.millets__list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(20px, 2.6vw, 40px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--millets-rule);
+  padding-top: clamp(22px, 3vw, 34px);
+}
+
+.millets__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: clamp(14px, 1.6vw, 22px);
+}
+/* Column rules, print-style — the first column needs none. */
+.millets__item + .millets__item:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: linear-gradient(var(--millets-rule), #cbbb9a00);
+}
+
+/* The number as a drop-cap, set in the display face. */
+.millets__n {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 3.6vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--millets-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.millets__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.millets__item-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.7vw, 1.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.millets__measure {
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--millets-gold);
+  margin: 0;
+}
+
+.millets__text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--millets-ink-soft);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+@media (width<=1000px) {
+  .millets__list {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: clamp(28px, 4vw, 40px);
+  }
+  /* With two per row, the rule belongs on every second item, not the third. */
+  .millets__item + .millets__item:before {
+    display: none;
+  }
+  .millets__item:nth-child(2n):before {
+    content: '';
+    display: block;
+  }
+}
+
+@media (width<=640px) {
+  .millets {
+    min-height: 0;
+  }
+  .millets__list {
+    grid-template-columns: 1fr;
+  }
+  .millets__item {
+    padding-left: 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--millets-rule);
+  }
+  .millets__item:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .millets__item:before,
+  .millets__item:nth-child(2n):before {
+    display: none;
+  }
+  /* The number sits beside the title on narrow screens to save height. */
+  .millets__n {
+    font-size: 2rem;
+  }
+  .millets__inner {
+    padding-block: clamp(48px, 7vh, 72px);
+  }
+}

@@ -3,3 +3,4 @@ dist
 .firebase
 firebase-debug.log
 *.local
+.data
