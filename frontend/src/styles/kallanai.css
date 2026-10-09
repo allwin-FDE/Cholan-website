@@ -1,0 +1,82 @@
+/* Home "Fed by the Kaveri" section: one painting of the Kallanai dam, drifting
+   slowly behind the copy as the page scrolls. */
+
+.kallanai {
+  position: relative;
+  background: #f6f1e6;
+}
+
+.kallanai__frame {
+  position: relative;
+  height: clamp(460px, 78vh, 760px);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Taller than the frame so the parallax drift never uncovers an edge. */
+.kallanai__img {
+  position: absolute;
+  inset: -8% 0;
+  width: 100%;
+  height: 116%;
+  object-fit: cover;
+  object-position: 50% 52%;
+  display: block;
+  will-change: transform;
+}
+
+/* The painting's sky is pale but not even, so a soft wash under the copy keeps
+   the type legible wherever the parallax puts the clouds. */
+.kallanai__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(#fdf8edd9 0%, #fdf8ed8f 34%, #fdf8ed00 58%);
+}
+
+.kallanai__copy {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: clamp(28px, 7vh, 72px);
+  transform: translateX(-50%);
+  width: min(var(--container), 100% - var(--gutter) * 2);
+  text-align: center;
+  pointer-events: none;
+}
+
+.kallanai__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #16301f;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.kallanai__lede {
+  /* Kept narrow so the paragraph stays in the pale upper sky, where the scrim
+     is strongest, rather than running down onto the dam wall. */
+  max-width: 40ch;
+  margin: 16px auto 0;
+  font-size: clamp(0.98rem, 1.5vw, 1.1rem);
+  line-height: 1.6;
+  color: #3c3426;
+  text-wrap: pretty;
+}
+
+@media (width<=700px) {
+  .kallanai__frame {
+    height: clamp(380px, 62vh, 540px);
+  }
+  /* Portrait crops a 16:9 painting hard; favour the dam face over the sky. */
+  .kallanai__img {
+    object-position: 62% 56%;
+  }
+  .kallanai__scrim {
+    background: linear-gradient(#fdf8ede6 0%, #fdf8edab 42%, #fdf8ed00 66%);
+  }
+}

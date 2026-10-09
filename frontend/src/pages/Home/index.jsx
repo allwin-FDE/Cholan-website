@@ -1,5 +1,6 @@
 import HeroCurtain from './HeroCurtain.jsx';
 import RailStory from './RailStory.jsx';
+import KallanaiSection from './KallanaiSection.jsx';
 import TempleSection from './TempleSection.jsx';
 import CategoryTiles from './CategoryTiles.jsx';
 import FeaturedProducts from './FeaturedProducts.jsx';
@@ -12,6 +13,7 @@ export default function Home() {
     <>
       <HeroCurtain />
       <RailStory />
+      <KallanaiSection />
       <TempleSection />
       <CategoryTiles />
       <FeaturedProducts />

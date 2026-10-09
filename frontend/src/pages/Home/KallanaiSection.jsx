@@ -1,0 +1,68 @@
+import { useEffect, useRef } from 'react';
+import { gsap } from '../../lib/gsap.js';
+import { prefersReducedMotion } from '../../lib/motion.js';
+
+const headerHeight = () =>
+  parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 74;
+
+// Home "Fed by the Kaveri" section.
+//
+// One finished painting of the Kallanai dam, so there is nothing to assemble:
+// the scroll just drifts it slowly behind the copy. The image is oversized and
+// moved a little less than the page, which gives the parallax without ever
+// exposing an edge.
+export default function KallanaiSection() {
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || prefersReducedMotion()) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '.kallanai__img',
+        { yPercent: -6 },
+        {
+          yPercent: 6,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: root,
+            start: () => `top bottom-=${headerHeight()}`,
+            end: 'bottom top',
+            scrub: 0.8,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+    }, root);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section className="kallanai" aria-labelledby="kallanai-title" ref={rootRef}>
+      <div className="kallanai__frame">
+        <img
+          className="kallanai__img"
+          src="/images/kallanai/kallanai.webp"
+          alt="The Grand Anicut at Kallanai, water running over the full length of the dam"
+          loading="lazy"
+          decoding="async"
+          width="1672"
+          height="941"
+        />
+        <div className="kallanai__scrim" aria-hidden="true" />
+
+        <div className="kallanai__copy">
+          <h2 className="kallanai__title" id="kallanai-title">
+            Fed by the Kaveri
+          </h2>
+          <p className="kallanai__lede">
+            Eighteen centuries of the Grand Anicut turning this river onto the delta — and
+            onto every grain we mill.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}

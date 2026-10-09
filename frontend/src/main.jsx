@@ -10,6 +10,7 @@ import './styles/cart.css';
 import './styles/hero-curtain.css';
 import './styles/rail-story.css';
 import './styles/temple.css';
+import './styles/kallanai.css';
 import './styles/cards.css';
 import './styles/home-sections.css';
 import './styles/story.css';
