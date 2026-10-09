@@ -1,0 +1,176 @@
+/* Home "Fed by the Kaveri" section: painted dam layers that fill with water
+   as the page scrolls. The stage is pinned; the layers are stacked and sized
+   to a single 16:9 artwork so they stay in register. */
+
+.dam {
+  position: relative;
+  background: #f4f0e6;
+}
+
+.dam__stage {
+  height: calc(100vh - var(--header-h, 74px));
+  height: calc(100svh - var(--header-h, 74px));
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Warm sky behind the artwork, so the dam's own pale sky blends into it. */
+.dam__sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(#fdf6e6 0%, #faf2e2 48%, #f2ead8 100%);
+}
+
+/* All four plates share the same box, so they line up exactly. `cover` keeps
+   the dam filling the stage at any aspect ratio. */
+.dam__layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Favour the top of the plate: the dam wall and the falls matter, the dry
+     riverbed below them does not. */
+  object-position: 50% 28%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dam__dam {
+  z-index: 1;
+}
+
+/* The falls are clipped by their wrapper during the scroll, growing downward.
+   Clipping the wrapper rather than the <img> keeps object-fit stable. */
+/* The falls are revealed by clipping this wrapper from the bottom up, so the
+   artwork is never scaled or distorted — only progressively uncovered. */
+.dam__falls-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  clip-path: inset(0 0 100% 0);
+}
+/* Sized to the dam's face rather than the full stage, so the wall, piers and
+   parapet stay visible behind and beside the water. */
+.dam__falls {
+  z-index: 2;
+  inset: auto 0 20% 0;
+  height: 46%;
+  object-fit: cover;
+  object-position: 50% 40%;
+  /* A long fade down the whole lower half: wherever the clip edge sits during
+     the scroll it lands in thinning water, so the growing front never reads
+     as a straight cut across the stone. */
+  -webkit-mask-image: linear-gradient(#000 0%, #000 34%, #000c 58%, #0007 78%, #0000 100%);
+  mask-image: linear-gradient(#000 0%, #000 34%, #000c 58%, #0007 78%, #0000 100%);
+}
+
+/* The river is the water downstream of the dam, so it occupies the lower band
+   of the stage rather than the whole plate — at full bleed it scales up until
+   it hides the dam itself. */
+.dam__river {
+  z-index: 3;
+  opacity: 0;
+  /* Kept to the riverbed below the dam's foot. Any taller and the plate's
+     semi-transparent crests wash over the stone wall, making it look see
+     through. */
+  inset: auto 0 0 0;
+  height: 26%;
+  object-fit: cover;
+  object-position: 50% 78%;
+  /* The plate has a straight top edge where its art is cut off; fading the
+     first few percent blends it into the spray instead of showing a seam. */
+  -webkit-mask-image: linear-gradient(#0000 0%, #000 14%, #000 100%);
+  mask-image: linear-gradient(#0000 0%, #000 14%, #000 100%);
+}
+
+/* Spray where the falls meet the river: a soft white haze, not a sprite. */
+.dam__spray {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: 18%;
+  height: 26%;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 60%, #ffffffbf 0%, #ffffff00 70%);
+  filter: blur(6px);
+}
+
+/* The rocks plate is 4:3 and much tighter than the 16:9 scene, so it is not a
+   full-bleed layer: it sits as a foreground strip along the bottom edge, wide
+   enough to run off both sides rather than showing its own rectangle. */
+/* The rocks plate is 4:3 with its art occupying only the middle band, and
+   transparent margins above and below. `contain` keeps that band whole —
+   `cover` crops into the empty rows and shows a hard edge. It is scaled past
+   the stage width so it runs off both sides as a foreground element. */
+.dam__rocks {
+  z-index: 5;
+  inset: auto auto -8% -6%;
+  width: 46%;
+  height: 46%;
+  object-fit: contain;
+  object-position: 0% 100%;
+}
+
+.dam__copy {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  top: clamp(40px, 9vh, 96px);
+  transform: translateX(-50%);
+  width: min(var(--container), 100% - var(--gutter) * 2);
+  text-align: center;
+  pointer-events: none;
+}
+
+.dam__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #16301f;
+  margin: 0;
+  text-wrap: balance;
+  /* The sky behind the title is pale and even, but the artwork can shift as
+     it scales, so a soft halo keeps the type legible at every size. */
+  text-shadow: 0 1px 0 #fdf7ea, 0 0 26px #fdf7eacc;
+}
+
+.dam__lede {
+  max-width: 46ch;
+  margin: 16px auto 0;
+  font-size: clamp(0.98rem, 1.5vw, 1.1rem);
+  line-height: 1.6;
+  color: #3c3426;
+  text-wrap: pretty;
+  text-shadow: 0 1px 0 #fdf7ea, 0 0 18px #fdf7eacc;
+}
+
+/* Reduced motion: no pin, no scrub — the dam is simply shown running. */
+.dam--static .dam__falls-wrap {
+  transform: scaleY(1);
+}
+.dam--static .dam__river,
+.dam--static .dam__spray {
+  opacity: 1;
+}
+
+@media (width<=700px) {
+  /* Portrait screens crop a 16:9 plate hard, so lift the focus toward the
+     dam face and give the copy more room above it. */
+  .dam__layer {
+    object-position: 58% 26%;
+  }
+  .dam__copy {
+    top: clamp(28px, 6vh, 56px);
+  }
+  .dam__spray {
+    bottom: 14%;
+  }
+}

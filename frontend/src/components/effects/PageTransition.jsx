@@ -25,7 +25,7 @@ const REVEAL_SELECTORS = [
 ];
 
 // Sections with their own bespoke animation: excluded from the generic reveals.
-const OWN_ANIMATION = '.ab, .curtain, .rs';
+const OWN_ANIMATION = '.ab, .curtain, .rs, .dam';
 
 // Route-change wipe curtain (gold/green/cream panels + logo) AND the generic scroll
 // reveals for headings, grids and images (original `Vd`). Dispatches `fx:reveal` on
