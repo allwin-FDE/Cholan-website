@@ -2,18 +2,23 @@ import { useEffect, useRef } from 'react';
 import { gsap } from '../../lib/gsap.js';
 import { prefersReducedMotion } from '../../lib/motion.js';
 
-// How many viewport heights of scrolling the fill takes.
+// How many viewport heights of scrolling the section holds.
 const SCROLL_SCREENS = 1.6;
+
+// Two copies of the river sit side by side and slide as one, so the water can
+// travel a full plate-width without ever showing an edge.
+const RIVER_DRIFT = 50;
 
 const headerHeight = () =>
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 74;
 
-// Home "the river returns" section: a Kallanai-style dam that fills as you scroll.
+// Home "Fed by the Kaveri" section: the dam pours constantly, and the water on
+// the ground below it moves as the page scrolls.
 //
-// Four painted layers sit on top of each other. The dam is dry at the start;
-// scrolling drives one timeline that pours the falls down the face, raises the
-// river behind them and settles the rocks in front. It is scrubbed, so
-// scrolling back up drains the dam again.
+// The dam and its falls are a single painted plate, so they stay fixed. The
+// river underneath is the moving part: scrolling drives it downstream, lifts
+// its level and thickens the spray at the foot of the falls. It is scrubbed,
+// so scrolling back up runs the water the other way.
 export default function DamSection() {
   const rootRef = useRef(null);
 
@@ -21,7 +26,6 @@ export default function DamSection() {
     const root = rootRef.current;
     if (!root) return;
 
-    // Reduced motion: show the dam already full and skip the scroll work.
     if (prefersReducedMotion()) {
       root.classList.add('dam--static');
       return;
@@ -41,33 +45,25 @@ export default function DamSection() {
         },
       });
 
-      // The falls are uncovered from the crest downward, which reads as water
-      // spilling over the edge and reaching for the river. Clipping keeps the
-      // artwork undistorted; the image's own soft foot does the tapering.
+      // The river runs downstream for the whole section. This is the motion
+      // the scroll is really driving.
+      // Both transforms go on the track, not on the window that clips it:
+      // moving the window would drag its mask along with it.
       tl.fromTo(
-        '.dam__falls-wrap',
-        { clipPath: 'inset(0 0 100% 0)' },
-        { clipPath: 'inset(0 0 0% 0)', duration: 1, ease: 'power1.out' },
+        '.dam__river-track',
+        { xPercent: 0, yPercent: 8 },
+        { xPercent: -RIVER_DRIFT, yPercent: 0, duration: 1 },
         0,
       )
-        // The river rises to meet the falling water. It starts early so the
-        // base of the falls always lands in water, never on dry sand.
-        .fromTo(
-          '.dam__river',
-          { autoAlpha: 0, yPercent: 14 },
-          { autoAlpha: 1, yPercent: 0, duration: 0.75 },
-          0.1,
-        )
-        // Spray at the base of the falls blooms once there is water to throw.
-        .fromTo('.dam__spray', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 }, 0.55)
-        // Foreground rocks drift up slightly, a parallax against the water.
-        .fromTo('.dam__rocks', { yPercent: 10 }, { yPercent: 0, duration: 1 }, 0)
-        // Copy arrives once the dam is visibly running.
+        // Spray at the foot of the falls thickens as the water builds.
+        .fromTo('.dam__spray', { autoAlpha: 0.25 }, { autoAlpha: 1, duration: 0.6 }, 0.1)
+        // Foreground rocks drift against the current.
+        .fromTo('.dam__rocks', { yPercent: 8 }, { yPercent: 0, duration: 1 }, 0)
         .fromTo(
           '.dam__copy > *',
           { autoAlpha: 0, y: 24 },
-          { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.08, ease: 'power2.out' },
-          0.6,
+          { autoAlpha: 1, y: 0, duration: 0.25, stagger: 0.08, ease: 'power2.out' },
+          0.1,
         );
     }, root);
 
@@ -79,15 +75,18 @@ export default function DamSection() {
       <div className="dam__stage">
         <div className="dam__sky" aria-hidden="true" />
 
-        <img className="dam__layer dam__dam" src="/images/dam/dam.webp" alt="" aria-hidden="true" />
-
-        <div className="dam__falls-wrap" aria-hidden="true">
-          <img className="dam__layer dam__falls" src="/images/dam/falls.webp" alt="" />
+        {/* The river sits behind the dam so the falls land in front of it. */}
+        <div className="dam__river" aria-hidden="true">
+          <div className="dam__river-track">
+            <img className="dam__river-tile" src="/images/dam/river.webp" alt="" />
+            <img className="dam__river-tile" src="/images/dam/river.webp" alt="" />
+            <img className="dam__river-tile" src="/images/dam/river.webp" alt="" />
+          </div>
         </div>
 
         <img
-          className="dam__layer dam__river"
-          src="/images/dam/river.webp"
+          className="dam__layer dam__damfalls"
+          src="/images/dam/damfalls.webp"
           alt=""
           aria-hidden="true"
         />
