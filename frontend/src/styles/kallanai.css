@@ -1,14 +1,25 @@
 /* Home "Fed by the Kaveri" section: one painting of the Kallanai dam, drifting
    slowly behind the copy as the page scrolls. */
 
+/* Breathing room above and below, on the same rhythm as the rest of the page,
+   so the painting reads as its own panel rather than running straight out of
+   the section above it. */
 .kallanai {
   position: relative;
-  background: #f6f1e6;
+  background: var(--page-bg);
+  padding-block: var(--section-y);
 }
 
+/* Inset and rounded, so the painting reads as a panel sitting on the page.
+   Full-bleed, its pale sky blends into the section background and the spacing
+   above it is invisible. */
 .kallanai__frame {
   position: relative;
+  width: min(var(--container), 100% - var(--gutter) * 2);
+  margin-inline: auto;
   height: clamp(460px, 78vh, 760px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
   isolation: isolate;
   overflow: hidden;
 }
