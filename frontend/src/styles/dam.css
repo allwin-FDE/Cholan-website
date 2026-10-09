@@ -57,9 +57,9 @@
   inset: auto 0 0 0;
   height: 42%;
   overflow: hidden;
-  /* A flat water tone behind the tiles, so the deepest part of the river is
-     never a strip of page showing through where the painted plate ends. */
-  background: #1f6f7a;
+  /* A flat water tone behind the tiles, sampled from the plate's own deep
+     water, so nothing of the page can show through beneath it. */
+  background: #086d91;
   pointer-events: none;
   /* The plate's top edge is a straight cut; fading it blends the water into
      the spray at the foot of the falls. */
@@ -69,6 +69,7 @@
 
 .dam__river-track {
   display: flex;
+  /* Three tiles, each one stage-width wide. */
   width: 300%;
   height: 100%;
   will-change: transform;
@@ -78,9 +79,18 @@
   width: 33.3333%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 72%;
+  /* The plate's top 43% is empty transparency, its crests peak around 50-56%
+     and solid water runs from 62% to the bottom edge. Anchoring well down the
+     plate puts the crests at the waterline instead of cropping to flat blue. */
+  object-position: 50% 88%;
   display: block;
   flex: 0 0 auto;
+}
+/* The plate's left and right edges do not match, so butting copies together
+   shows a vertical seam. Mirroring every second tile makes each join a
+   reflection of itself, which matches by construction. */
+.dam__river-tile:nth-child(2n) {
+  transform: scaleX(-1);
 }
 
 /* Spray where the falls meet the river. */
