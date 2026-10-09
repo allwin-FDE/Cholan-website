@@ -41,8 +41,8 @@ export default function KallanaiSection() {
         // The grass is nearest the lens, so it travels furthest and grows most.
         .fromTo(
           '.kallanai__grass',
-          { yPercent: 14, scale: 1.16 },
-          { yPercent: -4, scale: 1.02, duration: 1 },
+          { yPercent: 8, scale: 1.14 },
+          { yPercent: -6, scale: 1.02, duration: 1 },
           0,
         )
         // The copy lifts very slightly against both, holding the frame together.

@@ -64,13 +64,25 @@
 .kallanai__grass {
   position: absolute;
   z-index: 3;
-  inset: auto -8% -10% -8%;
-  width: 116%;
+  /* Stretched between the two sides rather than given a width: the plate's
+     foliage is massed at its outer edges, so the edges have to stay pinned to
+     the frame's corners. A width here would fight the insets and pull the
+     right-hand cluster in off the corner. */
+  /* Pulled wider than the frame on both sides so each cluster is driven into
+     its corner; the plate's right-hand mass is lighter than its left, so it
+     needs the extra overhang to reach. */
+  left: -12%;
+  right: -12%;
+  bottom: -6%;
+  width: auto;
   height: auto;
   display: block;
   pointer-events: none;
   user-select: none;
   will-change: transform;
+  /* Scale from the bottom edge, so the push-in grows the foliage upward into
+     frame instead of lifting it off the bottom corners. */
+  transform-origin: 50% 100%;
   /* The plate is already painted soft; a touch more separates it from the
      sharp dam behind. */
   filter: blur(1.5px);
