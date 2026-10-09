@@ -46,6 +46,36 @@
   background: linear-gradient(#fdf8edd9 0%, #fdf8ed8f 34%, #fdf8ed00 58%);
 }
 
+/* A light vignette: the corner falloff of a lens, which is most of what makes
+   a still frame read as a camera shot rather than a flat picture. */
+.kallanai__frame:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(120% 95% at 50% 45%, #0000 56%, #2a1f0e2e 100%);
+}
+
+/* Out-of-focus foliage at the bottom corners, as if a hand's width from the
+   lens. It is oversized and hangs past the frame on every side so the camera
+   move can never pull its edges into view. */
+.kallanai__grass {
+  position: absolute;
+  z-index: 3;
+  inset: auto -8% -10% -8%;
+  width: 116%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+  /* The plate is already painted soft; a touch more separates it from the
+     sharp dam behind. */
+  filter: blur(1.5px);
+}
+
 .kallanai__copy {
   position: absolute;
   z-index: 2;
