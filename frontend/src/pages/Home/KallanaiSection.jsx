@@ -56,6 +56,19 @@ export default function KallanaiSection() {
           width="1672"
           height="941"
         />
+
+        {/* The water is painted into the scene, so it cannot simply be moved.
+            These are copies of the same picture clipped to the two water bands
+            — the falls at 55-75% of the frame, the river below them — and
+            nudged continuously. Against the identical pixels underneath, that
+            reads as water running rather than as the picture sliding. */}
+        <div className="kallanai__water kallanai__water--falls" aria-hidden="true">
+          <img src="/images/kallanai/kallanai.webp" alt="" />
+        </div>
+        <div className="kallanai__water kallanai__water--river" aria-hidden="true">
+          <img src="/images/kallanai/kallanai.webp" alt="" />
+        </div>
+
         <div className="kallanai__scrim" aria-hidden="true" />
 
         <div className="kallanai__copy">
