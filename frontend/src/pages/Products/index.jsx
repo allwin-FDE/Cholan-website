@@ -84,7 +84,7 @@ export default function Products() {
     <>
       <PageHero
         title="Our products"
-        lede="Traditional rice, native millets, pulses and cold-pressed oils — milled in small lots and packed against the order."
+        lede="Rice and native millets — milled in small lots and packed against the order."
       />
       <section className="section section--alt products-page">
         <div className="container">

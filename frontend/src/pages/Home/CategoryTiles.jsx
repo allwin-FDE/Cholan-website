@@ -8,10 +8,10 @@ export default function CategoryTiles() {
       <div className="container">
         <SectionHeading
           title="What we stock"
-          lede="Four ranges, all traceable back to the farm they came from."
+          lede="Both ranges, all traceable back to the farm they came from."
           center
         />
-        <div className="grid grid--4">
+        <div className="grid grid--2">
           {categories.map((category) => (
             <Link
               key={category.slug}

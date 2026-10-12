@@ -5,7 +5,7 @@ export const site = {
   shortName: 'Cholan',
   tagline: 'Eat healthy millets. Stay fit.',
   intro:
-    'From the paddy fields of Tamil Nadu to your kitchen — traditional rice, native millets and cold-pressed oils, sourced and packed with care.',
+    'From the paddy fields of Tamil Nadu to your kitchen — rice and native millets, sourced and packed with care.',
   phone: '+91 90922 66667',
   phoneRaw: '919092266667',
   email: 'cholanricesalem@gmail.com',
