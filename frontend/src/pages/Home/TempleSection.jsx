@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useSnapScroll, getSectionTop } from '../../hooks/useSnapScroll.js';
+import { Icon, milletIcons } from '../../components/common/Icon.jsx';
 import { templeBenefits } from './templeBenefits.js';
 
 // Home "Why millets" section (original `hf`).
@@ -53,8 +54,11 @@ export default function TempleSection() {
         <ol className="millets__list">
           {templeBenefits.map((benefit) => (
             <li key={benefit.n} className="millets__item">
-              <span className="millets__n" aria-hidden="true">
-                {benefit.n}
+              <span className="millets__mark" aria-hidden="true">
+                <span className="millets__icon">
+                  <Icon d={milletIcons[benefit.icon]} />
+                </span>
+                <span className="millets__n">{benefit.n}</span>
               </span>
               <div className="millets__body">
                 <h3 className="millets__item-title">{benefit.title}</h3>

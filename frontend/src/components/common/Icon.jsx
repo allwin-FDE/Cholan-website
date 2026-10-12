@@ -27,3 +27,17 @@ export const iconPaths = {
   linkedin:
     'M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3ZM8 10.5V17M8 7.5v.01M12 17v-6.5M12 13.5a2.5 2.5 0 0 1 5 0V17',
 };
+
+// Path data for the "Why millets" benefit cards. Drawn as outlines on the same
+// 24x24 grid as iconPaths, so they take the same stroke treatment.
+export const milletIcons = {
+  // An ear of grain: a stalk with husks fanning off it, bran and germ intact.
+  grain:
+    'M12 21V9M12 9c0-2.6 1.6-4.5 4-4.5 0 2.6-1.6 4.5-4 4.5Zm0 0c0-2.6-1.6-4.5-4-4.5 0 2.6 1.6 4.5 4 4.5Zm0 5.5c0-2.4 1.5-4 3.6-4 0 2.4-1.5 4-3.6 4Zm0 0c0-2.4-1.5-4-3.6-4 0 2.4 1.5 4 3.6 4Z',
+  // A leaf with its midrib: fibre, the plant kept whole.
+  leaf: 'M19.5 4.5C10 4.5 4.5 9.2 4.5 15.5a4 4 0 0 0 4 4c6.3 0 11-5.5 11-15ZM6 18 13.5 10.5',
+  // A shield with a tick: free of gluten, naturally.
+  shield: 'M12 3.2 19 6v5.4c0 4.1-2.8 7.7-7 9.4-4.2-1.7-7-5.3-7-9.4V6l7-2.8ZM9.2 11.8l2 2 3.6-3.6',
+  // A steady trace rather than a spike: slow, even energy.
+  pulse: 'M3 14.5h3.6l2.1-5.2 2.9 8.4 2.5-5.6 1.4 2.4H21',
+};
