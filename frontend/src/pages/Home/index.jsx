@@ -12,9 +12,9 @@ export default function Home() {
     <>
       <HeroCurtain />
       <RailStory />
-      <TempleSection />
       <CategoryTiles />
       <FeaturedProducts />
+      <TempleSection />
       <BulkSection />
       <Reviews />
     </>
