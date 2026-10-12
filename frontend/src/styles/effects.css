@@ -1,3 +1,59 @@
+/* Start state for the scroll reveals.
+   PageTransition hides these in a useEffect, which runs after the browser has
+   already painted them — so every card and heading flashed visible for a frame
+   before snapping away. Declaring the same state here means they are never
+   painted visible in the first place.
+
+   The .fx-reveal flag is set by a script in index.html before first paint, and
+   only when motion is allowed, so without JS (or with reduced motion) none of
+   this applies and the content is simply visible. GSAP overwrites these inline
+   as it animates, so the handover is seamless. */
+.fx-reveal .grid > *,
+.fx-reveal .products-grid > *,
+.fx-reveal .footer__top > *,
+.fx-reveal .footer__grid > *,
+.fx-reveal .contact > *,
+.fx-reveal .infocard,
+.fx-reveal .policy__block,
+.fx-reveal .pdp__info > *,
+.fx-reveal .filters,
+.fx-reveal .results-count,
+.fx-reveal .bulk > *,
+.fx-reveal .millets__item,
+.fx-reveal .feature,
+.fx-reveal .newsletter,
+.fx-reveal .section-head-row > .btn,
+.fx-reveal .center > .row,
+.fx-reveal .marquee {
+  visibility: hidden;
+  opacity: 0;
+}
+/* Sections that run their own animation are excluded by the same rule the
+   script uses, so their content is not hidden by this. */
+.fx-reveal .ab .grid > *,
+.fx-reveal .curtain .grid > *,
+.fx-reveal .rs .grid > * {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Safety net: if the reveal script never runs — a JS error, a blocked bundle —
+   the content un-hides itself rather than staying invisible for good. */
+@keyframes fx-reveal-failsafe {
+  to {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+.fx-reveal .grid > *,
+.fx-reveal .products-grid > *,
+.fx-reveal .infocard,
+.fx-reveal .feature,
+.fx-reveal .millets__item,
+.fx-reveal .marquee {
+  animation: fx-reveal-failsafe 0.01s linear 6s forwards;
+}
+
 .fx-wipe {
   z-index: 1000;
   pointer-events: none;

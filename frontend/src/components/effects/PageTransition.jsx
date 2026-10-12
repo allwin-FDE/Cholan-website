@@ -151,6 +151,12 @@ export default function PageTransition() {
       // Grids, cards and misc blocks fade/slide up in batches.
       const revealTargets = gsap.utils.toArray(REVEAL_SELECTORS.join(','), shell).filter(isGeneric);
       gsap.set(revealTargets, { autoAlpha: 0, y: 46 });
+      // The same hidden state is declared in CSS under .fx-reveal so the
+      // content is never painted visible before this effect runs. Now that
+      // GSAP holds it inline, drop the flag: it also carries a failsafe that
+      // un-hides everything after a few seconds, which would otherwise
+      // override these tweens.
+      document.documentElement.classList.remove('fx-reveal');
       ScrollTrigger.batch(revealTargets, {
         start: 'top 92%',
         once: true,

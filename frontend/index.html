@@ -36,6 +36,20 @@
     <script type="module" src="/src/main.jsx"></script>
   </head>
   <body>
+    <script>
+      // Marks the document before first paint when the scroll reveals will run,
+      // so their start state can live in CSS instead of being applied by JS in
+      // an effect after the browser has already painted the content visible.
+      // Gated on reduced-motion too: if the reveals are skipped, nothing is
+      // hidden, so content can never be left invisible.
+      (function () {
+        try {
+          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.documentElement.classList.add('fx-reveal');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <div id="root"></div>
   </body>
 </html>
