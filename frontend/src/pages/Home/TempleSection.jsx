@@ -61,7 +61,11 @@ export default function TempleSection() {
                 <span className="millets__n">{benefit.n}</span>
               </span>
               <div className="millets__body">
-                <h3 className="millets__item-title">{benefit.title}</h3>
+                {/* data-title duplicates the text for the shimmer overlay in
+                    CSS; it is a pseudo-element, so it is not read out twice. */}
+                <h3 className="millets__item-title" data-title={benefit.title}>
+                  {benefit.title}
+                </h3>
                 <p className="millets__measure">{benefit.measure}</p>
                 <p className="millets__text">{benefit.text}</p>
               </div>
