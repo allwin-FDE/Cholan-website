@@ -214,6 +214,7 @@ export const products = [
     tagline: 'குதிரைவாலி · Barnyard millet',
     description: 'Barnyard millet — quick to cook, good for pongal and upma.',
     packs: makePacks('500 g'),
+    image: '/images/products/kuthiraivali.webp',
   },
   {
     id: 'samai',
@@ -223,6 +224,7 @@ export const products = [
     tagline: 'சாமை · Little millet',
     description: 'Little millet, easy to cook. Works for pongal, upma, idli batter and lemon rice.',
     packs: makePacks('500 g'),
+    image: '/images/products/samai.webp',
   },
   {
     id: 'thinai',
@@ -232,6 +234,7 @@ export const products = [
     tagline: 'தினை · Foxtail millet',
     description: 'Foxtail millet — light on the stomach and a straight swap for rice in most dishes.',
     packs: makePacks('500 g'),
+    image: '/images/products/thinai.webp',
   },
   {
     id: 'varagu',
@@ -241,6 +244,7 @@ export const products = [
     tagline: 'வரகு · Kodo millet',
     description: 'Kodo millet, a traditional everyday millet.',
     packs: makePacks('500 g'),
+    image: '/images/products/varagu.webp',
   },
   {
     id: 'ragi',
@@ -250,6 +254,7 @@ export const products = [
     tagline: 'ராகி (கேழ்வரகு) · Finger millet',
     description: 'Finger millet, for kanji, koozh and adai.',
     packs: makePacks('500 g'),
+    image: '/images/products/ragi.webp',
     featured: true,
   },
   {
@@ -260,6 +265,7 @@ export const products = [
     tagline: 'கொள்ளு · Horse gram',
     description: 'Kollu, long used in Tamil kitchens for rasam, sundal and podi.',
     packs: makePacks('500 g'),
+    image: '/images/products/kollu.webp',
   },
   {
     id: 'nattu-ulundhu',
