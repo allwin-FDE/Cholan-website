@@ -5,9 +5,10 @@
   --millets-ink: #211a0f;
   --millets-ink-soft: #5a4a33;
   --millets-rule: #cbbb9a;
-  /* Darkened from the brand gold so the kicker and measure labels clear
-     4.5:1 against every tone of the paper ground (min 5.02:1). */
-  --millets-gold: #7f5a0e;
+  /* Darkened from the brand gold so the measure labels clear 4.5:1 against
+     every tone they sit on — including the darker patches of the parchment
+     card, where the previous #7f5a0e fell to 4.45:1. Now 4.75:1 at worst. */
+  --millets-gold: #7a560d;
   --millets-paper: #f7f1e3;
 
   background: var(--millets-paper);
@@ -69,13 +70,14 @@
 }
 
 /* Four columns on the page, like a printed spread. */
-/* Cards rather than bare columns: each benefit gets its own surface, so the
-   four read as a set of things rather than a run of text. */
+/* Parchment cards: each benefit sits on the illustrated frame — ruled border,
+   a temple at the foot on the left, paddy on the right. The artwork is the
+   card's background, with the real text laid over its clear upper area. */
 .millets__list {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   align-items: stretch;
-  gap: clamp(14px, 1.6vw, 22px);
+  gap: clamp(14px, 1.7vw, 24px);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -85,40 +87,33 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: clamp(22px, 2.2vw, 30px);
-  border-radius: var(--radius);
-  background: linear-gradient(#fffdf8, #fdf8ec);
-  border: 1px solid #e6dcc4;
-  box-shadow: 0 1px 2px #1a1a170a;
+  gap: 14px;
+  /* Generous side padding keeps the type clear of the drawn border, and the
+     deep bottom padding leaves the temple and paddy unobstructed. */
+  padding: clamp(24px, 2.2vw, 30px) clamp(22px, 2vw, 28px) clamp(96px, 11vw, 140px);
+  border-radius: 10px;
+  color: var(--millets-ink);
+  background-image: url('/images/ui/card-parchment.webp');
+  /* The plate is square. Stretching it to 100%/100% lets it follow whatever
+     shape the column gives, which keeps the corner flourishes intact at the
+     four corners rather than cropping them. */
+  background-size: 100% 100%;
+  /* Deep enough that the drawn landscape at the foot has room below the text. */
+  min-height: clamp(300px, 26vw, 380px);
+  background-repeat: no-repeat;
+  /* Behind the artwork, in case it is still loading. */
+  background-color: #f6ecd4;
+  box-shadow: 0 2px 6px #2b210d14;
   transition:
     transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.25s,
-    border-color 0.25s;
-}
-/* A gold hairline along the top edge, drawn on hover. */
-.millets__item:after {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  border-radius: var(--radius) var(--radius) 0 0;
-  background: linear-gradient(90deg, var(--millets-gold), #d8b25f);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow 0.25s;
 }
 .millets__item:hover {
-  transform: translateY(-3px);
-  border-color: #dccfae;
-  box-shadow: 0 10px 28px #2b210d14;
-}
-.millets__item:hover:after {
-  transform: scaleX(1);
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px #2b210d26;
 }
 
-/* Icon and numeral share a row: the icon carries the meaning, the numeral
-   keeps the counted-list reading the section had before. */
+/* Icon and numeral share the top row, inside the drawn frame. */
 .millets__mark {
   display: flex;
   align-items: center;
@@ -126,14 +121,16 @@
   gap: 12px;
 }
 
+/* A ruled tile echoing the card's own border. */
 .millets__icon {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #f3e7c9;
-  color: var(--millets-gold);
+  width: 46px;
+  height: 46px;
+  border-radius: 9px;
+  border: 1.5px solid #c9a95f;
+  background: #fbf3dd80;
+  color: var(--millets-ink);
   flex: 0 0 auto;
 }
 .millets__icon svg {
@@ -143,13 +140,21 @@
 
 .millets__n {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 2.2vw, 1.9rem);
+  font-size: clamp(1.7rem, 2.5vw, 2.2rem);
   font-weight: 800;
   line-height: 1;
-  /* Recessive, but still clears 3:1 on the card so it is legible rather than
-     a ghost. */
-  color: #a78c52;
+  color: #8a6a24;
   font-variant-numeric: tabular-nums;
+}
+
+/* A short gold rule under the title, as on the reference card. */
+.millets__item-title:after {
+  content: '';
+  display: block;
+  width: 54px;
+  height: 1.5px;
+  margin-top: 12px;
+  background: linear-gradient(90deg, #c9a95f, #c9a95f00);
 }
 
 .millets__body {
