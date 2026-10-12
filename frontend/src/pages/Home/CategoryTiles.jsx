@@ -4,7 +4,7 @@ import { categories } from '../../data/categories.js';
 
 export default function CategoryTiles() {
   return (
-    <section className="section">
+    <section className="section stock">
       <div className="container">
         <SectionHeading
           title="What we stock"
