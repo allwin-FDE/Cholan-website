@@ -102,7 +102,7 @@ export const products = [
     tagline: 'குருணை அரிசி · For kanji and pongal',
     description: 'Broken rice, cleaned and graded — the traditional choice for kanji, pongal and upma. Sold in the 26 kg bag.',
     packs: makePacks('26 kg'),
-    image: '/images/pack-broken-ponni.webp',
+    image: '/images/products/kurunai-rice.webp',
   },
   {
     id: 'canteen-special-rice',
