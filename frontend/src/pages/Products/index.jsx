@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import PageHero from '../../components/common/PageHero.jsx';
 import ProductCard from '../../components/product/ProductCard';
 import { pinnedRank } from '../../components/product/productOrder';
 import { products } from '../../data/products';
@@ -80,44 +81,49 @@ export default function Products() {
   }, [visible]);
 
   return (
-    <section className="section products-page">
-      <div className="container">
-        <h1 className="visually-hidden">Our products: rice, millets, oils and more</h1>
-        <ProductFilters
-          category={category}
-          onCategory={selectCategory}
-          query={query}
-          onQuery={(value) => {
-            captureState();
-            setQuery(value);
-          }}
-        />
-        <p className="muted results-count">
-          Showing {visible.length} of {products.length} products
-        </p>
-        {visible.length > 0 ? (
-          <div className="products-grid" ref={gridRef}>
-            {visible.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="empty">
-            <h3>No products match that search</h3>
-            <p className="muted">Try a different word, or clear the filters to see everything.</p>
-            <button
-              className="btn btn--ghost btn--sm"
-              onClick={() => {
-                captureState();
-                setQuery('');
-                selectCategory('all');
-              }}
-            >
-              Clear filters
-            </button>
-          </div>
-        )}
-      </div>
-    </section>
+    <>
+      <PageHero
+        title="Our products"
+        lede="Traditional rice, native millets, pulses and cold-pressed oils — milled in small lots and packed against the order."
+      />
+      <section className="section section--alt products-page">
+        <div className="container">
+          <ProductFilters
+            category={category}
+            onCategory={selectCategory}
+            query={query}
+            onQuery={(value) => {
+              captureState();
+              setQuery(value);
+            }}
+          />
+          <p className="muted results-count">
+            Showing {visible.length} of {products.length} products
+          </p>
+          {visible.length > 0 ? (
+            <div className="products-grid" ref={gridRef}>
+              {visible.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty">
+              <h3>No products match that search</h3>
+              <p className="muted">Try a different word, or clear the filters to see everything.</p>
+              <button
+                className="btn btn--ghost btn--sm"
+                onClick={() => {
+                  captureState();
+                  setQuery('');
+                  selectCategory('all');
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

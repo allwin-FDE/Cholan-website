@@ -36,7 +36,7 @@
 .blog-empty__card .eyebrow {
   display: block;
 }
-.blog-empty__card h1 {
+.blog-empty__card h2 {
   letter-spacing: -0.02em;
   text-wrap: balance;
   margin: 10px 0 14px;

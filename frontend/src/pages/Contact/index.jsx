@@ -83,7 +83,7 @@ export default function Contact() {
         title="Talk to us"
         lede="Household orders, bulk quotes or a question about a variety — we are happy to help."
       />
-      <section className="section">
+      <section className="section section--alt">
         <div className="container contact">
           <div className="contact__form">
             <h2>Send an enquiry</h2>

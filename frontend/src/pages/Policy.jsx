@@ -11,7 +11,7 @@ export default function Policy() {
   return (
     <>
       <PageHero title={policy.title} lede={policy.lede} />
-      <section className="section">
+      <section className="section section--alt">
         <div className="container policy">
           <p className="policy__note">
             <strong>Placeholder text.</strong> Replace this with your own reviewed policy before the

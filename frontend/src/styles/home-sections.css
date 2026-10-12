@@ -19,13 +19,15 @@
    backgrounds rather than elements. */
 .section--deep,
 .stock,
-.reviews {
+.reviews,
+.pagehero {
   position: relative;
   isolation: isolate;
 }
 .section--deep:before,
 .stock:before,
-.reviews:before {
+.reviews:before,
+.pagehero:before {
   content: '';
   position: absolute;
   z-index: -1;
@@ -68,11 +70,24 @@
   opacity: 0.055;
 }
 
+/* Page heroes: paddy in the right margin, beside the title rather than under
+   it, so every inner page opens with the same motif the home page uses. */
+.pagehero:before {
+  inset: auto -1% -8% auto;
+  width: clamp(140px, 15vw, 230px);
+  height: clamp(130px, 14vw, 210px);
+  background-image: url('/images/ui/silhouette-paddy.svg');
+  background-size: contain;
+  background-position: right bottom;
+  opacity: 0.06;
+}
+
 @media (width<=700px) {
   /* Narrow screens have no spare margin; the motifs would crowd the text. */
   .section--deep:before,
   .stock:before,
-  .reviews:before {
+  .reviews:before,
+  .pagehero:before {
     display: none;
   }
 }
