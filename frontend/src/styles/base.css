@@ -21,6 +21,8 @@
   --surface: #fff;
   --surface-alt: #faf8f3;
   --surface-deep: #f3efe5;
+  /* Section band tint: a clear step from --page-bg without dimming text. */
+  --band-warm: #ebe3d1;
   --page-bg: #fbfaf6;
   --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -102,9 +104,15 @@ p {
 .section {
   padding-block: var(--section-y);
 }
-.section--alt,
+/* Alternating section tints, so consecutive bands separate instead of running
+   together on one flat page colour. --surface-deep sits only 1.10:1 from the
+   page, too close to read as a change, so the deeper band uses a warm cream a
+   clear step away while still holding body text at 7:1. */
+.section--alt {
+  background: var(--surface-alt);
+}
 .section--deep {
-  background: 0 0;
+  background: var(--band-warm);
 }
 .section-head {
   max-width: 640px;

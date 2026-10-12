@@ -6,7 +6,7 @@ import { getFeaturedProducts } from '../../lib/products.js';
 export default function FeaturedProducts() {
   const featured = getFeaturedProducts(4);
   return (
-    <section className="section showcase">
+    <section className="section section--alt showcase">
       <div className="container">
         <div className="row wrap gap-16 section-head-row">
           <SectionHeading
