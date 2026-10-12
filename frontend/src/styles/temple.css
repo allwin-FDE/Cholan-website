@@ -9,7 +9,7 @@
      every tone they sit on — including the darker patches of the parchment
      card, where the previous #7f5a0e fell to 4.45:1. Now 4.75:1 at worst. */
   --millets-gold: #7a560d;
-  --millets-paper: #f7f1e3;
+  --millets-paper: #efe3c9;
 
   background: var(--millets-paper);
   color: var(--millets-ink);
@@ -27,13 +27,24 @@
   overflow: hidden;
 }
 
-/* Flat warm paper. No wash, pattern or imagery — nothing behind the type. */
+/* Warm ground for the parchment cards: a soft pool of light behind the row,
+   deepening toward the edges, so the cards sit in the scene rather than on a
+   flat panel. Tones are taken from the card artwork itself. */
 .millets__paper {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: var(--millets-paper);
+  background:
+    radial-gradient(120% 78% at 50% 42%, #fbf3e2 0%, #fbf3e200 62%),
+    linear-gradient(
+      var(--page-bg) 0%,
+      #f3e9d2 9%,
+      #efe3c9 54%,
+      #e9dcbe 88%,
+      var(--page-bg) 100%
+    );
 }
+
 
 .millets__inner {
   position: relative;
