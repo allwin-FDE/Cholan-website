@@ -12,6 +12,71 @@
 .section-head-row .section-head {
   margin-bottom: 0;
 }
+/* Background silhouettes.
+   Flat gold motifs at very low opacity, set in the empty margins of a few
+   sections so the page is not simply blank there. They sit behind everything,
+   take no pointer events, and are hidden from assistive tech by being
+   backgrounds rather than elements. */
+.section--deep,
+.stock,
+.reviews {
+  position: relative;
+  isolation: isolate;
+}
+.section--deep:before,
+.stock:before,
+.reviews:before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  opacity: 0.07;
+}
+
+/* "What we stock": paddy rising in the left margin. */
+.stock:before {
+  inset: auto auto 0 -2%;
+  width: clamp(180px, 20vw, 300px);
+  height: clamp(170px, 19vw, 280px);
+  background-image: url('/images/ui/silhouette-paddy.svg');
+  background-size: contain;
+  background-position: left bottom;
+}
+
+/* The bulk band: a gopuram on the right, away from the copy and the photo. */
+.section--deep:before {
+  inset: auto -1% 0 auto;
+  width: clamp(120px, 13vw, 200px);
+  height: clamp(190px, 22vw, 330px);
+  background-image: url('/images/ui/silhouette-gopuram.svg');
+  background-size: contain;
+  background-position: right bottom;
+  opacity: 0.085;
+}
+
+/* Reviews: paddy at both ends of the marquee, flipped on the right so the
+   two read as a pair rather than a repeat. */
+.reviews:before {
+  inset: auto 0 0 0;
+  height: clamp(130px, 15vw, 220px);
+  background-image:
+    url('/images/ui/silhouette-paddy.svg'),
+    url('/images/ui/silhouette-paddy.svg');
+  background-size: contain, contain;
+  background-position: left bottom, right bottom;
+  opacity: 0.055;
+}
+
+@media (width<=700px) {
+  /* Narrow screens have no spare margin; the motifs would crowd the text. */
+  .section--deep:before,
+  .stock:before,
+  .reviews:before {
+    display: none;
+  }
+}
+
 /* "What we stock": the heading is set in gold rather than the usual green.
    The title and the lede take different tones because they are held to
    different thresholds — the title is large display type (3:1), the lede is
