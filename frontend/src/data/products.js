@@ -48,16 +48,6 @@ export const products = [
     image: '/images/products/moongil-rice.webp',
   },
   {
-    id: 'senthura-rice',
-    name: 'Senthura Rice',
-    tamil: 'செந்தூரா',
-    category: 'rice',
-    tagline: 'செந்தூரா',
-    description: 'Senthura rice, in the 10 kg and 26 kg bags.',
-    packs: makePacks('10 kg', '26 kg'),
-    image: '/images/products/senthura-rice.jpg',
-  },
-  {
     id: 'kettimelam-rice',
     name: 'Kettimelam Rice',
     tamil: 'கெட்டிமேளம்',
