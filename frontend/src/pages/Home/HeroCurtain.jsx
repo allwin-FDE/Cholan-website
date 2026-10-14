@@ -6,7 +6,7 @@ import { useSnapScroll, getSectionTop } from '../../hooks/useSnapScroll.js';
 const packs = [
   {
     src: '/images/stage-chennai-pattinam.webp',
-    alt: 'Chennai Pattinam Ponni rice pack',
+    alt: 'Chennai Pattanam Gottalady Ponni 25 kg rice pack',
     cls: 'side-l',
   },
   { src: '/images/stage-karikalan.webp', alt: 'Karikalan 25 kg bulk pack', cls: 'hero' },
