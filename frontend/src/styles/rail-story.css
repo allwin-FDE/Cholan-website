@@ -1,6 +1,6 @@
 .rs {
   z-index: 1;
-  background: #fbfaf6;
+  background: var(--page-bg);
   position: relative;
 }
 .rs__stage {

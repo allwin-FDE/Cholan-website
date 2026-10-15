@@ -9,7 +9,7 @@
      every tone they sit on — including the darker patches of the parchment
      card, where the previous #7f5a0e fell to 4.45:1. Now 4.75:1 at worst. */
   --millets-gold: #7a560d;
-  --millets-paper: #efe3c9;
+  --millets-paper: var(--page-bg);
 
   background: var(--millets-paper);
   color: var(--millets-ink);
@@ -34,15 +34,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(120% 78% at 50% 42%, #fbf3e2 0%, #fbf3e200 62%),
-    linear-gradient(
-      var(--page-bg) 0%,
-      #f3e9d2 9%,
-      #efe3c9 54%,
-      #e9dcbe 88%,
-      var(--page-bg) 100%
-    );
+  background: var(--page-bg);
 }
 
 

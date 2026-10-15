@@ -16,14 +16,16 @@
   --danger-50: #fdf3f1;
   --ink: #1a1a17;
   --ink-soft: #4a4a44;
-  --ink-mute: #7a7a71;
+  /* Darkened for the warmer page: #7a7a71 fell to 3.65:1 once the
+     background stopped being near-white. */
+  --ink-mute: #68685f;
   --line: #e2e0d8;
   --surface: #fff;
   --surface-alt: #faf8f3;
   --surface-deep: #f3efe5;
   /* Section band tint: a clear step from --page-bg without dimming text. */
   --band-warm: #ebe3d1;
-  --page-bg: #fbfaf6;
+  --page-bg: #f2ebdb;
   --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --radius-sm: 8px;
@@ -56,11 +58,7 @@ body:before {
   content: "";
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 55% 45% at 100% 0%, #e8bb5621, transparent 70%),
-    radial-gradient(ellipse 50% 45% at 0% 100%, #4a8f6014, transparent 70%),
-    radial-gradient(#b07d1d12 1px, transparent 1.4px) 0 0 / 26px 26px,
-    var(--page-bg);
+  background: var(--page-bg);
   position: fixed;
   inset: 0;
 }
@@ -106,15 +104,12 @@ p {
 .section {
   padding-block: var(--section-y);
 }
-/* Alternating section tints, so consecutive bands separate instead of running
-   together on one flat page colour. --surface-deep sits only 1.10:1 from the
-   page, too close to read as a change, so the deeper band uses a warm cream a
-   clear step away while still holding body text at 7:1. */
-.section--alt {
-  background: var(--surface-alt);
-}
+/* The page is one flat colour, so the section modifiers no longer paint a
+   tint. They are kept as hooks rather than removed, since several pages still
+   carry them. */
+.section--alt,
 .section--deep {
-  background: var(--band-warm);
+  background: 0 0;
 }
 .section-head {
   max-width: 640px;
