@@ -70,21 +70,29 @@
   pointer-events: none;
   padding: 0 24px;
   position: absolute;
-  top: clamp(40px, 11vh, 110px);
+  /* The overhead wire crosses at about 37% of the frame, so the block starts
+     high and is bounded short of it: the type stays in open sky rather than
+     sitting on the catenary. */
+  top: clamp(24px, 5vh, 56px);
+  bottom: 66%;
+  display: grid;
+  align-content: start;
   left: 0;
   right: 0;
 }
 .rs__title {
-  max-width: 20ch;
+  /* Wider measure so the line count stays at two or three rather than
+     growing, which is what pushed the last line onto the wire. */
+  max-width: 24ch;
   font-family: var(--font-display);
-  letter-spacing: 0.035em;
-  word-spacing: 0.16em;
+  letter-spacing: 0.02em;
+  word-spacing: 0.1em;
   color: var(--brand-900);
   text-wrap: balance;
   margin: 0 auto;
-  font-size: clamp(2rem, 4.4vw, 3.8rem);
+  font-size: clamp(1.7rem, 3.4vw, 3rem);
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.1;
 }
 .rs__sky {
   z-index: 5;
