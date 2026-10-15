@@ -112,6 +112,14 @@
   text-shadow: 0 1px 0 #fffdf7, 0 1px 6px #2b210d1f;
 }
 
+/* Two tiles stretched across the full container made each one enormous, since
+   the 3:2 media scales with the column. The row is capped and centred so the
+   pair sit at the size they were at four across. */
+.stock .grid--2 {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
 .cattile {
   border: 1px solid var(--line);
   border-radius: var(--radius);
