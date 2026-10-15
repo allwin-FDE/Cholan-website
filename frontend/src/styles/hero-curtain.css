@@ -136,7 +136,9 @@
   max-width: 34%;
   height: auto;
   transform: translateX(var(--slide, 0px));
-  margin-inline: clamp(-34px, -2.2vw, -10px);
+  /* Less overlap than before: the side packs were tucked so far behind the
+     centre one that only a sliver of each showed. */
+  margin-inline: clamp(-18px, -1.1vw, -4px);
   display: block;
 }
 .curtain__pack--hero {
@@ -150,23 +152,37 @@
   z-index: 2;
   filter: drop-shadow(0 3px 3px #2c1e0a70) drop-shadow(0 12px 16px #32240e42)
     drop-shadow(0 24px 36px #32240e26);
-  max-height: min(33vh, 318px);
+  max-height: min(35vh, 334px);
+  /* The sides stand a little back, so the group reads as a row standing on
+     one line rather than three packs at random heights. */
+  align-self: flex-end;
 }
+/* Fanned outward, as a set of packs leaning on each other would. Rotating
+   about the inner bottom corner swings the outer edge up, so each side is
+   nudged back down to keep all three standing on one line. */
 .curtain__pack--side-l {
-  rotate: -5deg;
+  rotate: -8deg;
+  transform-origin: 85% 100%;
+  margin-bottom: clamp(-20px, -2vh, -10px);
 }
 .curtain__pack--side-r {
-  rotate: 5deg;
+  rotate: 8deg;
+  transform-origin: 15% 100%;
+  margin-bottom: clamp(-20px, -2vh, -10px);
 }
+/* Anchored to the foot of the stage rather than pushed up by a margin, so the
+   shadow stays under the packs instead of floating free of them. */
 .curtain__floor {
   z-index: 0;
-  filter: blur(13px);
-  background: radial-gradient(52% 50%, #4a320e6b, #50371033 46%, #583c1212 70%, #0000 85%);
+  filter: blur(14px);
+  background: radial-gradient(52% 50%, #4a320e7a, #5037103d 46%, #583c1216 70%, #0000 85%);
   border-radius: 50%;
-  width: min(74%, 700px);
-  height: clamp(22px, 4.2vh, 42px);
-  margin-top: clamp(-30px, -3.4vh, -18px);
-  position: relative;
+  width: min(78%, 740px);
+  height: clamp(20px, 3.6vh, 36px);
+  position: absolute;
+  bottom: clamp(-14px, -1.6vh, -6px);
+  left: 50%;
+  transform: translateX(-50%);
 }
 @media (width<=900px) {
   .curtain {
