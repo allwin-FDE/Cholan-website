@@ -83,7 +83,6 @@
 }
 .curtain__lede {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 144;
   letter-spacing: 0.01em;
   word-spacing: 0.08em;
   color: var(--brand-900);

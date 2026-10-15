@@ -10,7 +10,7 @@
   --maroon-soft: #8f3b34;
   --ink: #23201a;
   --ink-soft: #5c564a;
-  --f-display: "Fraunces", "Georgia", serif;
+  --f-display: "Poppins", "Segoe UI", system-ui, sans-serif;
   --f-body: "Inter", system-ui, sans-serif;
   background: var(--ivory);
   color: var(--ink);

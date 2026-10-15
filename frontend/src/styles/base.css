@@ -24,7 +24,7 @@
   /* Section band tint: a clear step from --page-bg without dimming text. */
   --band-warm: #ebe3d1;
   --page-bg: #fbfaf6;
-  --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
+  --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --radius-sm: 8px;
   --radius: 14px;
@@ -77,11 +77,13 @@ h2,
 h3,
 h4 {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  /* Poppins is already compact; the tighter tracking that suited Fraunces
+     closes the letters up too far here. */
+  letter-spacing: -0.01em;
   color: var(--brand-900);
   margin: 0 0 0.5em;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.18;
 }
 h1 {
   font-size: clamp(2.2rem, 5vw, 3.6rem);

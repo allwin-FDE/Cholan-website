@@ -77,7 +77,6 @@
 .rs__title {
   max-width: 20ch;
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 144;
   letter-spacing: 0.035em;
   word-spacing: 0.16em;
   color: var(--brand-900);
@@ -162,7 +161,6 @@
 }
 .rs__brand-title {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 144;
   letter-spacing: 0.035em;
   word-spacing: 0.16em;
   color: var(--brand-900);
