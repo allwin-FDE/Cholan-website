@@ -4,8 +4,10 @@
   --tint-a: #fcf1d6;
   --tint-b: #f2d9a0;
   --glow: #fffaebf2;
-  --accent: #a8741a;
-  --accent-soft: #a8741a1f;
+  /* Darkened from #a8741a: the pack chips fell to 4.07:1 and the hover
+     title to 3.99:1 once both were drawn in the accent. */
+  --accent: #9a6a16;
+  --accent-soft: #9a6a161f;
   font-family: var(--card-sans);
   background: #fffdf8;
   border-radius: 22px;
@@ -50,6 +52,21 @@
   position: absolute;
   inset: 0;
 }
+/* A rail in the category accent along the top edge, drawn on hover. */
+.card:before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 35%, #fff));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.card:hover:before {
+  transform: scaleX(1);
+}
 .card:hover {
   transform: translateY(-6px);
   box-shadow:
@@ -62,12 +79,32 @@
 .card__media {
   aspect-ratio: 1;
   background:
-    radial-gradient(circle at 50% 56%, var(--glow) 0%, transparent 62%),
+    radial-gradient(circle at 50% 54%, var(--glow) 0%, transparent 58%),
+    radial-gradient(circle at 50% 52%, #fff6 0%, #fff0 42%),
     linear-gradient(160deg, var(--tint-a) 0%, var(--tint-b) 100%);
   place-items: center;
   display: grid;
   position: relative;
   overflow: hidden;
+}
+/* A faint ring behind the pack, in the category accent, so the panel reads as
+   a lit alcove rather than a flat block of colour. */
+.card__media:before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: 62%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -52%);
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+  background: radial-gradient(circle, #fff9 0%, #fff0 70%);
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.card:hover .card__media:before {
+  transform: translate(-50%, -52%) scale(1.07);
 }
 .card__media:after {
   content: "";
@@ -177,8 +214,19 @@
 .card__title a {
   color: inherit;
 }
+.card__title a {
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-size: 0% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition:
+    background-size 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 0.25s;
+}
+.card:hover .card__title a,
 .card__title a:hover {
   color: var(--accent);
+  background-size: 100% 2px;
 }
 .card__tagline {
   color: #6b6a60;
@@ -200,11 +248,13 @@
 }
 .card__packs li {
   background: var(--accent-soft);
-  color: color-mix(in srgb, var(--accent) 85%, #2a1d05);
-  border-radius: 999px;
+  color: color-mix(in srgb, var(--accent) 88%, #2a1d05);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 7px;
   padding: 4px 10px;
   font-size: 0.74rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .card__foot {
   border-top: 1px dashed #3c2a0a24;
