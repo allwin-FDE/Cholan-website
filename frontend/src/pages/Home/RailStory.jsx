@@ -105,7 +105,10 @@ export default function RailStory() {
           0,
         )
         .fromTo('.rs__paddy', { xPercent: 3 }, { xPercent: -7, duration: WORLD_DURATION }, 0)
-        .to('.rs__intro', { autoAlpha: 0, y: -24, duration: 8, ease: 'sine.in' }, 12);
+        // Clear the intro before the world starts growing at 18: at the old
+        // timing it faded over 12-20, so the scaling field and the rising
+        // paddy came up through type that was still fully visible.
+        .to('.rs__intro', { autoAlpha: 0, y: -24, duration: 6, ease: 'sine.in' }, 11);
       tl.fromTo(world, { scale: 1 }, { scale: 1.14, duration: 15, ease: 'sine.in' }, 18)
         .to('.rs__paddy', { yPercent: 30, duration: 15, ease: 'sine.in' }, 18)
         .fromTo(
