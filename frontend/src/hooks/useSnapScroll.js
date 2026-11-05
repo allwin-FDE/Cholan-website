@@ -3,6 +3,17 @@ import { gsap } from '../lib/gsap.js';
 
 // Module-level: the in-flight snap tween, so wheel/touch/keys are swallowed while it runs.
 let activeSnap = null;
+// After a snap, the rest of the gesture that caused it (a trackpad's momentum,
+// a still-spinning wheel) is absorbed — but only that gesture, and a new one
+// scrolls straight away. An event belongs to the same gesture when it follows
+// close on the last, or when it is weaker than the last (or a tiny tail step)
+// within a longer window: momentum fades, while a mouse wheel turned again
+// sends the same step as before, and must scroll.
+let settling = false;
+let lastWheelAt = 0;
+let lastWheelSize = 0;
+const GESTURE_GAP_MS = 90;
+const FADE_WINDOW_MS = 300;
 
 const getHeaderHeight = () =>
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 74;
@@ -22,14 +33,19 @@ export function useSnapScroll(ref, resolveTarget) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let touchStartY = null;
 
+    // Short and decisive: moving the instant the wheel turns and arriving
+    // without a long crawl at the end, which read as the page sticking.
     const animateTo = (top) => {
       const state = { y: window.scrollY };
       activeSnap = gsap.to(state, {
         y: top,
-        duration: reduced ? 0 : 1.1,
-        ease: 'power3.out',
+        duration: reduced ? 0 : 0.7,
+        ease: 'power2.out',
         onUpdate: () => window.scrollTo({ top: state.y, behavior: 'instant' }),
-        onComplete: () => setTimeout(() => (activeSnap = null), 150),
+        onComplete: () => {
+          activeSnap = null;
+          settling = true;
+        },
       });
     };
     const trySnap = (direction) => {
@@ -38,14 +54,24 @@ export function useSnapScroll(ref, resolveTarget) {
     };
 
     const onWheel = (e) => {
-      if (activeSnap) {
+      const now = performance.now();
+      const gap = now - lastWheelAt;
+      const size = Math.abs(e.deltaY);
+      const sameGesture =
+        gap < GESTURE_GAP_MS ||
+        (gap < FADE_WINDOW_MS && (size < lastWheelSize || size <= 4));
+      lastWheelAt = now;
+      lastWheelSize = size;
+      if (activeSnap || (settling && sameGesture)) {
         e.preventDefault();
         return;
       }
+      settling = false;
       !e.ctrlKey && e.deltaY && trySnap(e.deltaY > 0 ? 1 : -1) && e.preventDefault();
     };
     const onTouchStart = (e) => {
       touchStartY = e.touches[0]?.clientY ?? null;
+      settling = false; // a new touch is always a new gesture
     };
     const onTouchMove = (e) => {
       if (activeSnap) {
@@ -59,6 +85,7 @@ export function useSnapScroll(ref, resolveTarget) {
       trySnap(delta > 0 ? 1 : -1) && e.cancelable && e.preventDefault();
     };
     const onKeyDown = (e) => {
+      settling = false;
       if (activeSnap || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;

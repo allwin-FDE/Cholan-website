@@ -1,15 +1,17 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { features } from '../../config/features';
 import { formatPrice } from '../../lib/format';
-import { getLowestPrice } from '../../lib/packs';
+import { getDefaultPack } from '../../lib/packs';
 import { hasProductImage } from '../../lib/products';
 import AddToCart from './AddToCart';
 import { categoryName } from './productOrder';
 
 // Product tile used on Home, Products and ProductDetail "related" (original `xf`).
+// The sizes can be picked: the price and Add to cart follow the chosen one.
 export default function ProductCard({ product }) {
-  const lowest = getLowestPrice(product);
-  const showFrom = lowest != null && product.packs.length > 1;
+  const [size, setSize] = useState(() => getDefaultPack(product).size);
+  const pack = product.packs.find((p) => p.size === size) ?? getDefaultPack(product);
   const href = `/products/${product.id}`;
 
   return (
@@ -32,17 +34,25 @@ export default function ProductCard({ product }) {
         </h3>
         <p className="card__tagline">{product.tagline}</p>
         {product.packs.length > 0 && (
-          <ul className="card__packs" aria-label="Pack sizes">
-            {product.packs.map((pack) => (
-              <li key={pack.size}>{pack.size}</li>
+          <div className="card__packs" role="group" aria-label={`${product.name} pack size`}>
+            {product.packs.map((p) => (
+              <button
+                key={p.size}
+                type="button"
+                className={`card__pack${p.size === pack.size ? ' is-on' : ''}`}
+                aria-pressed={p.size === pack.size}
+                onClick={() => setSize(p.size)}
+              >
+                {p.size}
+              </button>
             ))}
-          </ul>
+          </div>
         )}
         <div className="card__foot">
           {features.prices && (
-            <p className={`card__price${lowest == null ? ' card__price--ask' : ''}`}>
-              {showFrom && <span className="card__from">from</span>}
-              {formatPrice(lowest)}
+            <p className={`card__price${pack.price == null ? ' card__price--ask' : ''}`} aria-live="polite">
+              {formatPrice(pack.price)}
+              {pack.price != null && pack.size && <span className="card__unit">/ {pack.size}</span>}
             </p>
           )}
           <div className="card__actions">
@@ -50,7 +60,7 @@ export default function ProductCard({ product }) {
               Details
             </Link>
             {features.cart ? (
-              <AddToCart product={product} />
+              <AddToCart product={product} pack={pack} />
             ) : (
               <Link to={`/contact?product=${product.id}`} className="card__enquire">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

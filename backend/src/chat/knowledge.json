@@ -1,0 +1,495 @@
+{
+  "builtAt": "2026-11-05T05:54:52.239Z",
+  "chunks": [
+    {
+      "id": "business",
+      "title": "Cholan Rice and Millet Shop — contact details",
+      "label": "Cholan Rice and Millet Shop — contact details",
+      "url": "/contact",
+      "text": "Business name: Cholan Rice and Millet Shop (short name: Cholan).\nCompany: Cholan Rice and Millet Shop is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064.\nPhone and WhatsApp: +91 90922 66667.\nEmail: info@cholanrice.in.\nAddress (shop and warehouse): 32/A2, SP Kannusamy Gounder St, Sanganoor, Coimbatore – 641027, Tamil Nadu, India.\nGSTIN: 33AAKCC0627N1ZL.\nFSSAI licence number: 12422018001222.\nSocial media: Instagram https://www.instagram.com/cholanrice/, Facebook https://www.facebook.com/profile.php?id=61593548190956, LinkedIn https://www.linkedin.com/company/cholan-rice-millets/.\nTagline: \"Pure goodness, always.\". From the paddy fields of Tamil Nadu to your kitchen — rice, sourced and packed with care."
+    },
+    {
+      "id": "ordering",
+      "title": "How to order and prices",
+      "label": "How to order and prices",
+      "url": "/contact",
+      "text": "Prices are listed on each product page, for each pack size, in rupees. Prices can change; the current rate is confirmed when you order.\nProducts can be added to the cart and ordered through checkout on the website.\nEach product page has an Enquire button that opens the Contact page with that product filled in.\nPhone and WhatsApp: +91 90922 66667. Email: info@cholanrice.in.\nBulk and wholesale orders (26 kg bags, monthly supply) are quoted on request — see the bulk supply section."
+    },
+    {
+      "id": "catalogue",
+      "title": "Product range overview",
+      "label": "Product range overview",
+      "url": "/products",
+      "text": "The website lists 11 products in 1 categories.\nCholan sells rice only. Millets, pulses (such as kollu) and oils are not sold any more.\nRice (11): Chennai Pattinam Ponni, Karikalan, Kettimelam, Moongil Ponni, Senthoora, Senthoora Half Boil, Thooyamalli Ponni Raw Rice, Chennai Pattinam Idli Rice, Kurunai Rice, Basmati Rice, Seeraga Samba."
+    },
+    {
+      "id": "category-rice",
+      "title": "Rice — category",
+      "label": "All rice",
+      "url": "/products?category=rice",
+      "text": "Rice: Chennai Pattinam, Karikalan, Moongil Ponni, Seeraga Samba, idli rice and more.\nProducts in Rice: Chennai Pattinam Ponni (1 kg, 5 kg, 10 kg, 26 kg); Karikalan (5 kg, 10 kg, 26 kg); Kettimelam (26 kg); Moongil Ponni (5 kg, 10 kg, 26 kg); Senthoora (26 kg); Senthoora Half Boil (26 kg); Thooyamalli Ponni Raw Rice (1 kg, 5 kg, 26 kg); Chennai Pattinam Idli Rice (5 kg, 26 kg); Kurunai Rice (26 kg); Basmati Rice (1 kg); Seeraga Samba (1 kg)."
+    },
+    {
+      "id": "product-chennai-pattanam-rice",
+      "title": "Chennai Pattinam Ponni",
+      "label": "Chennai Pattinam Ponni",
+      "url": "/products/chennai-pattanam-rice",
+      "text": "Product: Chennai Pattinam Ponni (Tamil: சென்னைப்பட்டிணம் பொன்னி).\nCategory: Rice.\nTagline: சென்னைப்பட்டிணம் · Everyday Ponni rice.\nEveryday Ponni rice in the Chennai Pattinam pack, from the 1 kg pack up to the 26 kg sack.\nPack sizes: 1 kg, 5 kg, 10 kg, 26 kg.\nPrices: 1 kg ₹110; 5 kg ₹520; 10 kg ₹1,030; 26 kg ₹2,500.\nMarked as a bestseller on the website."
+    },
+    {
+      "id": "product-karikalan-rice",
+      "title": "Karikalan",
+      "label": "Karikalan",
+      "url": "/products/karikalan-rice",
+      "text": "Product: Karikalan (Tamil: கரிகாலன்).\nCategory: Rice.\nTagline: கரிகாலன் · Premium Ponni.\nOur Karikalan grade — a well-aged premium Ponni with good separation and a rich aroma when cooked. Sold from the 5 kg family bag up to the 26 kg sack.\nPack sizes: 5 kg, 10 kg, 26 kg.\nPrices: 5 kg ₹510; 10 kg ₹1,010; 26 kg ₹2,450.\nMarked as a bestseller on the website."
+    },
+    {
+      "id": "product-kettimelam-rice",
+      "title": "Kettimelam",
+      "label": "Kettimelam",
+      "url": "/products/kettimelam-rice",
+      "text": "Product: Kettimelam (Tamil: கெட்டிமேளம்).\nCategory: Rice.\nTagline: கெட்டிமேளம் · 26 kg bag.\nKettimelam rice, in the 26 kg bag for larger households and messes.\nPack sizes: 26 kg.\nPrices: 26 kg ₹2,400."
+    },
+    {
+      "id": "product-moongil-ponni",
+      "title": "Moongil Ponni",
+      "label": "Moongil Ponni",
+      "url": "/products/moongil-ponni",
+      "text": "Product: Moongil Ponni (Tamil: மூங்கில் பொன்னி).\nCategory: Rice.\nTagline: மூங்கில் பொன்னி · Ponni rice.\nPonni rice in the Cholan Moongil pack, for daily meals.\nPack sizes: 5 kg, 10 kg, 26 kg.\nPrices: 5 kg ₹490; 10 kg ₹970; 26 kg ₹2,350.\nMarked as a bestseller on the website."
+    },
+    {
+      "id": "product-senthoora",
+      "title": "Senthoora",
+      "label": "Senthoora",
+      "url": "/products/senthoora",
+      "text": "Product: Senthoora.\nCategory: Rice.\nTagline: Senthoora rice · 26 kg bag.\nSenthoora rice, in the 26 kg bag for households, messes and caterers.\nPack sizes: 26 kg.\nPrices: 26 kg ₹2,300."
+    },
+    {
+      "id": "product-senthoora-half-boil",
+      "title": "Senthoora Half Boil",
+      "label": "Senthoora Half Boil",
+      "url": "/products/senthoora-half-boil",
+      "text": "Product: Senthoora Half Boil.\nCategory: Rice.\nTagline: Senthoora · Half-boiled rice.\nHalf-boiled Senthoora rice, in the 26 kg bag.\nPack sizes: 26 kg.\nPrices: 26 kg ₹1,950."
+    },
+    {
+      "id": "product-thooyamalli-ponni-raw-rice",
+      "title": "Thooyamalli Ponni Raw Rice",
+      "label": "Thooyamalli Ponni Raw Rice",
+      "url": "/products/thooyamalli-ponni-raw-rice",
+      "text": "Product: Thooyamalli Ponni Raw Rice (Tamil: தூயமல்லி).\nCategory: Rice.\nTagline: தூயமல்லி · Ponni raw rice (pachai arisi).\nPonni raw rice (pachai arisi) in the Thooyamalli pack, from the 1 kg pack up to the 26 kg sack.\nPack sizes: 1 kg, 5 kg, 26 kg.\nPrices: 1 kg ₹100; 5 kg ₹500; 26 kg ₹2,400."
+    },
+    {
+      "id": "product-chennai-pattanam-idli-rice",
+      "title": "Chennai Pattinam Idli Rice",
+      "label": "Chennai Pattinam Idli Rice",
+      "url": "/products/chennai-pattanam-idli-rice",
+      "text": "Product: Chennai Pattinam Idli Rice (Tamil: சென்னைப்பட்டிணம் இட்லி).\nCategory: Rice.\nTagline: சென்னைப்பட்டிணம் இட்லி · For idli and dosa.\nIdli rice in the Chennai Pattinam pack, milled for batter — for soft idlis and crisp dosas.\nPack sizes: 5 kg, 26 kg.\nPrices: 5 kg ₹320; 26 kg ₹1,500.\nMarked as a bestseller on the website."
+    },
+    {
+      "id": "product-kurunai-rice",
+      "title": "Kurunai Rice",
+      "label": "Kurunai Rice",
+      "url": "/products/kurunai-rice",
+      "text": "Product: Kurunai Rice (Tamil: குருணை அரிசி).\nCategory: Rice.\nTagline: குருணை அரிசி · Broken rice, for kanji and pongal.\nBroken rice, cleaned and graded — the traditional choice for kanji, pongal and upma. Sold in the 26 kg bag.\nPack sizes: 26 kg.\nPrices: 26 kg ₹1,100."
+    },
+    {
+      "id": "product-basmati-rice",
+      "title": "Basmati Rice",
+      "label": "Basmati Rice",
+      "url": "/products/basmati-rice",
+      "text": "Product: Basmati Rice (Tamil: பாசுமதி அரிசி).\nCategory: Rice.\nTagline: பாசுமதி · For biryani and pulao.\nLong-grain basmati that stays separate when cooked — for biryani, pulao and ghee rice. Sold in the 1 kg pack.\nPack sizes: 1 kg.\nPrices: 1 kg ₹130."
+    },
+    {
+      "id": "product-seeraga-samba",
+      "title": "Seeraga Samba",
+      "label": "Seeraga Samba",
+      "url": "/products/seeraga-samba",
+      "text": "Product: Seeraga Samba (Tamil: சீரக சம்பா).\nCategory: Rice.\nTagline: சீரக சம்பா · Small-grain rice for biryani.\nSeeraga samba, the small-grain rice of the Tamil biryani. Sold in the 1 kg pack.\nPack sizes: 1 kg.\nPrices: 1 kg ₹230."
+    },
+    {
+      "id": "about-promise",
+      "title": "Our promise (About page)",
+      "label": "About us",
+      "url": "/about",
+      "text": "Know Your Grain: We understand the journey behind every grain — from farm to family table.\nKeeping Nature Intact: Minimal processing that respects the grain and preserves its natural character.\nGrowing Together: Building meaningful relationships with farmers who nurture every harvest.\nTrust in Every Pack: Delivering the same quality your family can depend on, every single time."
+    },
+    {
+      "id": "about-history",
+      "title": "Our journey and history (About page)",
+      "label": "About us",
+      "url": "/about",
+      "text": "1998 — A single trading counter: The family began trading paddy in Salem, supplying local provision stores.\n2006 — Our own milling: We moved from trading to milling, taking control of grading and quality.\n2024 — Direct to your home: Launched direct household delivery alongside our wholesale business."
+    },
+    {
+      "id": "reviews",
+      "title": "What customers say (home page)",
+      "label": "Customer reviews",
+      "url": "/#reviews",
+      "text": "Lakshmi R., Chennai, about Idly Rice: \"The idly rice is exactly what my mother used to buy. Batter ferments beautifully and the idlis stay soft all day.\"\nAnand M., Bangalore, about Ponni · 26 kg: \"Ordered the 26 kg Ponni bag for our mess. Consistent quality every single time and the delivery is always on schedule.\""
+    },
+    {
+      "id": "policy-shipping-intro",
+      "title": "Shipping Policy",
+      "label": "Shipping Policy",
+      "url": "/policies/shipping",
+      "text": "Shipping Policy: How we pack and deliver your order.\nThis policy explains how Cholan Rice and Millet Shop packs and delivers orders placed through www.cholanrice.in, by phone, WhatsApp or email. It does not cover purchases at our physical stores. Cholan Rice and Millet Shop is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222."
+    },
+    {
+      "id": "policy-shipping-1",
+      "title": "Shipping Policy — 1. Where we deliver",
+      "label": "Shipping Policy",
+      "url": "/policies/shipping",
+      "text": "Shipping Policy, 1. Where we deliver:\n- We deliver across India, through our own delivery team and trusted courier partners, subject to courier availability at your pin code.\n- When you order, share your full address and pin code. We confirm courier availability and the delivery charge before you pay.\n- If no courier serves your pin code, we will tell you and will not take payment. For bulk orders, we may arrange separate transport."
+    },
+    {
+      "id": "policy-shipping-2",
+      "title": "Shipping Policy — 2. Packing and dispatch",
+      "label": "Shipping Policy",
+      "url": "/policies/shipping",
+      "text": "Shipping Policy, 2. Packing and dispatch:\n- Once your order is confirmed, we send you a confirmation by WhatsApp, SMS or email.\n- Every bag is packed fresh after your order is confirmed, sealed at our facility and packed for safe transit.\n- We dispatch your order within 1–2 working days of confirmation.\n- When it is dispatched, we send the dispatch details, and a tracking link where available, on WhatsApp."
+    },
+    {
+      "id": "policy-shipping-3",
+      "title": "Shipping Policy — 3. Delivery time",
+      "label": "Shipping Policy",
+      "url": "/policies/shipping",
+      "text": "Shipping Policy, 3. Delivery time:\n- Delivery area: Within Coimbatore; Usual delivery time: 1–2 working days\n- Delivery area: Other districts of Tamil Nadu; Usual delivery time: 3–5 working days\n- Delivery area: Other states; Usual delivery time: 5–8 working days, depending on the courier\n- Delivery area: Bulk orders; Usual delivery time: As per the schedule agreed in your quote\nThese are estimates, not guaranteed dates. Weather, strikes, holidays and other events outside our control can cause delays."
+    },
+    {
+      "id": "policy-shipping-4",
+      "title": "Shipping Policy — 4. Delivery charges",
+      "label": "Shipping Policy",
+      "url": "/policies/shipping",
+      "text": "Shipping Policy, 4. Delivery charges:\n- Delivery charges depend on the order weight, your location and the courier serving your pin code.\n- We tell you the final total, including product price, taxes and delivery, before you pay. There are no hidden charges at the doorstep.\n- Bulk-order transport is quoted separately with your rate."
+    },
+    {
+      "id": "policy-shipping-5",
+      "title": "Shipping Policy — 5. Receiving your order",
+      "label": "Shipping Policy",
+      "url": "/policies/shipping",
+      "text": "Shipping Policy, 5. Receiving your order:\n- Address: give a complete address, a nearby landmark and a phone number that is reachable on the delivery day. The address cannot be changed after dispatch.\n- Delivery attempts: our delivery partner will make up to 3 attempts and may call you to reschedule.\n- Check at the doorstep: if the outer bag is torn, wet, open or tampered with, you may refuse it, or accept it and ask the delivery person to note the damage. Report any damaged, wrong, missing or short-weight item within 48 hours. Our Return & Refund Policy explains what happens next.\n- Undelivered orders: if an order comes back because of a wrong address, an unreachable phone or refusal without a valid reason, we refund the amount paid minus the actual delivery and return charges. We will tell you the deduction first and refund within 5–7 working days of the parcel reaching us."
+    },
+    {
+      "id": "policy-shipping-6",
+      "title": "Shipping Policy — 6. Help and contact",
+      "label": "Shipping Policy",
+      "url": "/policies/shipping",
+      "text": "Shipping Policy, 6. Help and contact:\nContact us with the phone number you ordered from:\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\nWe may update this policy from time to time. The version on our website when you place your order applies to that order. This policy follows the Consumer Protection Act, 2019 and the Consumer Protection (E-Commerce) Rules, 2020."
+    },
+    {
+      "id": "policy-returns-intro",
+      "title": "Return & Refund Policy",
+      "label": "Return & Refund Policy",
+      "url": "/policies/returns",
+      "text": "Return & Refund Policy: What happens if something is not right.\nThis policy applies to orders placed with Cholan Rice and Millet Shop through www.cholanrice.in, by phone, WhatsApp or email. It does not cover purchases at our physical stores. Cholan Rice and Millet Shop is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222."
+    },
+    {
+      "id": "policy-returns-1",
+      "title": "Return & Refund Policy — 1. Our promise",
+      "label": "Return & Refund Policy",
+      "url": "/policies/returns",
+      "text": "Return & Refund Policy, 1. Our promise:\nIf your rice reaches you damaged, wrong, short in weight or not up to our quality, we will replace them or refund you in full. Because these are food products, we cannot resell anything that has left our hands, so we focus on fixing the problem quickly rather than asking you to send products back."
+    },
+    {
+      "id": "policy-returns-2",
+      "title": "Return & Refund Policy — 2. Problems we cover",
+      "label": "Return & Refund Policy",
+      "url": "/policies/returns",
+      "text": "Return & Refund Policy, 2. Problems we cover:\n- Problem: Pack torn, leaking or damaged in transit; Report within: 48 hours of delivery; What to send us: Photos of the outer bag and the damaged pack\n- Problem: Wrong product, variety or pack size; Report within: 48 hours of delivery; What to send us: Photo of the pack received\n- Problem: Item missing from the order; Report within: 48 hours of delivery; What to send us: Unboxing video and photos of the parcel\n- Problem: Pack weighs less than the printed net weight; Report within: 48 hours of delivery; What to send us: Unboxing video and photo of the unopened pack on a scale\n- Problem: Expired product, or shorter shelf life than we told you; Report within: 7 days of delivery; What to send us: Photo of the date and batch number on the pack\n- Problem: Quality problem – insects, foul smell, fungus, stones or foreign matter; Report within: 7 days of delivery; What to send us: Photos or video and the batch number; please keep the product until we close your request"
+    },
+    {
+      "id": "policy-returns-3",
+      "title": "Return & Refund Policy — 3. How to raise a request",
+      "label": "Return & Refund Policy",
+      "url": "/policies/returns",
+      "text": "Return & Refund Policy, 3. How to raise a request:\nWhatsApp or email us with your name, the phone number you ordered from, the batch number on the pack, photos, an unboxing video (for missing or short-weight items, recorded without a cut from the sealed parcel) and a one-line description of the problem.\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\nWe reply within 48 hours and share a decision within 3 working days."
+    },
+    {
+      "id": "policy-returns-4",
+      "title": "Return & Refund Policy — 4. Replacement or refund – your choice",
+      "label": "Return & Refund Policy",
+      "url": "/policies/returns",
+      "text": "Return & Refund Policy, 4. Replacement or refund – your choice:\nOnce we verify the issue, you choose a free replacement or a full refund of that item, including its delivery charge. In most cases you will not need to send the product back. If we need it for testing, we will collect it free of charge.\n- Situation: Cancelled within the free cancellation window; Refund amount: 100% of amount paid; Refund time: Started within 24 hours\n- Situation: Damaged, wrong, missing, short-weight, expired or quality issue; Refund amount: 100% of item value + its delivery charge; Refund time: 5–7 working days after approval\n- Situation: Undelivered due to wrong address, unreachable phone or refusal without reason; Refund amount: Amount paid minus actual courier charges both ways; Refund time: 5–7 working days after the parcel reaches us\n- Refunds go back to your original payment method.\n- If you used a coupon or discount, we refund the amount you actually paid.\n- If a replacement is out of stock, we refund you in full.\n- Not received your refund 10 working days after approval? Contact us and we will trace it."
+    },
+    {
+      "id": "policy-returns-5",
+      "title": "Return & Refund Policy — 5. What we cannot take back",
+      "label": "Return & Refund Policy",
+      "url": "/policies/returns",
+      "text": "Return & Refund Policy, 5. What we cannot take back:\n- Change of mind after the order is packed or dispatched.\n- Taste preference – grain size, aroma or cooking style that matches the product description.\n- Storage problems – moisture, insects or smell that appear later because the product was kept in a damp, hot or open place.\n- Largely used packs, or product mixed with other grain or moved to another container, unless the problem was there from the start.\n- Late reports after the time limits in point 2, unless there was a genuine reason.\n- Free gifts given with an offer.\nSmall differences in colour, grain size, aroma or cooking time between harvests are natural and are not defects."
+    },
+    {
+      "id": "policy-returns-6",
+      "title": "Return & Refund Policy — 6. Cancellations",
+      "label": "Return & Refund Policy",
+      "url": "/policies/returns",
+      "text": "Return & Refund Policy, 6. Cancellations:\n- You can cancel free of charge within 2 hours of confirming your order, or before we start packing, whichever is earlier. Every bag is packed fresh, so orders already packed or dispatched cannot be cancelled.\n- We may cancel your order if an item is out of stock, no courier serves your pin code, or there is a clear pricing error. You will get a full refund, and we will tell you why.\nFair use: if we see repeated claims that do not match our dispatch records, we may ask for more proof before approving further requests.\nWe may update this policy from time to time. The version on our website when you place your order applies to that order. This policy does not limit your rights under the Consumer Protection Act, 2019 and the Consumer Protection (E-Commerce) Rules, 2020."
+    },
+    {
+      "id": "policy-privacy-intro",
+      "title": "Privacy Policy",
+      "label": "Privacy Policy",
+      "url": "/policies/privacy",
+      "text": "Privacy Policy: What we collect and what we do with it.\nThis policy explains how Cholan Rice and Millet Shop collects, uses and protects your personal information. By using www.cholanrice.in or sharing your details with us, you agree to this policy."
+    },
+    {
+      "id": "policy-privacy-1",
+      "title": "Privacy Policy — 1. Who we are",
+      "label": "Privacy Policy",
+      "url": "/policies/privacy",
+      "text": "Privacy Policy, 1. Who we are:\nCholan Rice and Millet Shop (“Cholan”, “we”, “us”) is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India.\nThis policy covers information collected through our website, phone, WhatsApp, email, enquiry forms and social media pages. It does not cover purchases at our physical stores."
+    },
+    {
+      "id": "policy-privacy-2",
+      "title": "Privacy Policy — 2. What we collect",
+      "label": "Privacy Policy",
+      "url": "/policies/privacy",
+      "text": "Privacy Policy, 2. What we collect:\n- Contact details – name, phone or WhatsApp number and email.\n- Order details – delivery address, pin code, products ordered and order history.\n- Business details – business name, GSTIN and billing address, for bulk buyers.\n- Payment records – payment method, transaction reference and amount paid. We never see or store your card number, CVV, UPI PIN, password or OTP.\n- Messages – enquiries, complaints, photos and reviews you send us.\n- Website usage – device, browser, pages visited and IP address, collected through cookies. You can block cookies in your browser settings."
+    },
+    {
+      "id": "policy-privacy-3",
+      "title": "Privacy Policy — 3. How we use it",
+      "label": "Privacy Policy",
+      "url": "/policies/privacy",
+      "text": "Privacy Policy, 3. How we use it:\n- To reply to your enquiries and share prices and product details.\n- To confirm, pack and deliver your orders, and send order updates by call, SMS, WhatsApp or email.\n- To receive payments, issue GST invoices and handle complaints, replacements and refunds.\n- To send offers and news, only if you agree. Reply STOP or tell us to stop them at any time.\n- To improve our website and service, measure our ads (for example, Google Analytics, Google Ads and Meta Pixel), prevent fraud and follow the law."
+    },
+    {
+      "id": "policy-privacy-4",
+      "title": "Privacy Policy — 4. Who we share it with",
+      "label": "Privacy Policy",
+      "url": "/policies/privacy",
+      "text": "Privacy Policy, 4. Who we share it with:\nWe never sell or rent your personal information. We share it only when needed, with:\n- courier and delivery partners, to deliver your order;\n- banks and payment providers, to process payments;\n- technology providers (website hosting, email, WhatsApp Business, customer-management and cloud storage tools) that run our services;\n- our group companies, which share our order, delivery and customer-support systems and follow this same policy;\n- auditors, accountants and lawyers, for our accounts and legal compliance;\n- government authorities, only when the law or a court order requires it.\nEveryone we share with must keep your information safe and use it only for that purpose."
+    },
+    {
+      "id": "policy-privacy-5",
+      "title": "Privacy Policy — 5. How we protect and keep it",
+      "label": "Privacy Policy",
+      "url": "/policies/privacy",
+      "text": "Privacy Policy, 5. How we protect and keep it:\n- We use a secure (HTTPS) website, password-protected systems and trusted providers, and only staff who need your information can access it.\n- We keep order and invoice records as long as tax laws require, other enquiries up to 2 years, and complaints up to 3 years after closure. After that, we delete the information.\n- If a data breach affects you, we will inform you and the Data Protection Board of India.\n- Our website is meant for adults. We do not knowingly collect information from anyone under 18 without a parent’s consent.\n- Beware of fraud: Cholan will never ask for your OTP, UPI PIN, card details or passwords."
+    },
+    {
+      "id": "policy-privacy-6",
+      "title": "Privacy Policy — 6. Your rights and contact",
+      "label": "Privacy Policy",
+      "url": "/policies/privacy",
+      "text": "Privacy Policy, 6. Your rights and contact:\nYou can ask us to see, correct or delete your information, stop marketing messages, withdraw your consent, or name a nominee to act for you. We may ask you to confirm your identity first.\nFor any request, question or complaint, contact us:\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\nWe reply within 48 hours and aim to resolve complaints within 30 days. If you are not satisfied, you can complain to the Data Protection Board of India.\nThis policy follows Indian law, including the Information Technology Act, 2000 and the Digital Personal Data Protection Act, 2023. Courts in Coimbatore, Tamil Nadu have jurisdiction. We may update this policy from time to time; the date at the top shows the latest version."
+    },
+    {
+      "id": "policy-terms-intro",
+      "title": "Terms & Conditions",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions: The basis on which we sell.\nThese Terms and Conditions (“Terms”) are a legal agreement between you and Cholan Rice and Millet Shops Private Limited, which owns and operates the Cholan Rice and Millet Shop brand and the website www.cholanrice.in. Please read them carefully. By using our website or placing an order with us online, by phone, WhatsApp or email, you agree to these Terms. Purchases made at our physical stores are not covered by these Terms. If you do not agree, please do not use the website or place an order."
+    },
+    {
+      "id": "policy-terms-1",
+      "title": "Terms & Conditions — 1. Who we are",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 1. Who we are:\nCholan Rice and Millet Shop (“Cholan”, “we”, “us”, “our”) is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India. Phone / WhatsApp: +91 90922 66667. Email: info@cholanrice.in.\nThese Terms apply together with our Privacy Policy, Shipping Policy and Refund & Return Policy."
+    },
+    {
+      "id": "policy-terms-2",
+      "title": "Terms & Conditions — 2. Eligibility",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 2. Eligibility:\nYou must be at least 18 years old and competent to contract under the Indian Contract Act, 1872 to place an order. If you are under 18, a parent or guardian must place the order for you. If you order on behalf of a business, you confirm that you are authorised to bind that business to these Terms."
+    },
+    {
+      "id": "policy-terms-3",
+      "title": "Terms & Conditions — 3. Your responsibilities",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 3. Your responsibilities:\n- Give us true, complete and current details, including your name, phone number and full delivery address with pin code and landmark.\n- Make sure someone is available to receive the order at the address given.\n- Tell us promptly if any of your details change.\nWe are not responsible for failed or wrong delivery caused by an incorrect or incomplete address, or when someone at the given address accepts the order on your behalf."
+    },
+    {
+      "id": "policy-terms-4",
+      "title": "Terms & Conditions — 4. Using our website",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 4. Using our website:\nYou may use this website to learn about our products, send enquiries and contact us. You must not:\n- give false or misleading information, or use someone else’s details;\n- copy, scrape or reuse our content, images or prices for commercial purposes without our written permission;\n- upload viruses or harmful code, or try to hack, disrupt or overload the website;\n- post content that is unlawful, abusive, defamatory or infringes anyone’s rights;\n- use the website for any unlawful purpose.\nWe may suspend or refuse service to anyone who breaks these rules."
+    },
+    {
+      "id": "policy-terms-5",
+      "title": "Terms & Conditions — 5. Our products",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 5. Our products:\nOur rice is a natural agricultural product. Colour, grain size, aroma, taste, cooking time and water absorption can vary slightly between harvests and batches. This is normal and not a defect.\n- Product photos are for illustration. The actual pack design or colour may differ slightly.\n- The label on the pack you receive is the final reference for net weight, ingredients, best-before date, batch number, MRP and storage advice.\n- Nutrition and health information on our website is general and for awareness only. It is not medical advice. If you have a health condition or allergy, consult a doctor before changing your diet.\n- Our products are packed in a facility that also handles other grains and pulses, so traces may be present."
+    },
+    {
+      "id": "policy-terms-6",
+      "title": "Terms & Conditions — 6. Prices, taxes and errors",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 6. Prices, taxes and errors:\n- All prices are in Indian Rupees and include GST unless stated otherwise.\n- Rice and grain prices move with the market. Prices on our website, in brochures or in earlier messages are indicative. The rate we confirm when you place your order applies.\n- We will never charge more than the MRP printed on a retail pack.\n- Delivery charges, where they apply, are told to you before you confirm the order.\n- Despite our care, a product, price or offer may sometimes be shown wrongly. If so, we may correct the error or cancel the order, even after confirmation or payment. We will inform you and refund any amount paid in full."
+    },
+    {
+      "id": "policy-terms-7",
+      "title": "Terms & Conditions — 7. Orders",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 7. Orders:\nYou can order by calling or messaging us on WhatsApp at +91 90922 66667, by email, or through the enquiry form on our website.\n- Tell us the product, pack size, quantity and delivery address.\n- We confirm availability, price, delivery charge and expected delivery date.\n- Your order is confirmed once we acknowledge it and payment terms are agreed.\n- We pack fresh after confirmation and dispatch as agreed.\nWe may refuse or cancel any order, in full or in part, if the product is out of stock, there is a quantity limit, no courier serves the delivery pin code, the address is incomplete, the price or product information was wrong, or we suspect fraud. We may ask for more details before accepting an order. If you have paid for a cancelled order, we will refund you in full."
+    },
+    {
+      "id": "policy-terms-8",
+      "title": "Terms & Conditions — 8. Payment",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 8. Payment:\nWe accept online payments only – UPI, debit or credit card, net banking and payment links. We do not offer cash on delivery.\n- We begin packing after your payment is received in our account.\n- Bulk and trade accounts pay as agreed in writing.\n- A GST invoice is issued for every order.\n- We will never ask for your OTP, UPI PIN, card number or CVV. Do not share these with anyone claiming to be from Cholan."
+    },
+    {
+      "id": "policy-terms-9",
+      "title": "Terms & Conditions — 9. Delivery",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 9. Delivery:\nWe deliver across India, subject to courier availability at your pin code. Delivery areas, timelines and charges are set out in our Shipping Policy. Delivery dates are estimates and may be affected by weather, strikes, holidays or other events outside our control.\nCheck your order at the doorstep. Please inspect the bag in front of the delivery person. Do not accept a bag that is torn, wet, open or tampered with. If you accept it, take photos and tell us within 48 hours. Ownership and risk pass to you on delivery."
+    },
+    {
+      "id": "policy-terms-10",
+      "title": "Terms & Conditions — 10. Cancellations",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 10. Cancellations:\nBy you. Because every bag is packed fresh against your order, you can cancel free of charge within 2 hours of confirming, or before we start packing, whichever is earlier. If you have paid, we refund the full amount. Once an order is packed or dispatched, it cannot be cancelled. You may still refuse delivery, but we may deduct actual delivery and return charges from any refund.\nBy us. We may cancel for the reasons listed in section 7. We will tell you and refund any amount paid in full.\nBulk orders packed or arranged specially for you may be cancelled only as agreed in your quote."
+    },
+    {
+      "id": "policy-terms-11",
+      "title": "Terms & Conditions — 11. Damaged, wrong or missing items",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 11. Damaged, wrong or missing items:\nFull details are in our Refund & Return Policy. In short:\n- Report within 48 hours of delivery (7 days for expiry or quality problems) by WhatsApp, phone or email, with your order details, photos of the outer bag and the product, and an unboxing video for any missing or short-weight item.\n- If the claim is valid, we will replace the product or refund you in full, at no extra cost.\n- We cannot accept returns for natural variation in colour, grain size, aroma or taste (see section 5).\n- Because these are food products, opened packs cannot be returned unless there is a genuine quality defect.\n- Approved refunds are made within 5–7 working days to the original payment method.\nNothing in these Terms affects your rights as a consumer under the Consumer Protection Act, 2019."
+    },
+    {
+      "id": "policy-terms-12",
+      "title": "Terms & Conditions — 12. Bulk, wholesale and distributor orders",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 12. Bulk, wholesale and distributor orders:\nFor hotels, hostels, messes, caterers, provision stores and distributors:\n- Bulk rates are quoted in writing and are valid for the period stated in the quote.\n- Delivery schedules, transport, credit period and minimum quantities are as agreed in writing.\n- Where a signed quote, purchase order or distributor agreement exists, it applies along with these Terms. If they conflict, the signed document applies."
+    },
+    {
+      "id": "policy-terms-13",
+      "title": "Terms & Conditions — 13. Storage and use",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 13. Storage and use:\nStore our products in a cool, dry, airtight place away from moisture, pests and direct sunlight, and use them before the best-before date. We are not responsible for loss of quality caused by improper storage, contamination or use after delivery."
+    },
+    {
+      "id": "policy-terms-14",
+      "title": "Terms & Conditions — 14. Offers, coupons and contests",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 14. Offers, coupons and contests:\nDiscounts, coupons, free gifts and contests follow their own published rules and validity. Unless stated otherwise, offers cannot be combined, exchanged for cash or applied to past orders. We may change or withdraw an offer at any time, but not for orders already confirmed."
+    },
+    {
+      "id": "policy-terms-15",
+      "title": "Terms & Conditions — 15. Reviews, feedback and content you send",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 15. Reviews, feedback and content you send:\nIf you send us reviews, photos, testimonials, ideas or contest entries, you allow us to use, edit and publish them on our website and social media, with your first name and city, without payment. We will not publish your phone number, address or email. You confirm that your content is your own, is truthful and does not break any law or anyone’s rights. We may remove content that is false, offensive or unlawful. You can ask us to remove your review at any time."
+    },
+    {
+      "id": "policy-terms-16",
+      "title": "Terms & Conditions — 16. Intellectual property",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 16. Intellectual property:\nThe Cholan name and logo, our product names (such as Karikalan, Chennai Pattanam, Moongil and Kettimelam), pack designs, photographs, text and website design belong to us or our licensors. You may not copy, reproduce or use them without our written permission."
+    },
+    {
+      "id": "policy-terms-17",
+      "title": "Terms & Conditions — 17. Third-party links and services",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 17. Third-party links and services:\nOur website links to WhatsApp, Google Maps, Facebook, Instagram, LinkedIn and other services we do not control. We are not responsible for their content, availability or how they handle your data. Please read their terms before using them."
+    },
+    {
+      "id": "policy-terms-18",
+      "title": "Terms & Conditions — 18. Disclaimer and limitation of liability",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 18. Disclaimer and limitation of liability:\nWe work to keep our website accurate and available, but we do not guarantee that it will always be error-free, secure or uninterrupted.\nTo the extent allowed by law, our total liability for any order is limited to the amount you paid for that order. We are not liable for indirect or consequential losses, such as loss of business, profit or goodwill. Nothing in these Terms limits liability that cannot be limited under Indian law, including your rights as a consumer."
+    },
+    {
+      "id": "policy-terms-19",
+      "title": "Terms & Conditions — 19. Indemnity",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 19. Indemnity:\nYou agree to compensate us for any loss, claim or cost, including reasonable legal fees, caused by your breach of these Terms, your misuse of the website, or your violation of any law or another person’s rights."
+    },
+    {
+      "id": "policy-terms-20",
+      "title": "Terms & Conditions — 20. Events beyond our control",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 20. Events beyond our control:\nWe are not responsible for delays or failure to deliver caused by events beyond our reasonable control, such as floods, heavy rain, strikes, transport disruption, government orders, epidemics, or power and network failures. We will inform you and offer a new delivery date or a full refund."
+    },
+    {
+      "id": "policy-terms-21",
+      "title": "Terms & Conditions — 21. Suspension and termination",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 21. Suspension and termination:\nWe may suspend or stop supplying to anyone who breaks these Terms, misuses offers, or acts fraudulently. Any amounts due to us up to that date remain payable, and any amounts due to you will be refunded."
+    },
+    {
+      "id": "policy-terms-22",
+      "title": "Terms & Conditions — 22. Governing law and disputes",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 22. Governing law and disputes:\nThese Terms are governed by the laws of India. Courts in Coimbatore, Tamil Nadu will have jurisdiction. Before going to court, please contact our Grievance Officer so we can try to settle the matter. This does not affect your right to approach a Consumer Disputes Redressal Commission or the National Consumer Helpline (1915)."
+    },
+    {
+      "id": "policy-terms-23",
+      "title": "Terms & Conditions — 23. Grievance Officer",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 23. Grievance Officer:\nFor any complaint about our products, orders or these Terms:\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\nWe will acknowledge your complaint within 48 hours and resolve it within 30 days."
+    },
+    {
+      "id": "policy-terms-24",
+      "title": "Terms & Conditions — 24. General",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 24. General:\n- Entire agreement. These Terms, with the policies linked in section 1, are the full agreement between you and us about your use of the website and your orders.\n- Severability. If any part of these Terms is found invalid, the rest remains in force.\n- No waiver. If we do not enforce a right at any time, we do not give up that right.\n- Transfer. We may transfer our rights under these Terms to a successor business. You may not transfer yours without our written consent."
+    },
+    {
+      "id": "policy-terms-25",
+      "title": "Terms & Conditions — 25. Changes to these Terms",
+      "label": "Terms & Conditions",
+      "url": "/policies/terms",
+      "text": "Terms & Conditions, 25. Changes to these Terms:\nWe may update these Terms from time to time. The version on our website on the date you place your order applies to that order. The “Last updated” date at the top shows the latest version."
+    },
+    {
+      "id": "page-home",
+      "title": "Home page",
+      "label": "Home page",
+      "url": "/",
+      "text": "Rooted in the\ntimeless legacy of\nthe Chola land.\nTravels through a journey of care and quality.\nPonni and native paddy from the Cauvery delta, milled and packed for your kitchen.\nA Grain for Every Moment\nDiscover our range of premium rice, crafted for every home and every meal.\nView all products"
+    },
+    {
+      "id": "page-bulk",
+      "title": "Bulk and wholesale supply",
+      "label": "Bulk and wholesale supply",
+      "url": "/contact",
+      "text": "Supplying messes, caterers and retailers\nWe supply 26 kg bags and bulk rice orders to hotels, hostels, caterers and provision stores across Tamil Nadu. Tell us your monthly requirement and we will quote a standing rate.\nRequest a bulk quote"
+    },
+    {
+      "id": "page-about",
+      "title": "About page",
+      "label": "About page",
+      "url": "/about",
+      "text": "Every grain holds a story.\nEvery meal creates a memory.\nThe wisdom of yesterday.\nThe goodness of tomorrow.\nHow we got here.\nPacked fresh,\nagainst the order.\nCome see the mill.\nFrom the fields that nurture our grains to the homes that cherish them, Cholan preserves the connection between tradition, taste, and togetherness.\nசோழன்\nFor generations, grains have been chosen with care. We continue that tradition by combining age-old knowledge with modern quality practices.\nEvery bag from Cholan Rice and Millet Shop is packed against the order rather than stored, so you enjoy the same freshness we trust at home — from household packs to 26 kg bags for messes and caterers.\nView All Products\nWe’re happy to show you our process, our standards, and the care that goes into every pack. Call ahead and we will set aside the time.\nWhatsApp\nOur office\nGet directions\nEmail"
+    },
+    {
+      "id": "page-contact",
+      "title": "Contact page",
+      "label": "Contact page",
+      "url": "/contact",
+      "text": "Talk to us\nHousehold orders, bulk quotes or a question about a variety — we are happy to help.\nSend an enquiry\nThanks — we have your enquiry and will get back to you shortly, usually within one working day.\nThanks — your enquiry opened in WhatsApp. Send the message there and we will reply shortly.\nYour name *\nPhone *\nEmail\nEnquiry type\nHousehold order\nBulk / wholesale\nDistributor enquiry\nProduct question\nOther\nMessage *\nWe reply by phone or email, usually within one working day.\nReach us directly\nThe fastest way to get a reply is WhatsApp or a phone call.\nPhone\nVisit / Warehouse\nMessage us on WhatsApp\nFind us\nOpen in Google Maps"
+    },
+    {
+      "id": "page-blog",
+      "title": "Blog page",
+      "label": "Blog page",
+      "url": "/blog",
+      "text": "The Cholan journal\nRecipes, farming notes and nutrition, from the mill and the fields we buy from.\nAll posts\nShow all posts\nRead more →\nOur blogs are yet to be posted.\nRecipes, farming notes and stories from the mill are on their way. Please check back soon.\nExplore our products"
+    }
+  ]
+}

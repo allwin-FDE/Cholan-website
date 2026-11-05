@@ -8,7 +8,7 @@ export default function BulkSection() {
         <div className="bulk__copy">
           <h2>Supplying messes, caterers and retailers</h2>
           <p className="lede">
-            We supply 26 kg bags and bulk millet orders to hotels, hostels, caterers and provision
+            We supply 26 kg bags and bulk rice orders to hotels, hostels, caterers and provision
             stores across Tamil Nadu. Tell us your monthly requirement and we will quote a standing
             rate.
           </p>

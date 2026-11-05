@@ -1,7 +1,9 @@
 // Pack (size/price) helpers. Kept dependency-free so data/products.js can import it.
 
-// Build pack objects from sizes; prices are null until the business enables pricing (original `Bn`).
-export const makePacks = (...sizes) => sizes.map((size) => ({ size, price: null }));
+// Build pack objects. Each is a size ('5 kg'), or a size and its price in
+// rupees (['5 kg', 520]); a size alone shows "Price on request" (original `Bn`).
+export const makePacks = (...packs) =>
+  packs.map((pack) => (Array.isArray(pack) ? { size: pack[0], price: pack[1] } : { size: pack, price: null }));
 
 // Cheapest priced pack, else the first pack, else an empty placeholder (original `Zn`).
 export const getDefaultPack = (product) => {

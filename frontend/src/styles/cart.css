@@ -372,9 +372,6 @@
   display: grid;
   overflow: hidden;
 }
-.cart__thumb[data-cat="millets"] {
-  background: linear-gradient(160deg, #eef2de, #d3e0b0);
-}
 .cart__thumb[data-cat="traditional"] {
   background: linear-gradient(160deg, #f8e6df, #e4b7a6);
 }

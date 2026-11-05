@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { features } from './config/features.js';
 import { CartProvider } from './context/CartContext.jsx';
@@ -7,6 +8,8 @@ import Footer from './components/layout/Footer.jsx';
 import CartDrawer from './components/layout/CartDrawer.jsx';
 import PageTransition from './components/effects/PageTransition.jsx';
 import InteractionFx from './components/effects/InteractionFx.jsx';
+import ChatWidget from './components/chat/ChatWidget.jsx';
+import Analytics from './components/common/Analytics.jsx';
 import Home from './pages/Home';
 import Story from './pages/Story';
 import Products from './pages/Products';
@@ -17,6 +20,16 @@ import Contact from './pages/Contact';
 import Checkout from './pages/Checkout';
 import Policy from './pages/Policy';
 import NotFound from './pages/NotFound';
+import Guide from './pages/Guide';
+import Post from './pages/Blog/Post.jsx';
+
+// The shop's own dashboard, loaded only when someone opens /dashboard, so the
+// public pages never carry its code.
+const Dashboard = lazy(() => import('./dashboard/Dashboard.jsx'));
+// The simple posting page, likewise loaded only when someone opens /admin.
+const Admin = lazy(() => import('./admin/Admin.jsx'));
+// The warehouse's orders, stock and invoices, likewise only when opened.
+const Warehouse = lazy(() => import('./warehouse/Warehouse.jsx'));
 
 // Everything except /story renders inside the shell: header, page, footer, cart drawer and effects (original `Wm`).
 function AppShell() {
@@ -28,9 +41,17 @@ function AppShell() {
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+          {/* Old spelling of Thooyamalli, live for a day. */}
+          <Route path="/products/thaymalli-ponni-raw-rice" element={<Navigate to="/products/thooyamalli-ponni-raw-rice" replace />} />
+          {/* The buying guide: the page that answers "best rice". Millets and
+              pulses are no longer sold, so their old guides go to the products. */}
+          <Route path="/rice" element={<Guide slug="rice" key="rice" />} />
+          <Route path="/millets" element={<Navigate to="/products" replace />} />
+          <Route path="/pulses" element={<Navigate to="/products" replace />} />
           <Route path="/about" element={<About />} />
           <Route path="/process" element={<Navigate to="/about" replace />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<Post />} />
           <Route path="/contact" element={<Contact />} />
           <Route
             path="/checkout"
@@ -44,18 +65,45 @@ function AppShell() {
       {features.cart && <CartDrawer />}
       <PageTransition />
       <InteractionFx />
+      <ChatWidget />
     </div>
   );
 }
 
-// Root component (original `Um`): router + cart provider. /story is a full-bleed page without the shell.
+// Root component (original `Um`): router + cart provider. /story is a full-bleed page without the shell,
+// and /dashboard is the shop's own tool, with its own layout.
 export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <Analytics />
       <CartProvider>
         <Routes>
           <Route path="/story" element={<Story />} />
+          <Route
+            path="/dashboard/*"
+            element={
+              <Suspense fallback={<div className="dash-center" />}>
+                <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/*"
+            element={
+              <Suspense fallback={<div className="dash-center" />}>
+                <Admin />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/warehouse/*"
+            element={
+              <Suspense fallback={<div className="dash-center" />}>
+                <Warehouse />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<AppShell />} />
         </Routes>
       </CartProvider>

@@ -10,7 +10,7 @@ import { insertEnquiry, recentEnquiries, syncCounts } from '../store/db.js';
 
 const router = Router();
 
-router.post('/', rateLimit, (req, res) => {
+router.post('/', rateLimit, async (req, res) => {
   const { value, errors } = validateEnquiry(req.body);
   if (errors) return res.status(400).json({ error: 'Please check the form.', fields: errors });
 
@@ -29,12 +29,16 @@ router.post('/', rateLimit, (req, res) => {
     return res.status(500).json({ error: 'Could not save your enquiry. Please try again.' });
   }
 
-  // The enquiry is safe in SQLite now, so answer immediately and let the push
-  // to Firestore run on its own. A failed push is the worker's problem, not
-  // the visitor's.
-  res.status(201).json({ id: enquiry.id, receivedAt: enquiry.createdAt });
-
-  syncPending().catch((error) => console.error('[enquiries] sync failed:', error));
+  // The enquiry is safe in SQLite now. Push it to Firestore and Sales Daddy
+  // before answering: Cloud Run only gives the instance CPU while a request
+  // is open, so a push started after the answer can stall until the next
+  // visitor arrives. Capped, so a slow target delays the visitor by a few
+  // seconds at most; a failed push is the worker's problem, not theirs.
+  await Promise.race([
+    syncPending().catch((error) => console.error('[enquiries] sync failed:', error)),
+    new Promise((resolve) => setTimeout(resolve, 6000)),
+  ]);
+  return res.status(201).json({ id: enquiry.id, receivedAt: enquiry.createdAt });
 });
 
 router.get('/', requireAdmin, (req, res) => {

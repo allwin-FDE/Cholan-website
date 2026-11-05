@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 
 const SCROLL_SCREENS = 4; // original `rf`
-const WHITE_IN_AT = 25; // original `af`
+// When the cloud-and-temple scene starts fading in over the train. It
+// dissolves straight in — there used to be a full white-out between the two.
+const SKY_IN_AT = 25;
 const WORLD_DURATION = 33; // original `of`
 
 // Split a phrase into words wrapped for the slide-up reveal (original `sf`).
@@ -74,16 +76,15 @@ export default function RailStory() {
     };
 
     const ctx = gsap.context(() => {
-      const headerHeight = () =>
-        parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 74;
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {
           trigger: root,
-          start: () => `top top+=${headerHeight()}`,
+          // The stage reaches up behind the floating header (rail-story.css).
+          start: 'top top',
           end: () => `+=${window.innerHeight * SCROLL_SCREENS}`,
           pin: '.rs__stage',
-          scrub: 1.2,
+          scrub: 0.6,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onRefresh: () => {
@@ -110,16 +111,14 @@ export default function RailStory() {
         // paddy came up through type that was still fully visible.
         .to('.rs__intro', { autoAlpha: 0, y: -24, duration: 6, ease: 'sine.in' }, 11);
       tl.fromTo(world, { scale: 1 }, { scale: 1.14, duration: 15, ease: 'sine.in' }, 18)
-        .to('.rs__paddy', { yPercent: 30, duration: 15, ease: 'sine.in' }, 18)
-        .fromTo(
-          '.rs__white',
-          { autoAlpha: 0 },
-          { autoAlpha: 1, duration: 8, ease: 'sine.inOut' },
-          WHITE_IN_AT,
-        );
+        .to('.rs__paddy', { yPercent: 30, duration: 15, ease: 'sine.in' }, 18);
       const skyAt = WORLD_DURATION;
-      tl.set('.rs__sky', { autoAlpha: 1 }, skyAt)
-        .to('.rs__white', { autoAlpha: 0, duration: 8, ease: 'sine.out' }, skyAt)
+      tl.fromTo(
+        '.rs__sky',
+        { autoAlpha: 0 },
+        { autoAlpha: 1, duration: skyAt - SKY_IN_AT, ease: 'sine.inOut' },
+        SKY_IN_AT,
+      )
         .fromTo(
           '.rs__clouds',
           { scale: 1.18 },
@@ -131,31 +130,33 @@ export default function RailStory() {
           '.rs__temple',
           { yPercent: 55, scale: 0.94 },
           { yPercent: 0, scale: 1, duration: 22, ease: 'power2.out' },
-          36,
+          // Rising while the train is still dissolving, so the frame is never
+          // just empty cloud.
+          SKY_IN_AT + 4,
         )
         .fromTo(
           '.rs__mist',
           { autoAlpha: 1, yPercent: 0 },
           { autoAlpha: 0.15, yPercent: 18, duration: 20, ease: 'sine.inOut' },
-          42,
+          36,
         )
         .fromTo(
           '.rs__brand-title .rs__word > span',
           { yPercent: 140 },
           { yPercent: 0, duration: 6, stagger: 0.8, ease: 'power3.out' },
-          42,
+          38,
         )
         .fromTo(
           '.rs__brand-rule',
           { scaleX: 0 },
           { scaleX: 1, duration: 6, ease: 'power2.inOut' },
-          47,
+          43,
         )
         .fromTo(
           '.rs__brand-lede',
           { autoAlpha: 0, y: 14 },
           { autoAlpha: 1, y: 0, duration: 5, ease: 'power2.out' },
-          48,
+          44,
         )
         .to('.rs__temple', { scale: templeZoom, duration: 8 }, 55);
       tl.fromTo('.rs__progress-fill', { scaleX: 0 }, { scaleX: 1, duration: tl.duration() }, 0);
@@ -196,8 +197,8 @@ export default function RailStory() {
             />
             <img
               className="rs__layer rs__train"
-              src="/images/rail/full-train6.webp"
-              alt="A passenger train crossing the bridge over the paddy fields"
+              src="/images/rail/full-train-cholan.webp"
+              alt="The Cholan Express crossing the bridge over the paddy fields"
               decoding="async"
             />
             <img
@@ -235,7 +236,6 @@ export default function RailStory() {
             </p>
           </div>
         </div>
-        <div className="rs__white" aria-hidden="true" />
         <div className="rs__progress" aria-hidden="true">
           <span className="rs__progress-fill" />
         </div>

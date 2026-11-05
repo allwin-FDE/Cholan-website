@@ -1,0 +1,79 @@
+/* Cookie banner (components/common/Analytics.jsx): a small card in the
+   bottom-left corner, clear of the chat button on the right. */
+.cookies {
+  position: fixed;
+  z-index: 96; /* over the chat corner (95) */
+  left: clamp(16px, 2.4vw, 32px);
+  bottom: clamp(16px, 2.4vw, 32px);
+  width: min(420px, calc(100vw - 32px));
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: #fffdf8;
+  border: 1px solid #e3d3a8;
+  box-shadow:
+    0 1px 2px #1b3d2a14,
+    0 18px 44px -16px #1b3d2a59;
+  animation: cookies-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes cookies-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.cookies__text {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.cookies__text a {
+  color: var(--brand-700);
+  border-bottom: 1px solid var(--gold-500);
+}
+.cookies__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.cookies__btn {
+  cursor: pointer;
+  border: 1.5px solid var(--brand-800);
+  border-radius: 999px;
+  background: var(--brand-800);
+  color: #fff;
+  padding: 9px 22px;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.cookies__btn:hover {
+  background: var(--brand-700);
+}
+.cookies__btn--ghost {
+  background: transparent;
+  color: var(--brand-800);
+}
+.cookies__btn--ghost:hover {
+  background: #1b3d2a0f;
+}
+.cookies__btn:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 3px;
+}
+/* Phones: full width, so it sits above the chat button instead of beside it. */
+@media (max-width: 640px) {
+  .cookies {
+    left: 12px;
+    width: calc(100vw - 24px);
+    bottom: 96px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cookies {
+    animation: none;
+  }
+}

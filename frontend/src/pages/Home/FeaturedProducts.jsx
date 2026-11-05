@@ -11,7 +11,7 @@ export default function FeaturedProducts() {
         <div className="row wrap gap-16 section-head-row">
           <SectionHeading
             title="A Grain for Every Moment"
-            lede="Discover our range of premium rice and millets, crafted for every home and every meal."
+            lede="Discover our range of premium rice, crafted for every home and every meal."
           />
           <Link to="/products" className="btn btn--ghost btn--sm">
             View all products

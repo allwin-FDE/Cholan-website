@@ -1,10 +1,11 @@
 import { categories } from '../../data/categories';
 import { products } from '../../data/products';
 
-// Category chips + search box.
+// Category chips (only when there is more than one category) + search box.
 export default function ProductFilters({ category, onCategory, query, onQuery }) {
   return (
     <div className="filters">
+      {categories.length > 1 && (
       <div className="filters__chips">
         <button
           className={`chip${category === 'all' ? ' chip--on' : ''}`}
@@ -25,6 +26,7 @@ export default function ProductFilters({ category, onCategory, query, onQuery })
           );
         })}
       </div>
+      )}
       <div className="filters__tools">
         <svg
           className="filters__search-icon"

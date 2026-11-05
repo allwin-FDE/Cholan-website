@@ -1,0 +1,11 @@
+/* The website inside the dashboard's heatmap preview (see main.jsx): only
+   the page itself, without floating buttons, banner or intro. */
+.heatmap-mode .chatx,
+.heatmap-mode .cookies,
+.heatmap-mode .fx-top,
+.heatmap-mode .fx-wipe {
+  display: none !important;
+}
+.heatmap-mode {
+  scroll-behavior: auto !important;
+}

@@ -8,6 +8,8 @@ import { gsap, ScrollTrigger, Flip } from '../../lib/gsap';
 import { prefersReducedMotion } from '../../lib/motion';
 import { hasProductImage } from '../../lib/products';
 import ProductFilters from './ProductFilters';
+import Seo from '../../components/common/Seo.jsx';
+import { pages } from '../../config/seo.js';
 
 export default function Products() {
   const [params, setParams] = useSearchParams();
@@ -82,9 +84,10 @@ export default function Products() {
 
   return (
     <>
+      <Seo {...pages.products} />
       <PageHero
         title="Our products"
-        lede="Rice and native millets — milled in small lots and packed against the order."
+        lede="Rice for every kitchen — milled in small lots and packed against the order."
       />
       <section className="section section--alt products-page">
         <div className="container">

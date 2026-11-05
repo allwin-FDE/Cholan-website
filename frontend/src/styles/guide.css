@@ -1,0 +1,115 @@
+/* Category buying guide: /rice (pages/Guide.jsx). */
+
+.guide {
+  padding-top: clamp(24px, 3vw, 40px);
+}
+.guide .container {
+  max-width: 1080px;
+}
+.guide__h {
+  margin: clamp(40px, 5vw, 64px) 0 20px;
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  color: var(--brand-900);
+}
+.guide__h:first-child {
+  margin-top: 0;
+}
+
+/* Which product for which need. */
+.guide__picks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.guide__pick {
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: #fffdf8;
+  border: 1px solid #e6d8b5;
+}
+.guide__pick h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  color: var(--brand-800);
+}
+.guide__pick p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.guide__pick .guide__pick-names {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.guide__pick-names a {
+  color: var(--gold-600);
+  border-bottom: 1px solid #b07d1d55;
+}
+.guide__pick-names a:hover {
+  color: var(--brand-700);
+}
+
+.guide__grid {
+  max-width: none;
+}
+
+/* Questions and answers, opening in place. */
+.guide__faq {
+  display: grid;
+  gap: 10px;
+}
+.guide__faq details {
+  border-radius: 14px;
+  background: #fffdf8;
+  border: 1px solid #e6d8b5;
+}
+.guide__faq summary {
+  position: relative;
+  padding: 16px 48px 16px 20px;
+  font-weight: 600;
+  color: var(--brand-900);
+  cursor: pointer;
+  list-style: none;
+}
+.guide__faq summary::-webkit-details-marker {
+  display: none;
+}
+.guide__faq summary::after {
+  content: '+';
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.3rem;
+  color: var(--gold-600);
+}
+.guide__faq details[open] summary::after {
+  content: '−';
+}
+.guide__faq details p {
+  margin: 0;
+  padding: 0 20px 18px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.guide__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: clamp(40px, 5vw, 60px);
+  padding: 22px 26px;
+  border-radius: 18px;
+  border: 1px solid #d9b96a88;
+}
+.guide__cta p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+.guide__cta a:not(.btn) {
+  color: var(--brand-800);
+  font-weight: 600;
+}

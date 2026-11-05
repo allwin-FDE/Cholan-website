@@ -4,7 +4,7 @@ import { categories } from '../../data/categories';
 export const categoryName = (slug) => categories.find((c) => c.slug === slug)?.name ?? '';
 
 // Products pinned to the top of listings, in this order (original `fm`).
-export const PINNED_PRODUCT_IDS = ['chennai-pattinam-idli-rice', 'karikalan-rice', 'moongil-ponni'];
+export const PINNED_PRODUCT_IDS = ['chennai-pattanam-idli-rice', 'karikalan-rice', 'moongil-ponni'];
 
 // Sort key: index in the pinned list, otherwise after all pinned ones (original `pm`).
 export const pinnedRank = (product) => {

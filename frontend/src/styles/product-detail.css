@@ -31,8 +31,7 @@
 .pdp__photo {
   aspect-ratio: 1;
   object-fit: contain;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(165deg, var(--surface-alt), var(--surface-deep));
+  filter: drop-shadow(0 14px 16px #3a2a0f33);
   width: 100%;
   padding: 32px;
 }
@@ -56,6 +55,12 @@
   color: var(--ink-mute);
   margin-bottom: 22px;
   font-size: 1.05rem;
+}
+/* Other names the product goes by, just under the tagline. */
+.pdp__aka {
+  margin: -14px 0 22px;
+  font-size: 0.86rem;
+  color: var(--ink-mute);
 }
 .pdp__price {
   font-family: var(--font-display);
@@ -152,4 +157,14 @@
     grid-template-columns: 1fr;
     gap: 36px;
   }
+}
+/* Add to cart, as large as the button beside it. */
+.pdp__atc {
+  min-width: 210px;
+  min-height: 50px;
+}
+.pdp__atc .atc__add,
+.pdp__atc .atc__stepper {
+  min-height: 50px;
+  font-size: 0.95rem;
 }

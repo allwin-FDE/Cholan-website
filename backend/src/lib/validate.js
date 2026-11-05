@@ -65,6 +65,23 @@ export function validateEnquiry(body) {
       message,
       product: product ? product.slice(0, LIMITS.product) : null,
       source: source.slice(0, LIMITS.source),
+      meta: JSON.stringify(enquiryMeta(input.meta)),
     },
+  };
+}
+
+// Where on the site the enquiry came from, sent by the contact form: paths
+// and campaign names only, each cut short. Anything else is dropped.
+function enquiryMeta(meta) {
+  const input = meta && typeof meta === 'object' ? meta : {};
+  const pick = (key, max = 200) => (typeof input[key] === 'string' && input[key].trim() ? input[key].trim().slice(0, max) : null);
+  return {
+    page: pick('page'),
+    landing: pick('landing'),
+    referrer: pick('referrer', 300),
+    utmSource: pick('utmSource', 100),
+    utmMedium: pick('utmMedium', 100),
+    utmCampaign: pick('utmCampaign', 100),
+    sessionId: pick('sessionId', 64),
   };
 }

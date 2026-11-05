@@ -10,6 +10,8 @@ import FeastChapter from './chapters/FeastChapter.jsx';
 import FamilyChapter from './chapters/FamilyChapter.jsx';
 import ProductChapter from './chapters/ProductChapter.jsx';
 import FooterChapter from './chapters/FooterChapter.jsx';
+import Seo from '../../components/common/Seo.jsx';
+import { pages } from '../../config/seo.js';
 
 // /story scroll-driven brand film (original `Mf`).
 export default function Story() {
@@ -17,6 +19,7 @@ export default function Story() {
   useStoryScroll(ref);
   return (
     <div className="story" ref={ref}>
+      <Seo {...pages.story} />
       <TempleChapter />
       <KingChapter />
       <FieldsChapter />

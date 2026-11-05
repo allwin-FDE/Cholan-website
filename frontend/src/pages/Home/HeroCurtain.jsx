@@ -1,16 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { site } from '../../config/site.js';
-import { useSnapScroll, getSectionTop } from '../../hooks/useSnapScroll.js';
+import { useSnapScroll } from '../../hooks/useSnapScroll.js';
 
 const packs = [
   {
-    src: '/images/stage-chennai-pattinam.webp',
+    src: '/images/stage-chennai-pattanam.webp',
     alt: 'Chennai Pattanam Gottalady Ponni 25 kg rice pack',
     cls: 'side-l',
   },
   { src: '/images/stage-karikalan.webp', alt: 'Karikalan 25 kg bulk pack', cls: 'hero' },
-  { src: '/images/stage-moongil.webp', alt: 'Cholan Moongil Ponni 26 kg pack', cls: 'side-r' },
+  { src: '/images/stage-moongil-poompuhar.webp', alt: 'Cholan Moongil Poompuhar Ponni 26 kg pack', cls: 'side-r' },
 ];
 
 const lede = 'Carefully selected grains, packed with purpose.';
@@ -45,17 +45,23 @@ export default function HeroCurtain() {
         window.removeEventListener('fx:reveal', reveal);
         clearTimeout(fallback);
       };
-      tl.to(words, {
-        opacity: 1,
-        y: 0,
-        filter: 'blur(0px)',
-        duration: 0.8,
-        stagger: 0.07,
-        ease: 'power2.out',
-        clearProps: 'filter',
-      })
-        .to([packLeft, packRight], { opacity: 1, duration: 0.45, ease: 'none' }, '-=0.25')
-        .to([packLeft, packRight], { '--slide': '0%', duration: 0.85, ease: 'power3.out' }, '<');
+      // The side bags come out at once, alongside the headline rather than
+      // after it, so all three are in place within half a second.
+      tl.to([packLeft, packRight], { opacity: 1, duration: 0.25, ease: 'none' }, 0)
+        .to([packLeft, packRight], { '--slide': '0%', duration: 0.5, ease: 'power3.out' }, 0)
+        .to(
+          words,
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 0.7,
+            stagger: 0.06,
+            ease: 'power2.out',
+            clearProps: 'filter',
+          },
+          0,
+        );
       gsap.to(root.querySelector('.curtain__inner'), {
         yPercent: 16,
         opacity: 0.4,
@@ -76,7 +82,8 @@ export default function HeroCurtain() {
   useSnapScroll(ref, (direction, scrollY) => {
     const next = ref.current?.nextElementSibling;
     if (!next) return null;
-    const nextTop = getSectionTop(next);
+    // The rail stage reaches up behind the header, so it lands at the very top.
+    const nextTop = Math.round(next.getBoundingClientRect().top + scrollY);
     return direction > 0
       ? scrollY < nextTop - 2
         ? nextTop

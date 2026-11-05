@@ -6,42 +6,49 @@
 .app-shell main {
   flex: 1;
 }
+/* A floating bar: the header itself is a clear strip, and the rounded,
+   frosted bar inside it hovers a little below the top of the window. The
+   strip lets clicks through around the bar. */
 .header {
   z-index: 50;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  background: #fbfaf6e6;
-  border-bottom: 1px solid #0000;
-  transition:
-    background 0.3s,
-    box-shadow 0.25s,
-    border-color 0.25s,
-    -webkit-backdrop-filter 0.3s,
-    backdrop-filter 0.3s;
+  padding: 12px 16px 0;
+  pointer-events: none;
   position: sticky;
   top: 0;
-}
-.header--ghost {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
-  background: 0 0;
-  border-bottom-color: #0000;
-}
-.header--ghost .nav__link {
-  color: var(--brand-800);
-}
-.header--scrolled {
-  border-bottom-color: var(--line);
-  box-shadow: var(--shadow-sm);
 }
 .header__inner {
   justify-content: center;
   align-items: center;
   gap: clamp(20px, 3vw, 48px);
-  min-height: 74px;
+  min-height: 64px;
+  width: fit-content;
+  padding-inline: 32px 36px;
+  pointer-events: auto;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  background: #fbfaf6d9;
+  border: 1px solid #e3d3a8b3;
+  border-radius: 999px;
+  box-shadow:
+    0 1px 2px #1b3d2a0f,
+    0 10px 30px -14px #1b3d2a47;
+  transition:
+    background 0.3s,
+    box-shadow 0.3s;
   display: flex;
   position: relative;
+}
+.header--ghost .header__inner {
+  background: #fbfaf699;
+}
+.header--ghost .nav__link {
+  color: var(--brand-800);
+}
+.header--scrolled .header__inner {
+  background: #fbfaf6f2;
+  box-shadow:
+    0 1px 2px #1b3d2a14,
+    0 14px 36px -14px #1b3d2a5c;
 }
 .brand {
   flex: none;
@@ -68,6 +75,12 @@
 }
 .nav__link:hover {
   color: var(--brand-700);
+}
+.nav__link:focus-visible,
+.brand:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 5px;
+  border-radius: 6px;
 }
 .nav__link--active {
   color: var(--brand-800);
@@ -119,16 +132,22 @@
   .hamburger {
     display: flex;
   }
+  /* No blur here: it would trap the fixed slide-out menu inside the bar. */
+  .header {
+    padding: 10px 12px 0;
+  }
   .header__inner {
     justify-content: space-between;
-  }
-  .header {
+    min-height: 60px;
+    width: 100%;
+    padding-inline: 18px 8px;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background: var(--page-bg);
   }
-  .header--ghost {
-    background: 0 0;
+  .header--ghost .header__inner,
+  .header--scrolled .header__inner {
+    background: var(--page-bg);
   }
   .nav {
     z-index: 60;
@@ -178,11 +197,14 @@
   }
 }
 .footer {
-  --f-green: #0f2a1c;
-  --f-ink: #fff8e6d1;
-  --f-dim: #fff8e699;
-  --f-line: #e8bb5647;
-  --f-gold: #e8bb56;
+  /* A mild sage green ground with dark green type and bronze accents. The
+     names are historical: --f-green is the footer ground and --f-gold its
+     accent colour. */
+  --f-green: #dce8d3;
+  --f-ink: #1d4029;
+  --f-dim: #1d4029c7;
+  --f-line: #2857374d;
+  --f-gold: #7a4e0c;
   color: var(--f-ink);
   background: var(--f-green);
   position: relative;
@@ -212,7 +234,8 @@
   padding-right: clamp(24px, 3.2vw, 52px);
 }
 .footer__logo img {
-  filter: brightness(0) invert(0.97) sepia(0.15);
+  /* The logo in its own colours: the green reads well on the gold. */
+  filter: none;
   width: clamp(120px, 11vw, 156px);
   height: auto;
   display: block;
@@ -289,7 +312,7 @@
 }
 .footer__form {
   border: 1px solid var(--f-line);
-  background: #ffffff0d;
+  background: #fffaf080;
   border-radius: 999px;
   align-items: center;
   gap: 6px;
@@ -301,7 +324,7 @@
   border-color: var(--f-gold);
 }
 .footer__form input {
-  color: #fff8e6;
+  color: var(--f-ink);
   min-width: 0;
   font: inherit;
   background: 0 0;
@@ -333,12 +356,29 @@
   display: grid;
 }
 .footer__form button:hover {
-  background: #f3cb73;
+  background: #5e3b07;
   transform: translate(2px);
 }
 .footer__form button svg {
   width: 16px;
   height: 16px;
+}
+.footer__form button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.footer__thanks {
+  border: 1px solid var(--f-gold);
+  color: var(--f-green);
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.footer__form-error {
+  color: #b42318;
+  margin-top: 8px;
+  font-size: 0.8rem;
 }
 .footer__follow {
   margin-top: 32px !important;
@@ -401,19 +441,41 @@
   font-size: 0.76rem;
   display: flex;
 }
+.footer__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.footer__reg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  color: var(--f-ink);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
 .footer__legal {
   flex-wrap: wrap;
   align-items: center;
   display: flex;
 }
-.footer__legal a {
+.footer__legal a,
+.footer__legal button {
   color: var(--f-ink);
   transition: color 0.2s;
 }
-.footer__legal a:hover {
+.footer__legal button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+}
+.footer__legal a:hover,
+.footer__legal button:hover {
   color: var(--f-gold);
 }
-.footer__legal a + a:before {
+.footer__legal > * + *:before {
   content: "|";
   color: var(--f-line);
   margin: 0 14px;

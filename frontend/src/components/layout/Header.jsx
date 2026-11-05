@@ -13,6 +13,13 @@ export default function Header() {
   const { pathname } = useLocation();
   const isHome = pathname === '/';
   const closeMenu = () => setMenuOpen(false);
+  // A mouse click (detail > 0) also lets go of focus, so scrolling with the
+  // keys afterwards doesn't draw a focus ring round the link. Keyboard users
+  // (Enter gives detail 0) keep their place.
+  const onLinkClick = (event) => {
+    closeMenu();
+    if (event.detail > 0) event.currentTarget.blur();
+  };
 
   // Publish the header height as the --header-h CSS variable.
   useEffect(() => {
@@ -48,7 +55,7 @@ export default function Header() {
           .join(' ')}
       >
         <div className="container header__inner">
-          <Link to="/" className="brand" aria-label={`${site.name} home`} onClick={closeMenu}>
+          <Link to="/" className="brand" aria-label={`${site.name} home`} onClick={onLinkClick}>
             <img
               className="brand__logo"
               src="/images/cholan-logo.png"
@@ -63,7 +70,7 @@ export default function Header() {
                 key={link.to}
                 to={link.to}
                 end={link.to === '/'}
-                onClick={closeMenu}
+                onClick={onLinkClick}
                 className={({ isActive }) => `nav__link${isActive ? ' nav__link--active' : ''}`}
               >
                 {link.label}
@@ -71,7 +78,7 @@ export default function Header() {
             ))}
           </nav>
           <div className="header__tools">
-            {features.cart && !isHome && <CartButton />}
+            {features.cart && <CartButton />}
             <button
               className="hamburger"
               aria-label="Toggle menu"

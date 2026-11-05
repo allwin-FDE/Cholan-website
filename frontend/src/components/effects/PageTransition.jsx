@@ -3,32 +3,11 @@ import { useLocation } from 'react-router-dom';
 import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { prefersReducedMotion } from '../../lib/motion.js';
 
-// Elements that get the scroll-in "reveal" (fade/slide up), staggered per batch.
-const REVEAL_SELECTORS = [
-  '.grid > *',
-  '.products-grid > *',
-  '.footer__top > *',
-  '.footer__grid > *',
-  '.contact > *',
-  '.infocard',
-  '.policy__block',
-  '.pdp__info > *',
-  '.filters',
-  '.results-count',
-  '.bulk > *',
-  '.millets__item',
-  '.feature',
-  '.newsletter',
-  '.section-head-row > .btn',
-  '.center > .row',
-  '.marquee',
-];
-
 // Sections with their own bespoke animation: excluded from the generic reveals.
 const OWN_ANIMATION = '.ab, .curtain, .rs';
 
-// Route-change wipe curtain (gold/green/cream panels + logo) AND the generic scroll
-// reveals for headings, grids and images (original `Vd`). Dispatches `fx:reveal` on
+// Route-change wipe curtain (gold/green/cream panels + logo) AND the scroll
+// reveals for section headings (original `Vd`). Dispatches `fx:reveal` on
 // window when the wipe has opened, which page animations listen for.
 export default function PageTransition() {
   const { pathname } = useLocation();
@@ -148,58 +127,8 @@ export default function PageTransition() {
           if (lede) tl.from(lede, { autoAlpha: 0, y: 20, duration: 0.8 }, 0.3);
         });
 
-      // Grids, cards and misc blocks fade/slide up in batches.
-      const revealTargets = gsap.utils.toArray(REVEAL_SELECTORS.join(','), shell).filter(isGeneric);
-      gsap.set(revealTargets, { autoAlpha: 0, y: 46 });
-      // The same hidden state is declared in CSS under .fx-reveal so the
-      // content is never painted visible before this effect runs. Now that
-      // GSAP holds it inline, drop the flag: it also carries a failsafe that
-      // un-hides everything after a few seconds, which would otherwise
-      // override these tweens.
-      document.documentElement.classList.remove('fx-reveal');
-      ScrollTrigger.batch(revealTargets, {
-        start: 'top 92%',
-        once: true,
-        onEnter: (batch) =>
-          gsap.to(batch, {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.9,
-            stagger: 0.1,
-            ease: 'power3.out',
-            clearProps: 'transform',
-          }),
-      });
-
-      // Category tile / product detail photos zoom out into place.
-      gsap.utils
-        .toArray('.cattile__media img, .pdp__photo', shell)
-        .filter(isGeneric)
-        .forEach((img) => {
-          gsap.from(img, {
-            scale: 1.25,
-            duration: 1.4,
-            ease: 'power2.out',
-            clearProps: 'transform',
-            scrollTrigger: { trigger: img, start: 'top 92%', once: true },
-          });
-        });
-
-      // Product card images drop in with a bounce.
-      gsap.utils
-        .toArray('.card__media img', shell)
-        .filter(isGeneric)
-        .forEach((img) => {
-          gsap.from(img, {
-            y: -40,
-            rotate: -6,
-            duration: 1.1,
-            ease: 'bounce.out',
-            delay: 0.15,
-            clearProps: 'transform',
-            scrollTrigger: { trigger: img, start: 'top 90%', once: true },
-          });
-        });
+      // Cards, grids and the footer are deliberately not animated in: they
+      // are simply there as the page scrolls. Only the headings above move.
     }, shell);
     const refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 400);
     return () => {

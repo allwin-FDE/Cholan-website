@@ -16,16 +16,16 @@
   --danger-50: #fdf3f1;
   --ink: #1a1a17;
   --ink-soft: #4a4a44;
-  /* Darkened for the warmer page: #7a7a71 fell to 3.65:1 once the
-     background stopped being near-white. */
-  --ink-mute: #68685f;
+  /* Darkened with the page: on the deeper beige, #68685f fell to 4.13:1;
+     this keeps small grey text at 5.1:1. */
+  --ink-mute: #5a5a51;
   --line: #e2e0d8;
   --surface: #fff;
   --surface-alt: #faf8f3;
   --surface-deep: #f3efe5;
   /* Section band tint: a clear step from --page-bg without dimming text. */
-  --band-warm: #ebe3d1;
-  --page-bg: #f2ebdb;
+  --band-warm: #dfd1b2;
+  --page-bg: #e8dcc1;
   --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --radius-sm: 8px;
@@ -192,10 +192,12 @@ p {
 .btn--gold:hover {
   background: var(--gold-400);
 }
+/* A warm edge and a faint cream fill: the light --line grey is paler than
+   the beige page, so the button lost its outline on it. */
 .btn--ghost {
   color: var(--brand-800);
-  border-color: var(--line);
-  background: 0 0;
+  border-color: #bfa977;
+  background: #fffaf059;
 }
 .btn--ghost:hover {
   border-color: var(--brand-600);

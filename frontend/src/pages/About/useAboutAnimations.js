@@ -20,22 +20,7 @@ export default function useAboutAnimations(rootRef) {
         });
       });
 
-      // Generic fade-up reveals
-      const revealTargets = gsap.utils.toArray('[data-reveal]', root);
-      gsap.set(revealTargets, { opacity: 0, y: 30 });
-      ScrollTrigger.batch(revealTargets, {
-        start: 'top 88%',
-        once: true,
-        onEnter: (batch) =>
-          gsap.to(batch, {
-            opacity: 1,
-            y: 0,
-            duration: 0.9,
-            stagger: 0.08,
-            ease: 'power3.out',
-            clearProps: 'transform',
-          }),
-      });
+      // Cards, paragraphs and buttons are not faded in: they are simply there.
 
       gsap.from('.ab-quote__rule', {
         scaleX: 0,
@@ -102,15 +87,6 @@ export default function useAboutAnimations(rootRef) {
             0.1,
           );
         }
-      });
-
-      gsap.from('.ab-pack', {
-        y: 70,
-        opacity: 0,
-        duration: 1.05,
-        stagger: 0.12,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.ab-products__packs', start: 'top 82%', once: true },
       });
 
       // Re-measure once images have decoded

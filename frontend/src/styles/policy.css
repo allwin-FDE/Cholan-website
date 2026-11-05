@@ -21,6 +21,134 @@
   color: var(--ink-soft);
   margin: 0;
 }
+.policy__block p + p,
+.policy__block ul + p,
+.policy__block ol + p,
+.policy__block p + ul,
+.policy__block p + ol {
+  margin-top: 12px;
+}
+.policy__block ul,
+.policy__block ol {
+  color: var(--ink-soft);
+  margin: 0;
+  padding-left: 1.3em;
+}
+.policy__block li + li {
+  margin-top: 6px;
+}
+.policy__block li::marker {
+  color: var(--gold-600);
+}
+.policy__block strong,
+.policy__intro strong {
+  color: var(--ink);
+}
+.policy__intro {
+  margin-bottom: 40px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.policy__intro p {
+  color: var(--ink-soft);
+  margin: 0;
+}
+.policy__intro .policy__updated {
+  margin-bottom: 12px;
+  color: var(--ink-mute);
+  font-size: 0.86rem;
+}
+.policy__block a,
+.policy__intro a {
+  color: var(--brand-700);
+  border-bottom: 1px solid var(--gold-500);
+}
+.policy__block a:hover {
+  color: var(--gold-600);
+}
+.policy__table + p,
+.policy__table + ul,
+.policy__block p + .policy__table,
+.policy__table + .policy__table {
+  margin-top: 14px;
+}
+.policy__table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  background: #fffdf8;
+  border: 1px solid #e6d8b5;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.policy__table th,
+.policy__table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 11px 14px;
+  border-bottom: 1px solid #efe5cc;
+  line-height: 1.5;
+}
+.policy__table th {
+  background: #f3ead2;
+  color: var(--brand-900);
+  font-weight: 600;
+}
+.policy__table td {
+  color: var(--ink-soft);
+}
+.policy__table tr:last-child td {
+  border-bottom: 0;
+}
+/* Phones: each row becomes a small card, labelled field by field. */
+@media (max-width: 640px) {
+  .policy__table table,
+  .policy__table tbody,
+  .policy__table tr,
+  .policy__table td {
+    display: block;
+  }
+  .policy__table table {
+    border: 0;
+    background: none;
+  }
+  .policy__table thead {
+    display: none;
+  }
+  .policy__table tr {
+    background: #fffdf8;
+    border: 1px solid #e6d8b5;
+    border-radius: 12px;
+    padding: 6px 0;
+  }
+  .policy__table tr + tr {
+    margin-top: 10px;
+  }
+  .policy__table td {
+    border: 0;
+    padding: 5px 14px;
+  }
+  .policy__table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--ink-mute);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .policy__table td:first-child {
+    color: var(--brand-900);
+    font-weight: 600;
+  }
+}
+/* A detail still to be filled in. */
+.policy__todo {
+  background: #f7e3a3;
+  color: inherit;
+  border-radius: 4px;
+  padding: 0 4px;
+}
 .policy__foot {
   border-top: 1px solid var(--line);
   flex-wrap: wrap;

@@ -5,7 +5,9 @@ import { whatsappLink } from '../../lib/whatsapp.js';
 import AboutIcon from './AboutIcon.jsx';
 import splitWords from './splitWords.jsx';
 import useAboutAnimations from './useAboutAnimations.js';
-import { values, milestones, packs, directionsUrl } from './data.js';
+import { values, milestones, directionsUrl } from './data.js';
+import Seo from '../../components/common/Seo.jsx';
+import { pages, businessSchema } from '../../config/seo.js';
 
 // /about (original `wm`).
 export default function About() {
@@ -14,6 +16,7 @@ export default function About() {
 
   return (
     <div className="ab" ref={rootRef}>
+      <Seo {...pages.about} schema={businessSchema} />
       <section className="ab-quote">
         <div className="container">
           <div className="ab-quote__mark" aria-hidden="true">
@@ -25,6 +28,9 @@ export default function About() {
             <span className="ab-quote__line">{splitWords('Every grain holds a story.')}</span>
             <span className="ab-quote__line">{splitWords('Every meal creates a memory.')}</span>
           </h1>
+          <div className="ab-quote__divider" aria-hidden="true">
+            <span />
+          </div>
           <p className="ab-quote__caption" data-reveal>
             From the fields that nurture our grains to the homes that cherish them, Cholan preserves
             the connection between tradition, taste, and togetherness.
@@ -51,9 +57,6 @@ export default function About() {
             <ul className="ab-promise__list">
               {values.map((value) => (
                 <li className="ab-value" data-reveal key={value.title}>
-                  <span className="ab-value__icon">
-                    <AboutIcon name={value.icon} />
-                  </span>
                   <h3>{value.title}</h3>
                   <p>{value.text}</p>
                 </li>
@@ -94,28 +97,21 @@ export default function About() {
       <section className="ab-products">
         <div className="container ab-products__inner">
           <div className="ab-products__copy">
-            <h2 className="ab-rise">{splitWords('Packed fresh, against the order.')}</h2>
+            <h2 className="ab-rise">
+              <span className="ab-products__line">{splitWords('Packed fresh,')}</span>
+              <span className="ab-products__line">{splitWords('against the order.')}</span>
+            </h2>
+            <div className="ab-products__rule" aria-hidden="true">
+              <span />
+            </div>
             <p data-reveal>
-              Every bag of Cholan Rice & Millets is packed against the order rather than stored, so
+              Every bag from Cholan Rice and Millet Shop is packed against the order rather than stored, so
               you enjoy the same freshness we trust at home — from household packs to 26 kg bags for
               messes and caterers.
             </p>
             <Link to="/products" className="ab-btn ab-btn--dark" data-reveal>
               View All Products <AboutIcon name="arrow" />
             </Link>
-          </div>
-          <div className="ab-products__packs">
-            {packs.map((pack) => (
-              <div className="ab-pack" key={pack.img}>
-                <img
-                  className="ab-pack__img"
-                  src={`/images/${pack.img}.webp`}
-                  alt={pack.alt}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -163,13 +159,6 @@ export default function About() {
                   >
                     Get directions
                   </a>
-                </div>
-              </li>
-              <li data-reveal>
-                <AboutIcon name="clock" className="ab-visit__icon" />
-                <div>
-                  <span className="ab-visit__label">Working hours</span>
-                  <p>{site.hours}</p>
                 </div>
               </li>
               <li data-reveal>

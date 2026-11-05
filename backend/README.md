@@ -120,3 +120,67 @@ database, run the backend somewhere with a real disk and point `DB_FILE` at it.
 `ALLOWED_ORIGINS` must list the deployed site's origin or the browser will block
 the form's request. Point the frontend at the service with `VITE_API_URL` — see
 `../frontend/README.md`.
+
+## Website assistant (`POST /api/chat`)
+
+The "Chat with us" assistant on the site. It answers only questions about
+rice, millets, pulses and the shop, and only from the website's own content.
+Built with LangChain on Groq (`src/chat/chain.js`):
+
+```
+question ──▶ topic check (small model)
+               ├─ off topic ──▶ fixed polite reply, in English or Tamil
+               └─ on topic  ──▶ keyword search (BM25) over src/chat/knowledge.json
+                               ──▶ matching sections + question ──▶ answer model ──▶ streamed reply
+```
+
+- **Knowledge.** `npm run knowledge` rebuilds `src/chat/knowledge.json` from
+  the frontend's own content: products, categories, business details, About
+  data, policies, reviews and the visible text of the main pages. Re-run it
+  after changing site content, and commit the result (the backend deploys
+  without the frontend beside it).
+- **Search.** `src/chat/retrieve.js`: BM25 over the sections, with a synonym
+  table (idly/idli, cost/price, kollu/horse gram…) and Tamil word endings
+  handled. The contact and ordering sections are always included.
+- **Topic check.** `openai/gpt-oss-20b` answers ON or OFF for each question.
+  It is given the shop's product names and common Tamil grain names. If the
+  check itself fails, the question goes through: the answer prompt is limited
+  to the same topics.
+- **Answering.** `openai/gpt-oss-120b` at low reasoning effort, streamed as
+  server-sent events. The prompt keeps answers to the supplied content and
+  points visitors to the shop for anything it doesn't cover. When Groq's
+  per-minute token limit is reached, the request waits as long as Groq asks
+  (up to 20 s) and retries, at most twice.
+- **Turning it on.** Set `GROQ_API_KEY` (in `.env.local` locally, as a Cloud
+  Run variable when deployed). Without it the route answers 503 and the chat
+  button stays hidden on a production build without `VITE_API_URL`.
+- **Limits.** 15 questions per visitor per minute (`CHAT_RATE_*`), 12 turns
+  of history and 1000 characters per message. Groq's free plan allows about
+  5–6 questions a minute across all visitors; a paid plan raises that.
+
+## Dashboard (`/dashboard` on the website)
+
+The shop's own dashboard: visitors, heatmaps, enquiries, the blog and who has
+access. The pages are in `frontend/src/dashboard/`; the backend side is here.
+
+- **Sign-in** is Firebase Authentication with an emailed link (no passwords),
+  in the `cholan-rice-site` project. Every `/api/admin/*` request carries the
+  person's ID token; `src/lib/auth.js` checks it and looks the email up in the
+  `dashboardAccess` collection. `OWNER_EMAILS` always have full access.
+  Roles: viewer (reports) < editor (+ enquiries, blog) < admin (+ Settings).
+- **Visitor tracking** (`POST /api/track`, `src/routes/track.js`) receives
+  batches from `frontend/src/lib/tracker.js`, only for visitors who accepted
+  cookies: page views, clicks with their position (heatmaps), scroll depth,
+  time on page and actions. Stored in `visits` (one per visit) and `activity`
+  (the events), both deleted by Firestore TTL on `expireAt`. Bots and headless
+  browsers are ignored. `src/lib/insights.js` turns them into the reports.
+- **Enquiries** in the dashboard read the `enquiries` Firestore collection;
+  each now also records the page it was sent from, the landing page, referrer,
+  campaign and the visit id (`meta` in SQLite).
+- **Blog**: posts in the `posts` collection (`src/lib/posts.js`), public at
+  `GET /api/posts` and `GET /api/posts/:slug`; images in the private
+  `MEDIA_BUCKET`, served by `GET /api/media/*`.
+
+Locally, set `GCLOUD_PROJECT=cholan-rice-site`, `FIRESTORE_PREFIX=dev_` and
+`FIRESTORE_COLLECTION=dev_enquiries` in `.env.local` to test against separate
+collections.

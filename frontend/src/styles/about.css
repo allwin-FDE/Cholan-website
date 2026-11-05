@@ -75,9 +75,55 @@
 .ab-btn--gold:hover {
   background: var(--gold-400);
 }
+/* Top banner: the green temple-and-fields artwork, text in its open sky. It
+   reaches up behind the floating header, so the green runs to the top of
+   the window. */
 .ab-quote {
+  --hh: var(--header-h, 74px);
   text-align: center;
-  padding-block: clamp(64px, 9vw, 110px) clamp(56px, 7vw, 90px);
+  min-height: calc(min(33.3vw, 640px) + var(--hh));
+  margin-top: calc(var(--hh) * -1);
+  padding-block: calc(var(--hh) + clamp(44px, 5.5vw, 84px)) clamp(96px, 11vw, 170px);
+  background: #0f4a30 url('/images/about-banner.webp') center bottom / cover no-repeat;
+  border-bottom: 2px solid #c9a24a;
+}
+@media (max-width: 640px) {
+  .ab-quote {
+    background-image: url('/images/about-banner-sm.webp');
+    padding-block: calc(var(--hh) + 44px) 120px;
+  }
+}
+.ab-quote .ab-quote__text {
+  color: #fbf4e2;
+}
+.ab-quote .ab-quote__line + .ab-quote__line {
+  color: #e9bf62;
+}
+.ab-quote .ab-quote__caption {
+  color: #e8e1cf;
+}
+.ab-quote__divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 220px;
+  margin: 0 auto 20px;
+  color: #d8b25a;
+}
+.ab-quote__divider::before,
+.ab-quote__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.ab-quote__divider span {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  transform: rotate(45deg);
 }
 .ab-quote__mark {
   max-width: 560px;
@@ -127,6 +173,7 @@
   line-height: 1.65;
 }
 .ab-promise {
+  padding-top: clamp(28px, 4vw, 56px);
   padding-bottom: clamp(72px, 9vw, 120px);
 }
 .ab-promise__card {
@@ -183,24 +230,6 @@
 .ab-value + .ab-value {
   border-left: 1px solid var(--ab-card-line);
 }
-.ab-value__icon {
-  width: 76px;
-  height: 76px;
-  color: var(--gold-600);
-  background: radial-gradient(circle at 50% 40%, #fff6e0, #f3e3bf);
-  border-radius: 50%;
-  place-items: center;
-  margin: 0 auto 20px;
-  font-size: 34px;
-  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
-  display: grid;
-}
-.ab-value__icon .ab-icon {
-  stroke-width: 1.4px;
-}
-.ab-value:hover .ab-value__icon {
-  transform: translateY(-4px) scale(1.05);
-}
 .ab-value h3 {
   color: var(--ab-green);
   margin: 0 0 8px;
@@ -213,8 +242,20 @@
   font-size: 0.9rem;
   line-height: 1.55;
 }
+/* Pale countryside scene (farmer, palms, fields) along the bottom; its sky
+   colour fills the space above, so the timeline sits in open sky. */
 .ab-journey {
-  padding-bottom: clamp(72px, 9vw, 120px);
+  padding-top: clamp(48px, 6vw, 80px);
+  padding-bottom: clamp(140px, 16vw, 240px);
+  background: #dbe1c8 url('/images/about-fields.webp') center bottom / 100% auto no-repeat;
+  border-block: 1px solid #c9a24a66;
+}
+@media (max-width: 640px) {
+  .ab-journey {
+    background-image: url('/images/about-fields-sm.webp');
+    background-size: 190% auto;
+    padding-bottom: 150px;
+  }
 }
 .ab-journey__head {
   text-align: center;
@@ -347,45 +388,45 @@
   line-height: 1.55;
 }
 .ab-products {
-  padding-bottom: clamp(72px, 9vw, 120px);
+  padding-block: clamp(48px, 6vw, 88px) clamp(64px, 8vw, 112px);
 }
+/* Text only, centred: heading, a gold rule, the line and the button. */
 .ab-products__inner {
-  grid-template-columns: 0.9fr 1.1fr;
-  align-items: center;
-  gap: clamp(32px, 5vw, 72px);
-  display: grid;
+  max-width: 760px;
+  text-align: center;
 }
 .ab-products__copy h2 {
-  max-width: 12ch;
+  margin-bottom: 16px;
 }
-.ab-products__copy p {
-  max-width: 44ch;
-  color: var(--ink-soft);
-  margin: 0 0 28px;
-}
-.ab-products__packs {
-  justify-content: center;
-  align-items: flex-end;
-  padding-bottom: 24px;
-  display: flex;
-}
-.ab-pack {
-  width: clamp(120px, 14vw, 200px);
-  margin-inline: clamp(-26px, -1.8vw, -12px);
-  position: relative;
-}
-.ab-pack:nth-child(2) {
-  z-index: 2;
-  width: clamp(136px, 16vw, 228px);
-}
-.ab-pack__img {
-  width: 100%;
-  height: auto;
-  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+.ab-products__line {
   display: block;
 }
-.ab-pack:hover .ab-pack__img {
-  transform: translateY(-10px);
+.ab-products__rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 180px;
+  margin: 0 auto 20px;
+  color: var(--gold-500);
+}
+.ab-products__rule::before,
+.ab-products__rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.ab-products__rule span {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+.ab-products__copy p {
+  max-width: 52ch;
+  color: var(--ink-soft);
+  margin: 0 auto 28px;
 }
 .ab-visit {
   padding-bottom: clamp(64px, 8vw, 110px);
@@ -480,18 +521,12 @@
   border-color: var(--gold-600);
 }
 @media (width<=960px) {
-  .ab-products__inner {
-    grid-template-columns: 1fr;
-  }
   .ab-promise__list {
     grid-template-columns: repeat(2, 1fr);
     row-gap: 36px;
   }
   .ab-value:nth-child(3) {
     border-left: none;
-  }
-  .ab-products__packs {
-    order: -1;
   }
   .ab-visit__panel {
     grid-template-columns: 1fr;
@@ -530,12 +565,6 @@
     border-radius: 16px;
     padding: 18px 10px 16px;
   }
-  .ab-value__icon {
-    width: 52px;
-    height: 52px;
-    margin-bottom: 12px;
-    font-size: 24px;
-  }
   .ab-value h3 {
     margin-bottom: 4px;
     font-size: 0.98rem;
@@ -562,9 +591,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ab-btn,
-  .ab-value__icon,
-  .ab-pack__img {
+  .ab-btn {
     transition: none;
   }
 }

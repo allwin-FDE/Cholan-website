@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { site } from '../../config/site.js';
 import { footerNav, policyNav } from '../../config/navigation.js';
 import { categories } from '../../data/categories.js';
 import { Icon, iconPaths } from '../common/Icon.jsx';
+import { openCookieSettings } from '../common/Analytics.jsx';
+import { analyticsEnabled, track } from '../../lib/analytics.js';
+import { hasBackend, subscribe } from '../../lib/api.js';
+import { enquiryContext } from '../../lib/tracker.js';
 
 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${site.address.line1}, ${site.address.line2} ${site.address.pincode}`)}`;
 
@@ -24,7 +29,7 @@ export default function Footer() {
             </Link>
             <span className="footer__motto">Pure Goodness Always</span>
             <p>
-              Bringing the finest rice and millets from the fertile lands of the Chola region to
+              Bringing the finest rice from the fertile lands of the Chola region to
               homes across India.
             </p>
           </div>
@@ -43,7 +48,7 @@ export default function Footer() {
             <ul>
               {categories.map((category) => (
                 <li key={category.slug}>
-                  <Link to={`/products?category=${category.slug}`}>{category.name}</Link>
+                  <Link to={`/${category.slug}`}>{category.name}</Link>
                 </li>
               ))}
               <li>
@@ -73,18 +78,7 @@ export default function Footer() {
           <div className="footer__col footer__news">
             <h4>Subscribe to Updates</h4>
             <p>Get the latest on our products, offers and stories from the Chola land.</p>
-            <form
-              className="footer__form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert('Newsletter signup — connect this to your mailing list.');
-              }}
-            >
-              <input type="email" required placeholder="Enter your email" aria-label="Email address" />
-              <button type="submit" aria-label="Subscribe">
-                <Icon d={iconPaths.arrow} />
-              </button>
-            </form>
+            <Subscribe />
             <h4 className="footer__follow">Follow Us</h4>
             <div className="footer__social">
               <a href={site.social.facebook} target="_blank" rel="noreferrer" aria-label="Facebook">
@@ -103,8 +97,16 @@ export default function Footer() {
           <span />
         </div>
         <div className="container footer__bar">
-          <span>
+          <span className="footer__copy">
             © {new Date().getFullYear()} {site.name}. All rights reserved.
+            <span className="footer__reg">
+              <span>A brand of {site.legalName}</span>
+            </span>
+            <span className="footer__reg">
+              {site.cin && <span>CIN {site.cin}</span>}
+              {site.gstin && <span>GSTIN {site.gstin}</span>}
+              {site.fssai && <span>FSSAI Lic. No. {site.fssai}</span>}
+            </span>
           </span>
           <nav className="footer__legal" aria-label="Policies">
             {policyNav.map((link) => (
@@ -112,9 +114,71 @@ export default function Footer() {
                 {link.label}
               </Link>
             ))}
+            {analyticsEnabled && (
+              <button type="button" onClick={openCookieSettings}>
+                Cookie settings
+              </button>
+            )}
           </nav>
         </div>
       </div>
     </footer>
+  );
+}
+
+// The "Subscribe to Updates" box. Saves the address to the subscriber list
+// (dashboard → Subscribers) and says so in place of the box. Without a
+// backend it opens an email to the shop instead.
+function Subscribe() {
+  const [email, setEmail] = useState('');
+  const [state, setState] = useState({ status: 'idle' }); // idle | sending | done | error
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    const address = email.trim();
+    if (!hasBackend) {
+      window.location.href = `mailto:${site.email}?subject=${encodeURIComponent('Subscribe to updates')}&body=${encodeURIComponent(address)}`;
+      return;
+    }
+    setState({ status: 'sending' });
+    try {
+      const result = await subscribe(address, { ...enquiryContext(), page: window.location.pathname });
+      setState({ status: 'done', already: result.already });
+      if (!result.already) track('newsletter_signup', { method: 'footer' });
+    } catch (error) {
+      setState({ status: 'error', message: error.message });
+    }
+  };
+
+  if (state.status === 'done') {
+    return (
+      <p className="footer__thanks" role="status">
+        {state.already ? 'You’re already subscribed — thank you!' : 'Thank you! You’re subscribed to our updates.'}
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <form className="footer__form" onSubmit={onSubmit}>
+        <input
+          type="email"
+          required
+          placeholder="Enter your email"
+          aria-label="Email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={state.status === 'sending'}
+        />
+        <button type="submit" aria-label="Subscribe" disabled={state.status === 'sending'}>
+          <Icon d={iconPaths.arrow} />
+        </button>
+      </form>
+      {state.status === 'error' && (
+        <p className="footer__form-error" role="alert">
+          {state.message}
+        </p>
+      )}
+    </>
   );
 }

@@ -3,8 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import PageHero from '../../components/common/PageHero.jsx';
 import { site } from '../../config/site.js';
 import { getProduct } from '../../lib/products.js';
-import { submitEnquiry } from '../../lib/api.js';
-import { whatsappLink } from '../../lib/whatsapp.js';
+import { hasBackend, submitEnquiry } from '../../lib/api.js';
+import { whatsappEnquiryLink, whatsappLink } from '../../lib/whatsapp.js';
+import Seo from '../../components/common/Seo.jsx';
+import { pages, businessSchema } from '../../config/seo.js';
+import { track } from '../../lib/analytics.js';
+import { enquiryContext } from '../../lib/tracker.js';
 
 const fullAddress = `${site.address.line1}, ${site.address.line2} ${site.address.pincode}, ${site.address.state}`;
 
@@ -62,12 +66,23 @@ export default function Contact() {
     event.preventDefault();
     if (status === 'sending') return;
 
+    // No backend online yet: send the enquiry through WhatsApp instead.
+    if (!hasBackend) {
+      window.open(whatsappEnquiryLink(form), '_blank', 'noopener');
+      track('generate_lead', { method: 'whatsapp', enquiry_type: form.enquiryType, product: product?.id });
+      setStatus('sent-whatsapp');
+      setForm(emptyForm);
+      return;
+    }
+
     setStatus('sending');
     setError('');
     setFieldErrors({});
 
     try {
-      await submitEnquiry({ ...form, product: product?.id || null });
+      await submitEnquiry({ ...form, product: product?.id || null, meta: enquiryContext() });
+      // What was asked about, never who asked: no name, phone or email.
+      track('generate_lead', { method: 'enquiry_form', enquiry_type: form.enquiryType, product: product?.id });
       setStatus('sent');
       setForm(emptyForm);
     } catch (submitError) {
@@ -79,6 +94,7 @@ export default function Contact() {
 
   return (
     <>
+      <Seo {...pages.contact} schema={businessSchema} />
       <PageHero
         title="Talk to us"
         lede="Household orders, bulk quotes or a question about a variety — we are happy to help."
@@ -91,6 +107,12 @@ export default function Contact() {
               <p className="notice" role="status">
                 Thanks — we have your enquiry and will get back to you shortly, usually within one
                 working day.
+              </p>
+            )}
+            {status === 'sent-whatsapp' && (
+              <p className="notice" role="status">
+                Thanks — your enquiry opened in WhatsApp. Send the message there and we will reply
+                shortly.
               </p>
             )}
             {status === 'error' && error && (
@@ -211,7 +233,6 @@ export default function Contact() {
                 <a href={`tel:${site.phoneRaw}`} className="infocard__value">
                   {site.phone}
                 </a>
-                <span className="muted">{site.hours}</span>
               </div>
               <div className="infocard">
                 <span className="infocard__label">Email</span>

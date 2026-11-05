@@ -39,7 +39,7 @@ export default function DetailsFields({ details, errors, bind }) {
             current={details.method}
             onChange={bind('method')}
             title="Home delivery"
-            note="Across Tamil Nadu"
+            note="Across India"
           />
           <ChoiceRadio
             name="method"
@@ -87,8 +87,7 @@ export default function DetailsFields({ details, errors, bind }) {
           </div>
         ) : (
           <p className="co-reveal co-pickup" key="pickup">
-            Collect from {site.address.line1}, {site.address.line2} – {site.address.pincode}.{' '}
-            {site.hours}.
+            Collect from {site.address.line1}, {site.address.line2} – {site.address.pincode}.
           </p>
         )}
       </fieldset>

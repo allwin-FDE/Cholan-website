@@ -22,6 +22,6 @@ export const footerNav = [
 export const policyNav = [
   { to: '/policies/privacy', label: 'Privacy Policy' },
   { to: '/policies/terms', label: 'Terms & Conditions' },
-  { to: '/policies/shipping', label: 'Shipping' },
-  { to: '/policies/returns', label: 'Refunds' },
+  { to: '/policies/shipping', label: 'Shipping Policy' },
+  { to: '/policies/returns', label: 'Return & Refund Policy' },
 ];
