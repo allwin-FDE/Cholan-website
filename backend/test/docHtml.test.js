@@ -45,3 +45,12 @@ test('an article can be a Word document, and is counted by its words', () => {
   assert.equal(value.words, 6);
   assert.equal(value.docHtml, '<p>one two three four five six</p>');
 });
+
+test("a PDF's pages are pictures whose words count as the blog's text", () => {
+  const page = (n, words) =>
+    `<a href="${ORIGIN}/api/media/blog/p${n}.webp"><img src="${ORIGIN}/api/media/blog/p${n}.webp" alt="${words}" width="1600" height="2263" style="display:block;width:100%;height:auto"></a>`;
+  const docHtml = `<div style="display:flow-root">${page(1, 'Price list for November')}${page(2, 'Delivery in Coimbatore')}</div>`;
+  const { value } = cleanShortPost({ title: 'T', docHtml }, ORIGIN, { draft: true });
+  assert.equal(value.docHtml, docHtml);
+  assert.equal(value.caption, 'Price list for November\n\nDelivery in Coimbatore');
+});

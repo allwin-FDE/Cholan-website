@@ -287,6 +287,7 @@ router.get(
 router.post(
   '/my-posts',
   requireRole('poster'),
+  express.json({ limit: '2mb' }),
   wrap(async (req, res) => {
     const draft = req.body?.draft === true;
     const { value, errors } = cleanShortPost(req.body, backendOrigin(req), { draft });
@@ -313,6 +314,7 @@ router.post(
 router.put(
   '/my-posts/:id',
   requireRole('poster'),
+  express.json({ limit: '2mb' }),
   wrap(async (req, res) => {
     const found = await myPost(req, res);
     if (!found) return undefined;
@@ -370,7 +372,7 @@ router.get(
 router.post(
   '/posts/:id/review',
   requireRole('editor'),
-  express.json({ limit: '64kb' }),
+  express.json({ limit: '2mb' }),
   wrap(async (req, res) => {
     const ref = postsCollection().doc(req.params.id);
     const doc = await ref.get();

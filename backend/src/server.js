@@ -31,11 +31,11 @@ app.use(
     },
   }),
 );
-// Small bodies everywhere, except blog posts and the warehouse, which parse
-// their own (larger) body in their routes.
+// Small bodies everywhere, except blog posts (an uploaded Word document or PDF
+// makes them large) and the warehouse, which parse their own body in their routes.
 const smallJson = express.json({ limit: '32kb' });
 app.use((req, res, next) =>
-  req.path.startsWith('/api/admin/posts') || req.path.startsWith('/api/warehouse') ? next() : smallJson(req, res, next),
+  /^\/api\/(admin\/(my-)?posts|warehouse)/.test(req.path) ? next() : smallJson(req, res, next),
 );
 
 app.get('/health', (req, res) => {

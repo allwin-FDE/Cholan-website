@@ -83,7 +83,8 @@ const DOC_TAGS = {
   br: {},
   hr: STYLED,
   a: { style: true, href: /^(?:https?:\/\/|mailto:)[^\s"<>]+$/i },
-  img: { style: true, alt: /^[^"<>]{0,160}$/, width: WHOLE_NUMBER, height: WHOLE_NUMBER },
+  // A PDF page is a picture whose alt text holds the page's words.
+  img: { style: true, alt: /^[^"<>]{0,4000}$/, width: WHOLE_NUMBER, height: WHOLE_NUMBER },
   table: STYLED,
   colgroup: {},
   col: STYLED,
@@ -125,6 +126,7 @@ export const cleanDocHtml = (html, origin) =>
 // The document's words, for the summary, word count and search.
 export const docText = (html) =>
   html
+    .replace(/<img[^>]*\salt="([^"]*)"[^>]*>/g, '\n$1\n')
     .replace(/<\/(?:p|h2|h3|h4|div|tr)>|<br\s*\/?>/g, '\n')
     .replace(/<\/t[dh]>/g, ' ')
     .replace(/<[^>]+>/g, '')
