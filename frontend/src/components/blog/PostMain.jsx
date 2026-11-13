@@ -5,7 +5,7 @@ import { site } from '../../config/site.js';
 import { getProduct } from '../../lib/products.js';
 import PostBody from './PostBody.jsx';
 
-const RATIO_CSS = { '1:1': '1 / 1', '4:5': '4 / 5', '16:9': '16 / 9' };
+const RATIO_CSS = { '1:1': '1 / 1', '4:5': '4 / 5', '16:9': '16 / 9', free: 'auto' };
 
 export const postDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -120,10 +120,19 @@ function Gallery({ media, ratio, alt }) {
 
   return (
     <>
-      <div className={`gallery gallery--${Math.min(media.length, 3)}`} style={{ '--gallery-ratio': RATIO_CSS[ratio] || RATIO_CSS['4:5'] }}>
+      <div
+        className={`gallery gallery--${Math.min(media.length, 3)}${ratio === 'free' ? ' gallery--free' : ''}`}
+        style={{ '--gallery-ratio': RATIO_CSS[ratio] || RATIO_CSS['4:5'] }}
+      >
         {media.map((photo, i) => (
           <button key={photo.url} type="button" onClick={() => setOpen(i)} aria-label={`Open picture ${i + 1} of ${media.length}`}>
-            <img src={photo.url} alt={`${alt} — picture ${i + 2}`} loading="lazy" />
+            {/* A free picture keeps its own shape; its size holds the space while it loads. */}
+            <img
+              src={photo.url}
+              alt={`${alt} — picture ${i + 2}`}
+              loading="lazy"
+              style={ratio === 'free' && photo.width ? { aspectRatio: `${photo.width} / ${photo.height}` } : undefined}
+            />
           </button>
         ))}
       </div>
@@ -272,7 +281,7 @@ export default function PostMain({ post, preview, rating, commentCount }) {
   return (
     <div className="post-main" lang={post.language === 'ta' ? 'ta' : undefined}>
       {hero && (
-        <figure className="post-hero">
+        <figure className={`post-hero${post.heroRatio === 'free' ? ' post-hero--free' : ''}`}>
           <img src={hero.url} alt={post.coverAlt || post.title} />
         </figure>
       )}

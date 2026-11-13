@@ -46,6 +46,7 @@ export function cleanPost(body) {
       contentHtml,
       coverUrl: text(input.coverUrl, 500),
       coverAlt: text(input.coverAlt, 160),
+      heroRatio: heroRatio(input.heroRatio),
       category: text(input.category, 40),
       tags: (Array.isArray(input.tags) ? input.tags : [])
         .map((tag) => text(tag, 30))
@@ -65,6 +66,9 @@ export function cleanPost(body) {
 
 // ---- Posts sent from /admin: a cover, pictures, a title and written content ----
 const RATIOS = ['1:1', '4:5', '16:9'];
+// The picture at the top of a blog: cropped wide, or free (whole, as uploaded).
+const HERO_RATIOS = ['5:2', 'free'];
+const heroRatio = (value) => (HERO_RATIOS.includes(value) ? value : '5:2');
 const MAX_PHOTOS = 10;
 const MEDIA_PATH = /^https?:\/\/[^/]+(\/api\/media\/(?:dev_)?blog\/[\w.-]+)$/;
 const HASHTAG = /#([\p{L}\p{M}\p{N}_]{2,30})/gu;
@@ -210,7 +214,8 @@ export function cleanShortPost(body, origin, { draft = false } = {}) {
       postedBy,
       category,
       media,
-      ratio: RATIOS.includes(input.ratio) ? input.ratio : '4:5',
+      ratio: RATIOS.includes(input.ratio) || input.ratio === 'free' ? input.ratio : '4:5',
+      heroRatio: heroRatio(input.heroRatio),
       coverRatio: RATIOS.includes(input.coverRatio) ? input.coverRatio : '16:9',
       recipe: cleanRecipe(input.recipe),
       productIds: (Array.isArray(input.productIds) ? input.productIds : [])

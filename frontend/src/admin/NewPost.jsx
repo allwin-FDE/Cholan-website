@@ -6,7 +6,7 @@ import { products } from '../data/products.js';
 import PostMain from '../components/blog/PostMain.jsx';
 import CaptionEditor, { BackgroundPicker, textToHtml } from './CaptionEditor.jsx';
 import PhotoCrop from './PhotoCrop.jsx';
-import { HERO_RATIO, MAX_PHOTOS, POST_CATEGORIES, clearDraft, fetchPhoto, loadDraft, readPhoto, renderPhoto, saveDraft } from './photos.js';
+import { HERO_RATIO, HERO_RATIOS, MAX_PHOTOS, PICTURE_RATIOS, POST_CATEGORIES, clearDraft, fetchPhoto, loadDraft, readPhoto, renderPhoto, saveDraft } from './photos.js';
 
 const NAME_KEY = 'cholan-admin-name';
 const rememberedName = () => {
@@ -38,6 +38,7 @@ export default function NewPost() {
   const [photos, setPhotos] = useState([]);
   const [current, setCurrent] = useState(0);
   const [ratio, setRatio] = useState('4:5');
+  const [heroRatio, setHeroRatio] = useState(HERO_RATIO);
   const [title, setTitle] = useState('');
   const [parts, setParts] = useState(EMPTY_PARTS);
   const [caption, setCaption] = useState('');
@@ -67,6 +68,7 @@ export default function NewPost() {
           setCoverRatio(post.coverRatio || '16:9');
           setPhotos(await Promise.all((post.media || []).map(fetchPhoto)));
           setRatio(post.ratio || '4:5');
+          setHeroRatio(post.heroRatio || HERO_RATIO);
           setTitle(post.title === 'Untitled draft' ? '' : post.title);
           setParts(partsForm(post));
           setCaption(post.caption);
@@ -91,6 +93,7 @@ export default function NewPost() {
             setCoverRatio(draft.coverRatio || '16:9');
             setPhotos(pictures);
             setRatio(draft.ratio);
+            setHeroRatio(draft.heroRatio || HERO_RATIO);
             setTitle(draft.title || '');
             setParts({ ...EMPTY_PARTS, ...draft.parts });
             setCaption(draft.caption);
@@ -121,19 +124,19 @@ export default function NewPost() {
   useEffect(() => {
     if (!ready || id || step === 'done' || progress) return undefined;
     const timer = setTimeout(() => {
-      if (hasWork) saveDraft({ cover, coverRatio, photos, ratio, title, parts, caption, captionHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy, step });
+      if (hasWork) saveDraft({ cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy, step });
       else clearDraft();
     }, 400);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, id, step, progress, cover, coverRatio, photos, ratio, title, parts, caption, captionHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy]);
+  }, [ready, id, step, progress, cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy]);
 
   // A message belongs to the step it came from, and a field's error goes as
   // soon as the person starts fixing it.
   useEffect(() => setProblem(''), [step]);
   useEffect(() => setErrors((e) => (Object.keys(e).length ? {} : e)), [title, caption, postedBy, category]);
 
-  // The top picture has its own wide shape, so a photo moving into or out of
+  // The top picture has its own shape, so a photo moving into or out of
   // first place is cropped afresh.
   const firstPhoto = useRef(null);
   const firstId = photos[0]?.id;
@@ -170,7 +173,11 @@ export default function NewPost() {
 
   const changeRatio = (key) => {
     setRatio(key);
-    setPhotos((list) => list.map((p) => ({ ...p, crop: { x: 0, y: 0 }, zoom: 1, area: null, uploaded: null })));
+    setPhotos((list) => list.map((p, i) => (i ? { ...p, crop: { x: 0, y: 0 }, zoom: 1, area: null, uploaded: null } : p)));
+  };
+  const changeHeroRatio = (key) => {
+    setHeroRatio(key);
+    setPhotos((list) => list.map((p, i) => (i ? p : { ...p, crop: { x: 0, y: 0 }, zoom: 1, area: null, uploaded: null })));
   };
   const changeCoverRatio = (key) => {
     setCoverRatio(key);
@@ -192,6 +199,7 @@ export default function NewPost() {
     tags: tagsText.split(',').map((t) => t.trim()).filter(Boolean),
     coverRatio,
     ratio,
+    heroRatio,
     productIds,
     recipe: isRecipe ? recipeBody(recipe) : null,
   });
@@ -212,7 +220,7 @@ export default function NewPost() {
   };
 
   const showPreview = async () => {
-    const [coverOut, ...outs] = await Promise.all([cover ? renderPhoto(cover, coverRatio) : null, ...photos.map((p, i) => renderPhoto(p, i ? ratio : HERO_RATIO))]);
+    const [coverOut, ...outs] = await Promise.all([cover ? renderPhoto(cover, coverRatio) : null, ...photos.map((p, i) => renderPhoto(p, i ? ratio : heroRatio))]);
     setPreview({
       ...fields(),
       format: 'post',
@@ -245,7 +253,7 @@ export default function NewPost() {
     for (let i = 0; i < list.length; i += 1) {
       if (!list[i].uploaded) {
         setProgress(`Uploading picture ${i + 1} of ${list.length}…`);
-        list[i] = { ...list[i], uploaded: await uploadOne(list[i], i ? ratio : HERO_RATIO) };
+        list[i] = { ...list[i], uploaded: await uploadOne(list[i], i ? ratio : heroRatio) };
         setPhotos([...list]);
       }
       media.push(list[i].uploaded);
@@ -410,12 +418,13 @@ export default function NewPost() {
       {step === 'adjust' && photo && (
         <>
           {photo.id === firstId ? (
-            <p className="adm-hint adm-hero-note">This first picture is the big one at the top of your blog, so it is always wide. Drag it into place.</p>
+            <p className="adm-hint adm-hero-note">This first picture is the big one at the top of your blog. Wide crops it to a wide strip; Free uses the whole picture as it is.</p>
           ) : null}
           <PhotoCrop
             photo={photo}
-            ratio={photo.id === firstId ? HERO_RATIO : ratio}
-            onRatio={photo.id === firstId ? null : changeRatio}
+            ratio={photo.id === firstId ? heroRatio : ratio}
+            ratios={photo.id === firstId ? HERO_RATIOS : PICTURE_RATIOS}
+            onRatio={photo.id === firstId ? changeHeroRatio : changeRatio}
             onChange={(f) => patchPhoto(photo.id, f)}
           />
           {photos.length > 1 && (

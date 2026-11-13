@@ -20,6 +20,7 @@ const EMPTY = {
   contentHtml: '',
   coverUrl: '',
   coverAlt: '',
+  heroRatio: '5:2',
   category: '',
   tags: [],
   author: 'Cholan Rice and Millet Shop',
@@ -281,6 +282,25 @@ export default function BlogEditor() {
                 <span>Add a cover image</span>
                 <small>Wide photos work best (about 1600 × 900)</small>
               </button>
+            )}
+            {post.coverUrl && (
+              // Not a Field: its <label> would pass a tap on the words to the first button.
+              <div className="dash-field">
+                <span className="dash-field__label">At the top of the blog</span>
+                <div className="dash-seg" role="group" aria-label="Cover shape at the top of the blog">
+                  {[
+                    ['5:2', 'Wide'],
+                    ['free', 'Free'],
+                  ].map(([key, label]) => (
+                    <button key={key} type="button" className={post.heroRatio === key ? 'is-on' : ''} onClick={() => set('heroRatio')(key)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <span className="dash-field__hint">
+                  {post.heroRatio === 'free' ? 'The whole picture, in its own shape. Nothing is cut off.' : 'Cut to a wide strip.'}
+                </span>
+              </div>
             )}
             {post.coverUrl && (
               <Field label="Describe the image" hint="For people who can’t see it, and for Google.">

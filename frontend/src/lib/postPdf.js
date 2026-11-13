@@ -139,6 +139,8 @@ export async function downloadPostPdf(post) {
 
   // Three to a row on the 712px page, in the shape they were cropped to.
   const shotHeight = Math.round(232 / ({ '1:1': 1, '16:9': 16 / 9 }[post.ratio] || 4 / 5));
+  // Free pictures are shown whole inside their box rather than filling it.
+  const shotFit = post.ratio === 'free' ? ';background-size:contain;background-repeat:no-repeat;background-position:center' : '';
   const page = document.createElement('div');
   page.className = 'pdf';
   page.innerHTML = `<style>${STYLE}</style>
@@ -153,7 +155,7 @@ export async function downloadPostPdf(post) {
     ${cover ? `<img class="pdf-cover" src="${cover}" alt="">` : ''}
     ${post.intro ? `<p>${esc(post.intro)}</p>` : ''}
     ${post.takeaway ? `<div class="pdf-box pdf-box--green"><h3>Key Takeaway</h3><p>${esc(post.takeaway)}</p></div>` : ''}
-    ${shots.some(Boolean) ? `<div class="pdf-pictures">${shots.filter(Boolean).map((s) => `<div style="height:${shotHeight}px;background-image:url('${s}')"></div>`).join('')}</div>` : ''}
+    ${shots.some(Boolean) ? `<div class="pdf-pictures">${shots.filter(Boolean).map((s) => `<div style="height:${shotHeight}px;background-image:url('${s}')${shotFit}"></div>`).join('')}</div>` : ''}
     ${top}
     <div class="pdf-content">${holder.innerHTML}</div>
     ${foot}

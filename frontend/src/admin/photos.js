@@ -9,9 +9,18 @@ export const RATIOS = [
   { key: '1:1', label: 'Square', value: 1 },
   { key: '16:9', label: 'Wide', value: 16 / 9 },
 ];
-// The first main picture is the wide one at the top of the blog.
+// Free: the whole picture as it is, whatever its shape, with nothing cut off.
+export const FREE = 'free';
+const FREE_CHIP = { key: FREE, label: 'Free', value: null };
+// The other main pictures can also be left as they are.
+export const PICTURE_RATIOS = [...RATIOS, FREE_CHIP];
+// The first main picture is the big one at the top of the blog: wide, or free.
 export const HERO_RATIO = '5:2';
-export const ratioValue = (key) => (key === HERO_RATIO ? 5 / 2 : RATIOS.find((r) => r.key === key)?.value ?? 4 / 5);
+export const HERO_RATIOS = [{ key: HERO_RATIO, label: 'Wide', value: 5 / 2 }, FREE_CHIP];
+export const ratioValue = (key) => {
+  if (key === FREE) return null;
+  return key === HERO_RATIO ? 5 / 2 : RATIOS.find((r) => r.key === key)?.value ?? 4 / 5;
+};
 
 let nextId = 0;
 export const newPhoto = (blob, extra = {}) => ({
@@ -51,14 +60,14 @@ export async function fetchPhoto(media) {
 const encode = (canvas, type, quality) => new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 
 // The finished photo: turned, cropped and shrunk. The crop is measured on the
-// turned photo, as the crop tool reports it.
+// turned photo, as the crop tool reports it. A free photo keeps all of itself.
 export async function renderPhoto(photo, ratioKey, maxWidth = 1600) {
   const bitmap = await createImageBitmap(photo.blob);
   const sideways = photo.rotation % 180 !== 0;
   const fullW = sideways ? bitmap.height : bitmap.width;
   const fullH = sideways ? bitmap.width : bitmap.height;
   const ratio = ratioValue(ratioKey);
-  let area = photo.area;
+  let area = ratio ? photo.area : { x: 0, y: 0, width: fullW, height: fullH };
   if (!area) {
     const width = Math.min(fullW, fullH * ratio);
     const height = width / ratio;

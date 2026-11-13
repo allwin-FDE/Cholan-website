@@ -1334,3 +1334,32 @@
     display: none !important;
   }
 }
+
+/* Free: the top picture whole, in its own shape, never cut. A very tall one is
+   kept within the screen. */
+.post-hero.post-hero--free {
+  display: flex;
+  justify-content: center;
+  aspect-ratio: auto;
+  background: none;
+  border-radius: 0;
+}
+.post-hero--free img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 22px;
+}
+.gallery--free {
+  align-items: start;
+}
+.gallery--free img {
+  height: auto;
+}
+@media (max-width: 640px) {
+  .post-hero--free img {
+    border-radius: 16px;
+  }
+}

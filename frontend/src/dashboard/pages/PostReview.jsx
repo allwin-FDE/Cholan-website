@@ -4,7 +4,7 @@ import { Badge, Drawer, ago, dateOnly } from '../ui.jsx';
 import PostMain from '../../components/blog/PostMain.jsx';
 import PhotoCrop from '../../admin/PhotoCrop.jsx';
 import CaptionEditor, { BackgroundPicker, textToHtml } from '../../admin/CaptionEditor.jsx';
-import { HERO_RATIO, POST_CATEGORIES, fetchPhoto, renderPhoto } from '../../admin/photos.js';
+import { HERO_RATIO, HERO_RATIOS, PICTURE_RATIOS, POST_CATEGORIES, fetchPhoto, renderPhoto } from '../../admin/photos.js';
 import '../../styles/admin.css';
 import { POST_STATUS, liveStatus } from './BlogList.jsx';
 
@@ -26,6 +26,7 @@ export default function PostReview({ post, onClose, onDone }) {
   const [coverRatio, setCoverRatio] = useState(post.coverRatio || '16:9');
   const [media, setMedia] = useState(post.media || []);
   const [ratio, setRatio] = useState(post.ratio || '4:5');
+  const [heroRatio, setHeroRatio] = useState(post.heroRatio || HERO_RATIO);
   const [note, setNote] = useState('');
   const [publishAt, setPublishAt] = useState('');
   const [busy, setBusy] = useState(false);
@@ -48,17 +49,18 @@ export default function PostReview({ post, onClose, onDone }) {
     coverUrl !== post.coverUrl ||
     coverRatio !== (post.coverRatio || '16:9') ||
     ratio !== (post.ratio || '4:5') ||
+    heroRatio !== (post.heroRatio || HERO_RATIO) ||
     media !== (post.media || []);
   const tipList = tips.split('\n').map((t) => t.trim()).filter(Boolean);
   const parts = { subtitle, intro, takeaway, tips: tipList, conclusion };
-  const shown = { ...post, ...parts, title, caption, captionHtml, bgColor, category, coverUrl, coverRatio, media, ratio };
+  const shown = { ...post, ...parts, title, caption, captionHtml, bgColor, category, coverUrl, coverRatio, media, ratio, heroRatio };
 
   const act = async (action, extra = {}) => {
     setBusy(true);
     setProblem('');
     try {
       const edits = edited
-        ? { ...parts, title, caption, captionHtml, bgColor, category: category.trim(), coverUrl, coverRatio, ratio, media, productIds: post.productIds, tags: post.tags, recipe: post.recipe }
+        ? { ...parts, title, caption, captionHtml, bgColor, category: category.trim(), coverUrl, coverRatio, ratio, heroRatio, media, productIds: post.productIds, tags: post.tags, recipe: post.recipe }
         : undefined;
       await api.reviewPost(post.id, { action, edits, ...extra });
       window.dispatchEvent(new Event('cholan:review'));
@@ -100,7 +102,7 @@ export default function PostReview({ post, onClose, onDone }) {
     setBusy(true);
     setProblem('');
     try {
-      const out = await renderPhoto(cropping.photo, isCover ? coverRatio : isHero ? HERO_RATIO : ratio);
+      const out = await renderPhoto(cropping.photo, isCover ? coverRatio : isHero ? heroRatio : ratio);
       const { url } = await api.upload(out.blob);
       if (isCover) setCoverUrl(url);
       else setMedia(media.map((m, i) => (i === cropping.index ? { url, width: out.width, height: out.height } : m)));
@@ -224,15 +226,12 @@ export default function PostReview({ post, onClose, onDone }) {
           <div className="adm">
             <PhotoCrop
               photo={cropping.photo}
-              ratio={isCover ? coverRatio : isHero ? HERO_RATIO : ratio}
-              onRatio={
-                isHero
-                  ? null
-                  : (key) => {
-                      (isCover ? setCoverRatio : setRatio)(key);
-                      setCropping((c) => ({ ...c, photo: { ...c.photo, crop: { x: 0, y: 0 }, zoom: 1, area: null } }));
-                    }
-              }
+              ratio={isCover ? coverRatio : isHero ? heroRatio : ratio}
+              ratios={isHero ? HERO_RATIOS : isCover ? undefined : PICTURE_RATIOS}
+              onRatio={(key) => {
+                (isCover ? setCoverRatio : isHero ? setHeroRatio : setRatio)(key);
+                setCropping((c) => ({ ...c, photo: { ...c.photo, crop: { x: 0, y: 0 }, zoom: 1, area: null } }));
+              }}
               onChange={(fields) => setCropping((c) => (c ? { ...c, photo: { ...c.photo, ...fields } } : c))}
             />
             <div className="dash-review__row" style={{ marginTop: 10 }}>
