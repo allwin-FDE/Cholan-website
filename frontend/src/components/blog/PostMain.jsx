@@ -61,21 +61,6 @@ const Svg = ({ children, className }) => (
     {children}
   </svg>
 );
-const BookIcon = () => (
-  <Svg>
-    <path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5ZM12 6.5V19.5" />
-  </Svg>
-);
-const CalendarIcon = () => (
-  <Svg>
-    <path d="M5 6h14v14H5zM5 10h14M9 4v4M15 4v4" />
-  </Svg>
-);
-const ClockIcon = () => (
-  <Svg>
-    <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 7v5l3 2" />
-  </Svg>
-);
 const BulbIcon = () => (
   <Svg>
     <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z" />
@@ -84,11 +69,6 @@ const BulbIcon = () => (
 const ClipboardIcon = () => (
   <Svg>
     <path d="M9 4h6v3H9zM9 5.5H6V21h12V5.5h-3M9 12l2 2 4-4M9 17.5h6" />
-  </Svg>
-);
-const CameraIcon = () => (
-  <Svg>
-    <path d="M4 8h3.5L9 5.5h6L16.5 8H20v11H4zM12 16.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
   </Svg>
 );
 
@@ -292,20 +272,14 @@ export default function PostMain({ post, preview, rating, commentCount }) {
       <div className="post-article__body">
         <div className="post-meta">
           {post.category && (
-            <span className="post-meta__cat">
-              <BookIcon /> {post.category}
-            </span>
+            <span className="post-meta__cat">{post.category}</span>
           )}
           <span className="post-meta__facts">
             {post.publishAt && (
-              <span>
-                <CalendarIcon /> {postDate(post.publishAt)}
-              </span>
+              <span>{postDate(post.publishAt)}</span>
             )}
             {post.readingMinutes > 0 && (
-              <span>
-                <ClockIcon /> {post.readingMinutes} min read
-              </span>
+              <span>{post.readingMinutes} min read</span>
             )}
             {commentCount > 0 && (
               <a href="#comments">
@@ -321,14 +295,6 @@ export default function PostMain({ post, preview, rating, commentCount }) {
         <Actions post={post} preview={preview} />
 
         <div className="post-divider" aria-hidden="true">
-          <span />
-          <svg viewBox="0 0 24 24" focusable="false">
-            <circle cx="12" cy="12" r="2.4" />
-            <ellipse cx="12" cy="5.5" rx="2.3" ry="3.2" />
-            <ellipse cx="12" cy="18.5" rx="2.3" ry="3.2" />
-            <ellipse cx="5.5" cy="12" rx="3.2" ry="2.3" />
-            <ellipse cx="18.5" cy="12" rx="3.2" ry="2.3" />
-          </svg>
           <span />
         </div>
 
@@ -406,19 +372,20 @@ export default function PostMain({ post, preview, rating, commentCount }) {
           </div>
         )}
 
-        <aside className="post-invite">
-          <h2>{hasRecipe ? 'Did you make this recipe?' : 'Tried this at home?'}</h2>
-          <p>Share a photo and tag us. We can’t wait to see what you’ve made!</p>
-          {preview ? (
-            <span className="post-invite__btn">
-              <CameraIcon /> Share Your Creation
-            </span>
-          ) : (
-            <a className="post-invite__btn" href={site.social.instagram} target="_blank" rel="noopener noreferrer">
-              <CameraIcon /> Share Your Creation
-            </a>
-          )}
-        </aside>
+        {/* Asking for photos suits a recipe, not a guide. */}
+        {hasRecipe && (
+          <aside className="post-invite">
+            <h2>Did you make this recipe?</h2>
+            <p>Share a photo and tag us. We can’t wait to see what you’ve made!</p>
+            {preview ? (
+              <span className="post-invite__btn">Share Your Creation</span>
+            ) : (
+              <a className="post-invite__btn" href={site.social.instagram} target="_blank" rel="noopener noreferrer">
+                Share Your Creation
+              </a>
+            )}
+          </aside>
+        )}
 
         {post.tags?.length > 0 && (
           <ul className="post__tags" aria-label="Tags">

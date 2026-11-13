@@ -1389,3 +1389,149 @@
   max-width: 100%;
   height: auto;
 }
+
+/* ---- Clearer articles: larger text, plain headings, tables and tip boxes ---- */
+.post-body {
+  font-size: 1.2rem;
+  line-height: 1.75;
+}
+.post-body > * + * {
+  margin-top: 1em;
+}
+.post-body h2 {
+  margin: 2em 0 0.55em;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.post-body h3 {
+  margin: 1.5em 0 0.45em;
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+.post-body strong {
+  font-weight: 700;
+  color: var(--brand-900, #16301f);
+}
+/* A tip: a light green box, upright and easy to read. */
+.post-body blockquote {
+  margin: 1.6em 0;
+  padding: 16px 20px;
+  border-left: 5px solid var(--brand-700, #236342);
+  border-radius: 0 12px 12px 0;
+  background: #eaf3e6;
+  font-size: inherit;
+  font-style: normal;
+  color: inherit;
+}
+/* Tables scroll on their own on a narrow phone rather than squeezing. */
+.post-table {
+  overflow-x: auto;
+  margin: 1.2em 0 1.6em;
+  border: 1px solid #cfdcc8;
+  border-radius: 12px;
+}
+.post-body table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+.post-body th,
+.post-body td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #dfe8da;
+  text-align: left;
+  vertical-align: top;
+}
+.post-body th {
+  background: var(--brand-800, #1d4d2b);
+  color: #fff;
+  font-weight: 700;
+}
+.post-body tbody tr:nth-child(even) td {
+  background: #f3f8f0;
+}
+.post-body tbody tr:last-child td {
+  border-bottom: 0;
+}
+.post-body td:first-child {
+  font-weight: 700;
+  color: var(--brand-900, #16301f);
+}
+/* Date and reading time, divided by a dot now that their icons are gone. */
+.post-meta__facts > span + span::before {
+  content: '·';
+  margin-right: 16px;
+  color: var(--ink-mute, #6b6b6b);
+}
+@media (max-width: 760px) {
+  .post-body {
+    font-size: 1.1rem;
+  }
+  .post-body h2 {
+    font-size: 1.6rem;
+  }
+  .post-body h3 {
+    font-size: 1.28rem;
+  }
+}
+
+/* Space between paragraphs and lists (".post-body p" above zeroes margins). */
+.post-body > * + p,
+.post-body > * + ul,
+.post-body > * + ol {
+  margin-top: 1em;
+}
+/* On a phone, each table row is a small card with every detail labelled,
+   so nothing is hidden off the side. */
+@media (max-width: 640px) {
+  .post-table {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+  .post-body table {
+    min-width: 0;
+  }
+  .post-body table,
+  .post-body tbody,
+  .post-body tr,
+  .post-body td {
+    display: block;
+  }
+  .post-body thead {
+    display: none;
+  }
+  .post-body tbody tr {
+    margin-bottom: 12px;
+    border: 1px solid #cfdcc8;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .post-body tbody tr:nth-child(even) td {
+    background: none;
+  }
+  .post-body td {
+    padding: 8px 14px;
+    border-bottom: 0;
+  }
+  .post-body td:first-child {
+    padding: 10px 14px;
+    background: var(--brand-800, #1d4d2b);
+    color: #fff;
+  }
+  .post-body tbody tr:nth-child(even) td:first-child {
+    background: var(--brand-800, #1d4d2b);
+  }
+  .post-body td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-mute, #6b6b6b);
+  }
+}

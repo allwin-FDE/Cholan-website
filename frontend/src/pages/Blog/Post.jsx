@@ -118,12 +118,7 @@ export default function Post() {
       />
       <div className="post-page">
         <nav className="post-crumbs container" aria-label="Breadcrumb">
-          <Link to="/">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-6h4v6" />
-            </svg>
-            Home
-          </Link>
+          <Link to="/">Home</Link>
           <span aria-hidden="true">›</span>
           <Link to="/blog">Blog</Link>
           <span aria-hidden="true">›</span>
