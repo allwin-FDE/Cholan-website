@@ -4,6 +4,7 @@
 import html2pdf from 'html2pdf.js';
 import { postDate, richHtml } from '../components/blog/PostMain.jsx';
 import { cleanHtml } from '../components/blog/PostBody.jsx';
+import { cleanDocHtml } from './docHtml.js';
 import { site } from '../config/site.js';
 
 const esc = (value) =>
@@ -177,5 +178,6 @@ export async function downloadPostPdf(post) {
 }
 
 function richOrArticle(post, short) {
+  if (post.docHtml) return cleanDocHtml(post.docHtml);
   return short ? richHtml(post.captionHtml) : cleanHtml(post.contentHtml);
 }

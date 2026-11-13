@@ -1363,3 +1363,29 @@
     border-radius: 16px;
   }
 }
+
+/* An uploaded Word document, shown as it was written. Its fonts, sizes,
+   colours and spacing come with it as inline styles, so the site's own text
+   styles (headings, paragraph gaps, block pictures) are undone here. */
+.post-doc {
+  margin: 8px 0 0;
+}
+.post-doc :is(div, p, h2, h3, h4, table, tbody, tr, td, th, hr) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
+  background: none;
+}
+.post-doc table {
+  border-collapse: collapse;
+}
+.post-doc img {
+  display: inline;
+  max-width: 100%;
+  height: auto;
+}

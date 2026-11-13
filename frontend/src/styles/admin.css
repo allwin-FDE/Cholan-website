@@ -975,3 +975,68 @@
     padding: 14px;
   }
 }
+
+/* Uploading a Word document as the blog's content. */
+.doc-import {
+  margin-top: 12px;
+}
+.doc-import__pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px dashed var(--line, #d9d2c3);
+  border-radius: 12px;
+  background: #fffdf8;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.doc-import__pick:hover {
+  border-color: #1d4d2b;
+}
+.doc-import__pick span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.doc-import__pick small {
+  color: var(--ink-mute, #6b6b6b);
+}
+.doc-import__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.doc-import__head > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.doc-import__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.doc-import__view {
+  max-height: 70vh;
+  overflow: auto;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--line, #d9d2c3);
+  border-radius: 12px;
+  background: #fff;
+}
+.doc-import__busy,
+.doc-import__note {
+  margin: 8px 0 0;
+  font-size: 0.86rem;
+  color: var(--ink-mute, #6b6b6b);
+}

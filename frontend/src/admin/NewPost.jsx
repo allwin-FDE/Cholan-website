@@ -6,6 +6,8 @@ import { products } from '../data/products.js';
 import PostMain from '../components/blog/PostMain.jsx';
 import CaptionEditor, { BackgroundPicker, textToHtml } from './CaptionEditor.jsx';
 import PhotoCrop from './PhotoCrop.jsx';
+import DocImport from './DocImport.jsx';
+import { docPlainText } from '../lib/docHtml.js';
 import { HERO_RATIO, HERO_RATIOS, MAX_PHOTOS, PICTURE_RATIOS, POST_CATEGORIES, clearDraft, fetchPhoto, loadDraft, readPhoto, renderPhoto, saveDraft } from './photos.js';
 
 const NAME_KEY = 'cholan-admin-name';
@@ -43,6 +45,7 @@ export default function NewPost() {
   const [parts, setParts] = useState(EMPTY_PARTS);
   const [caption, setCaption] = useState('');
   const [captionHtml, setCaptionHtml] = useState('');
+  const [docHtml, setDocHtml] = useState(''); // an uploaded Word document, shown as written
   const [bgColor, setBgColor] = useState('');
   const [category, setCategory] = useState('');
   const [tagsText, setTagsText] = useState('');
@@ -72,7 +75,8 @@ export default function NewPost() {
           setTitle(post.title === 'Untitled draft' ? '' : post.title);
           setParts(partsForm(post));
           setCaption(post.caption);
-          setCaptionHtml(post.captionHtml || (post.caption ? textToHtml(post.caption) : ''));
+          setCaptionHtml(post.captionHtml || (post.caption && !post.docHtml ? textToHtml(post.caption) : ''));
+          setDocHtml(post.docHtml || '');
           setBgColor(post.bgColor || '');
           setCategory(post.category);
           setTagsText((post.tags || []).join(', '));
@@ -98,6 +102,7 @@ export default function NewPost() {
             setParts({ ...EMPTY_PARTS, ...draft.parts });
             setCaption(draft.caption);
             setCaptionHtml(draft.captionHtml || '');
+            setDocHtml(draft.docHtml || '');
             setBgColor(draft.bgColor || '');
             setCategory(draft.category);
             setTagsText(draft.tagsText || '');
@@ -124,12 +129,12 @@ export default function NewPost() {
   useEffect(() => {
     if (!ready || id || step === 'done' || progress) return undefined;
     const timer = setTimeout(() => {
-      if (hasWork) saveDraft({ cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy, step });
+      if (hasWork) saveDraft({ cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy, step });
       else clearDraft();
     }, 400);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, id, step, progress, cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy]);
+  }, [ready, id, step, progress, cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy]);
 
   // A message belongs to the step it came from, and a field's error goes as
   // soon as the person starts fixing it.
@@ -193,6 +198,7 @@ export default function NewPost() {
     conclusion: parts.conclusion.trim(),
     caption: caption.trim(),
     captionHtml,
+    docHtml,
     bgColor,
     postedBy: postedBy.trim(),
     category: category.trim(),
@@ -467,13 +473,22 @@ export default function NewPost() {
             />
 
             <div className={`adm-field${errors.caption ? ' has-error' : ''}`}>
-              <CaptionEditor
-                html={captionHtml}
-                bgColor={bgColor}
-                hasError={Boolean(errors.caption)}
-                onChange={({ html, text }) => {
-                  setCaptionHtml(html);
-                  setCaption(text);
+              {!docHtml && (
+                <CaptionEditor
+                  html={captionHtml}
+                  bgColor={bgColor}
+                  hasError={Boolean(errors.caption)}
+                  onChange={({ html, text }) => {
+                    setCaptionHtml(html);
+                    setCaption(text);
+                  }}
+                />
+              )}
+              <DocImport
+                html={docHtml}
+                onChange={(doc) => {
+                  setDocHtml(doc ? doc.html : '');
+                  setCaption(doc ? doc.text : docPlainText(captionHtml));
                 }}
               />
               <span className="adm-error">{errors.caption}</span>
@@ -651,10 +666,12 @@ export default function NewPost() {
               </div>
             </section>
 
-            <section className="dash-panel">
-              <h2>Content background</h2>
-              <BackgroundPicker value={bgColor} onChange={setBgColor} />
-            </section>
+            {!docHtml && (
+              <section className="dash-panel">
+                <h2>Content background</h2>
+                <BackgroundPicker value={bgColor} onChange={setBgColor} />
+              </section>
+            )}
           </aside>
         </div>
       )}

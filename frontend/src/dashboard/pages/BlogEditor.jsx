@@ -11,6 +11,8 @@ import CharacterCount from '@tiptap/extension-character-count';
 import { api, prepareImage } from '../api.js';
 import { Badge, Drawer, ErrorNote, Icon, Loading, ago, dateOnly } from '../ui.jsx';
 import PostBody from '../../components/blog/PostBody.jsx';
+import DocImport from '../../admin/DocImport.jsx';
+import { cleanDocHtml, docPlainText } from '../../lib/docHtml.js';
 import { POST_STATUS, liveStatus } from './BlogList.jsx';
 
 const EMPTY = {
@@ -18,6 +20,7 @@ const EMPTY = {
   slug: '',
   excerpt: '',
   contentHtml: '',
+  docHtml: '',
   coverUrl: '',
   coverAlt: '',
   heroRatio: '5:2',
@@ -178,7 +181,7 @@ export default function BlogEditor() {
   if (loadError) return <div className="dash-page"><ErrorNote error={loadError} /></div>;
 
   const status = liveStatus(post);
-  const words = editor?.storage.characterCount?.words() ?? 0;
+  const words = post.docHtml ? docPlainText(post.docHtml).split(' ').filter(Boolean).length : editor?.storage.characterCount?.words() ?? 0;
 
   return (
     <div className="dash-page dash-editor">
@@ -222,7 +225,7 @@ export default function BlogEditor() {
             value={post.excerpt}
             onChange={(e) => set('excerpt')(e.target.value)}
           />
-          <div className={`dash-rte${fieldErrors.contentHtml ? ' has-error' : ''}`}>
+          <div className={`dash-rte${fieldErrors.contentHtml ? ' has-error' : ''}`} style={post.docHtml ? { display: 'none' } : undefined}>
             {editor && <Toolbar editor={editor} onImage={() => setLibrary('content')} />}
             <EditorContent editor={editor} className="dash-rte__content post-body" />
             <div className="dash-rte__foot">
@@ -230,6 +233,7 @@ export default function BlogEditor() {
               <span>Tip: paste text from Word or Google Docs — formatting is kept.</span>
             </div>
           </div>
+          <DocImport html={post.docHtml} onChange={(doc) => set('docHtml')(doc ? doc.html : '')} />
           {fieldErrors.contentHtml && <p className="dash-field-error">{fieldErrors.contentHtml}</p>}
         </div>
 
@@ -377,7 +381,7 @@ export default function BlogEditor() {
           <p className="dash-muted dash-small">
             {post.author} · {Math.max(1, Math.round(words / 200))} min read
           </p>
-          <PostBody html={post.contentHtml} />
+          {post.docHtml ? <div className="post-doc" dangerouslySetInnerHTML={{ __html: cleanDocHtml(post.docHtml) }} /> : <PostBody html={post.contentHtml} />}
         </article>
       </Drawer>
     </div>

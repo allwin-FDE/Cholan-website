@@ -212,7 +212,7 @@ router.get(
 );
 
 async function savePost(req, res, id) {
-  const { value, errors } = cleanPost(req.body);
+  const { value, errors } = cleanPost(req.body, backendOrigin(req));
   if (errors) return res.status(400).json({ error: 'Please check the post.', fields: errors });
   // Two posts cannot share a web address.
   const clash = await postsCollection().where('slug', '==', value.slug).get();

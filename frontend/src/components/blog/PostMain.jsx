@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { site } from '../../config/site.js';
 import { getProduct } from '../../lib/products.js';
 import PostBody from './PostBody.jsx';
+import { cleanDocHtml } from '../../lib/docHtml.js';
 
 const RATIO_CSS = { '1:1': '1 / 1', '4:5': '4 / 5', '16:9': '16 / 9', free: 'auto' };
 
@@ -269,6 +270,8 @@ function RecipeCard({ post, rating }) {
 export default function PostMain({ post, preview, rating, commentCount }) {
   const short = post.format === 'post';
   const rich = useMemo(() => (post.captionHtml ? richHtml(post.captionHtml) : ''), [post.captionHtml]);
+  // An uploaded Word document is the content, shown as it was written.
+  const doc = useMemo(() => (post.docHtml ? cleanDocHtml(post.docHtml) : ''), [post.docHtml]);
   const tinted = post.bgColor ? { background: post.bgColor, color: inkFor(post.bgColor) } : undefined;
   const products = (post.productIds || []).map(getProduct).filter(Boolean);
   const hasRecipe = short && post.recipe;
@@ -345,7 +348,9 @@ export default function PostMain({ post, preview, rating, commentCount }) {
 
         {hasRecipe && <RecipeCard post={post} rating={rating} />}
 
-        {short ? (
+        {doc ? (
+          <div className="post-doc" dangerouslySetInnerHTML={{ __html: doc }} />
+        ) : short ? (
           rich && (
             <div className={`rich post-body${tinted ? ' rich--tinted' : ''}`} style={tinted}>
               <div dangerouslySetInnerHTML={{ __html: rich }} />

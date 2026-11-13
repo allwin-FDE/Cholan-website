@@ -3,6 +3,8 @@ import { api } from '../api.js';
 import { Badge, Drawer, ago, dateOnly } from '../ui.jsx';
 import PostMain from '../../components/blog/PostMain.jsx';
 import PhotoCrop from '../../admin/PhotoCrop.jsx';
+import DocImport from '../../admin/DocImport.jsx';
+import { docPlainText } from '../../lib/docHtml.js';
 import CaptionEditor, { BackgroundPicker, textToHtml } from '../../admin/CaptionEditor.jsx';
 import { HERO_RATIO, HERO_RATIOS, PICTURE_RATIOS, POST_CATEGORIES, fetchPhoto, renderPhoto } from '../../admin/photos.js';
 import '../../styles/admin.css';
@@ -20,6 +22,7 @@ export default function PostReview({ post, onClose, onDone }) {
   const [caption, setCaption] = useState(post.caption);
   const [captionHtml, setCaptionHtml] = useState(post.captionHtml || textToHtml(post.caption));
   const [captionEdited, setCaptionEdited] = useState(false);
+  const [docHtml, setDocHtml] = useState(post.docHtml || '');
   const [bgColor, setBgColor] = useState(post.bgColor || '');
   const [category, setCategory] = useState(post.category);
   const [coverUrl, setCoverUrl] = useState(post.coverUrl);
@@ -45,6 +48,7 @@ export default function PostReview({ post, onClose, onDone }) {
     tips !== (post.tips || []).join('\n') ||
     conclusion !== (post.conclusion || '') ||
     bgColor !== (post.bgColor || '') ||
+    docHtml !== (post.docHtml || '') ||
     category !== post.category ||
     coverUrl !== post.coverUrl ||
     coverRatio !== (post.coverRatio || '16:9') ||
@@ -53,14 +57,14 @@ export default function PostReview({ post, onClose, onDone }) {
     media !== (post.media || []);
   const tipList = tips.split('\n').map((t) => t.trim()).filter(Boolean);
   const parts = { subtitle, intro, takeaway, tips: tipList, conclusion };
-  const shown = { ...post, ...parts, title, caption, captionHtml, bgColor, category, coverUrl, coverRatio, media, ratio, heroRatio };
+  const shown = { ...post, ...parts, title, caption, captionHtml, docHtml, bgColor, category, coverUrl, coverRatio, media, ratio, heroRatio };
 
   const act = async (action, extra = {}) => {
     setBusy(true);
     setProblem('');
     try {
       const edits = edited
-        ? { ...parts, title, caption, captionHtml, bgColor, category: category.trim(), coverUrl, coverRatio, ratio, heroRatio, media, productIds: post.productIds, tags: post.tags, recipe: post.recipe }
+        ? { ...parts, title, caption, captionHtml, docHtml, bgColor, category: category.trim(), coverUrl, coverRatio, ratio, heroRatio, media, productIds: post.productIds, tags: post.tags, recipe: post.recipe }
         : undefined;
       await api.reviewPost(post.id, { action, edits, ...extra });
       window.dispatchEvent(new Event('cholan:review'));
@@ -159,24 +163,35 @@ export default function PostReview({ post, onClose, onDone }) {
         <div>
           <span className="dash-review__label">Fix the content</span>
           <div className="adm">
-            <CaptionEditor
-              html={captionHtml}
-              bgColor={bgColor}
-              onChange={({ html, text }) => {
-                setCaptionHtml(html);
-                setCaption(text);
-                setCaptionEdited(true);
+            {!docHtml && (
+              <CaptionEditor
+                html={captionHtml}
+                bgColor={bgColor}
+                onChange={({ html, text }) => {
+                  setCaptionHtml(html);
+                  setCaption(text);
+                  setCaptionEdited(true);
+                }}
+              />
+            )}
+            <DocImport
+              html={docHtml}
+              onChange={(doc) => {
+                setDocHtml(doc ? doc.html : '');
+                setCaption(doc ? doc.text : docPlainText(captionHtml));
               }}
             />
           </div>
         </div>
 
-        <div>
-          <span className="dash-review__label">Content background colour</span>
-          <div className="adm">
-            <BackgroundPicker value={bgColor} onChange={setBgColor} />
+        {!docHtml && (
+          <div>
+            <span className="dash-review__label">Content background colour</span>
+            <div className="adm">
+              <BackgroundPicker value={bgColor} onChange={setBgColor} />
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <label className="dash-review__label" htmlFor="review-category">

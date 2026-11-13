@@ -1,5 +1,6 @@
 // Blog posts, written in the dashboard and shown on /blog.
 import { collection } from './firestore.js';
+import { cleanDocHtml, docText } from './docHtml.js';
 
 export const postsCollection = () => collection('posts');
 
@@ -17,20 +18,23 @@ export const slugify = (value) =>
 
 const STATUSES = ['draft', 'published', 'scheduled'];
 
-export function cleanPost(body) {
+export function cleanPost(body, origin) {
   const input = body && typeof body === 'object' ? body : {};
   const errors = {};
   const title = text(input.title, 160);
   const slug = slugify(input.slug || title);
   const status = STATUSES.includes(input.status) ? input.status : 'draft';
   const contentHtml = typeof input.contentHtml === 'string' ? input.contentHtml.slice(0, 1_500_000) : '';
-  const words = contentHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+  // A Word document, when one was uploaded, is the content shown.
+  const docHtml = cleanDocHtml(input.docHtml, origin);
+  const words = (docHtml ? docText(docHtml) : contentHtml.replace(/<[^>]+>/g, ' ')).split(/\s+/).filter(Boolean).length;
   let publishAt = input.publishAt ? new Date(input.publishAt) : null;
   if (publishAt && Number.isNaN(publishAt.getTime())) publishAt = null;
 
   if (!title) errors.title = 'Give the post a title.';
   if (!slug) errors.slug = 'The web address needs at least one letter or number.';
   if (status !== 'draft' && words < 5) errors.contentHtml = 'Write the post before publishing it.';
+  if (docHtml.length > MAX_DOC_HTML) errors.contentHtml = 'This Word document is too long. Please split it into two posts.';
   if (status === 'scheduled' && (!publishAt || publishAt.getTime() <= Date.now())) {
     errors.publishAt = 'Pick a date and time in the future to schedule the post.';
   }
@@ -44,6 +48,7 @@ export function cleanPost(body) {
       publishAt: (publishAt || (status === 'published' ? new Date() : null))?.toISOString() ?? null,
       excerpt: text(input.excerpt, 320),
       contentHtml,
+      docHtml,
       coverUrl: text(input.coverUrl, 500),
       coverAlt: text(input.coverAlt, 160),
       heroRatio: heroRatio(input.heroRatio),
@@ -73,6 +78,8 @@ const MAX_PHOTOS = 10;
 const MEDIA_PATH = /^https?:\/\/[^/]+(\/api\/media\/(?:dev_)?blog\/[\w.-]+)$/;
 const HASHTAG = /#([\p{L}\p{M}\p{N}_]{2,30})/gu;
 const MAX_CONTENT_HTML = 60_000;
+// A Word document carries its look in every tag, so it may be far longer.
+const MAX_DOC_HTML = 700_000;
 
 // The written content keeps only these tags and attributes, whatever the
 // browser sent. Every tag is rebuilt from what is allowed, not filtered.
@@ -167,7 +174,9 @@ export function cleanShortPost(body, origin, { draft = false } = {}) {
   const errors = {};
   const title = text(input.title, 120);
   const captionHtml = cleanContentHtml(input.captionHtml, origin);
-  const caption = text(captionHtml ? contentText(captionHtml) : input.caption, 12000);
+  // A Word document, when one was uploaded, is the content shown.
+  const docHtml = cleanDocHtml(input.docHtml, origin);
+  const caption = text(docHtml ? docText(docHtml) : captionHtml ? contentText(captionHtml) : input.caption, 12000);
   const postedBy = text(input.postedBy, 60);
   const category = text(String(input.category || '').replace(/[<>]/g, ''), 40);
   const bgColor = /^#[0-9a-f]{6}$/i.test(input.bgColor) ? input.bgColor.toLowerCase() : '';
@@ -183,6 +192,7 @@ export function cleanShortPost(body, origin, { draft = false } = {}) {
     .filter((photo) => photo.url);
 
   if (captionHtml.length > MAX_CONTENT_HTML) errors.caption = 'This content is too long. Please shorten it.';
+  if (docHtml.length > MAX_DOC_HTML) errors.caption = 'This Word document is too long. Please split it into two blogs.';
   if (draft) {
     if (!coverUrl && !media.length && !title && !caption) errors.media = 'Add a picture, a title or some content first.';
   } else {
@@ -208,6 +218,7 @@ export function cleanShortPost(body, origin, { draft = false } = {}) {
       takeaway,
       caption,
       captionHtml,
+      docHtml,
       tips,
       conclusion,
       bgColor,
