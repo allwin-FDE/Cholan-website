@@ -4,6 +4,11 @@ import { prepareImage } from '../dashboard/api.js';
 
 export const POST_CATEGORIES = ['Recipes', 'Health & nutrition', 'Rice guide', 'Farming & sourcing', 'News', 'Offers'];
 export const MAX_PHOTOS = 10;
+// Every picture of a blog, the cover and the main pictures alike, is saved at
+// one size: 16:9, exactly 1600 x 900 pixels.
+export const PHOTO_RATIO = '16:9';
+export const PHOTO_WIDTH = 1600;
+export const PHOTO_HEIGHT = 900;
 export const RATIOS = [
   { key: '4:5', label: 'Portrait', value: 4 / 5 },
   { key: '1:1', label: 'Square', value: 1 },
@@ -59,9 +64,10 @@ export async function fetchPhoto(media) {
 
 const encode = (canvas, type, quality) => new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 
-// The finished photo: turned, cropped and shrunk. The crop is measured on the
-// turned photo, as the crop tool reports it. A free photo keeps all of itself.
-export async function renderPhoto(photo, ratioKey, maxWidth = 1600) {
+// The finished photo: turned and cropped, then sized. The crop is measured on
+// the turned photo, as the crop tool reports it. A 16:9 picture always comes
+// out at exactly PHOTO_WIDTH x PHOTO_HEIGHT, a smaller photo enlarged to fit.
+export async function renderPhoto(photo, ratioKey = PHOTO_RATIO, maxWidth = PHOTO_WIDTH) {
   const bitmap = await createImageBitmap(photo.blob);
   const sideways = photo.rotation % 180 !== 0;
   const fullW = sideways ? bitmap.height : bitmap.width;
@@ -73,10 +79,12 @@ export async function renderPhoto(photo, ratioKey, maxWidth = 1600) {
     const height = width / ratio;
     area = { x: (fullW - width) / 2, y: (fullH - height) / 2, width, height };
   }
-  const scale = Math.min(1, maxWidth / area.width);
+  const exact = ratioKey === PHOTO_RATIO;
+  const scale = exact ? PHOTO_WIDTH / area.width : Math.min(1, maxWidth / area.width);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(area.width * scale);
-  canvas.height = Math.round(area.height * scale);
+  canvas.width = exact ? PHOTO_WIDTH : Math.round(area.width * scale);
+  canvas.height = exact ? PHOTO_HEIGHT : Math.round(area.height * scale);
+  canvas.getContext('2d').imageSmoothingQuality = 'high';
   const ctx = canvas.getContext('2d');
   ctx.scale(scale, scale);
   ctx.translate(-area.x + fullW / 2, -area.y + fullH / 2);

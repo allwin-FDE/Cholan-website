@@ -8,10 +8,11 @@ import CaptionEditor, { BackgroundPicker, textToHtml } from './CaptionEditor.jsx
 import PhotoCrop from './PhotoCrop.jsx';
 import DocImport from './DocImport.jsx';
 import { docPlainText } from '../lib/docHtml.js';
-import { HERO_RATIO, HERO_RATIOS, MAX_PHOTOS, PICTURE_RATIOS, POST_CATEGORIES, clearDraft, fetchPhoto, loadDraft, readPhoto, renderPhoto, saveDraft } from './photos.js';
+import { MAX_PHOTOS, PHOTO_HEIGHT, PHOTO_RATIO, PHOTO_WIDTH, POST_CATEGORIES, clearDraft, fetchPhoto, loadDraft, readPhoto, renderPhoto, saveDraft } from './photos.js';
 
 const TITLES = { cover: 'Cover picture', pictures: 'Main pictures', adjust: 'Adjust pictures', write: 'Write the blog' };
 const order = ['cover', 'pictures', 'adjust', 'write'];
+const SIZE_NOTE = `Every picture is 16:9 and saved at exactly ${PHOTO_WIDTH} × ${PHOTO_HEIGHT} pixels. Drag and zoom to choose the part to keep.`;
 const EMPTY_RECIPE = { total: '', prep: '', cook: '', servings: '', cuisine: '', method: '', ingredients: '', notes: '' };
 // In the form the ingredients are one per line; on the post, a list.
 const recipeForm = (recipe) => ({ ...EMPTY_RECIPE, ...recipe, ingredients: (recipe?.ingredients || []).join('\n') });
@@ -37,11 +38,8 @@ export default function NewPost() {
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState('cover'); // cover | pictures | adjust | write | done
   const [cover, setCover] = useState(null);
-  const [coverRatio, setCoverRatio] = useState('16:9');
   const [photos, setPhotos] = useState([]);
   const [current, setCurrent] = useState(0);
-  const [ratio, setRatio] = useState('4:5');
-  const [heroRatio, setHeroRatio] = useState(HERO_RATIO);
   const [title, setTitle] = useState('');
   const [parts, setParts] = useState(EMPTY_PARTS);
   const [caption, setCaption] = useState('');
@@ -67,11 +65,11 @@ export default function NewPost() {
         if (id) {
           const post = await api.post(id).catch((e) => (e.status === 404 ? null : Promise.reject(e)));
           if (!post || post.format !== 'post') return navigate('/admin/blog', { replace: true });
-          if (post.coverUrl) setCover(await fetchPhoto({ url: post.coverUrl }));
-          setCoverRatio(post.coverRatio || '16:9');
-          setPhotos(await Promise.all((post.media || []).map(fetchPhoto)));
-          setRatio(post.ratio || '4:5');
-          setHeroRatio(post.heroRatio || HERO_RATIO);
+          // Pictures saved in another shape are cropped afresh at the one size.
+          const reshape = (photo, same) => (same ? photo : { ...photo, uploaded: null });
+          if (post.coverUrl) setCover(reshape(await fetchPhoto({ url: post.coverUrl }), (post.coverRatio || '16:9') === PHOTO_RATIO));
+          const pictures = await Promise.all((post.media || []).map(fetchPhoto));
+          setPhotos(pictures.map((ph, i) => reshape(ph, (i ? post.ratio : post.heroRatio) === PHOTO_RATIO)));
           setTitle(post.title === 'Untitled draft' ? '' : post.title);
           setParts(partsForm(post));
           setCaption(post.caption);
@@ -92,11 +90,10 @@ export default function NewPost() {
             // cover, and it opens on a step that exists now.
             const oldCover = draft.cover || draft.photos[0] || null;
             const pictures = draft.cover ? draft.photos : draft.photos.slice(1);
-            setCover(oldCover);
-            setCoverRatio(draft.coverRatio || '16:9');
-            setPhotos(pictures);
-            setRatio(draft.ratio);
-            setHeroRatio(draft.heroRatio || HERO_RATIO);
+            // A draft from before the one size: its crops were for other shapes.
+            const fresh = (ph) => (ph && draft.photoRatio !== PHOTO_RATIO ? { ...ph, crop: { x: 0, y: 0 }, zoom: 1, area: null } : ph);
+            setCover(fresh(oldCover));
+            setPhotos(pictures.map(fresh));
             setTitle(draft.title || '');
             setParts({ ...EMPTY_PARTS, ...draft.parts });
             setCaption(draft.caption);
@@ -127,29 +124,19 @@ export default function NewPost() {
   useEffect(() => {
     if (!ready || id || step === 'done' || progress) return undefined;
     const timer = setTimeout(() => {
-      if (hasWork) saveDraft({ cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, step });
+      if (hasWork) saveDraft({ cover, photos, photoRatio: PHOTO_RATIO, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, step });
       else clearDraft();
     }, 400);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, id, step, progress, cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds]);
+  }, [ready, id, step, progress, cover, photos, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds]);
 
   // A message belongs to the step it came from, and a field's error goes as
   // soon as the person starts fixing it.
   useEffect(() => setProblem(''), [step]);
   useEffect(() => setErrors((e) => (Object.keys(e).length ? {} : e)), [title, caption, category]);
 
-  // The top picture has its own shape, so a photo moving into or out of
-  // first place is cropped afresh.
-  const firstPhoto = useRef(null);
   const firstId = photos[0]?.id;
-  useEffect(() => {
-    if (!ready) return;
-    const previous = firstPhoto.current;
-    firstPhoto.current = firstId;
-    if (!previous || !firstId || previous === firstId) return;
-    setPhotos((list) => list.map((p) => (p.id === previous || p.id === firstId ? { ...p, crop: { x: 0, y: 0 }, zoom: 1, area: null, uploaded: null } : p)));
-  }, [ready, firstId]);
 
   const patchPhoto = (photoId, fields) => setPhotos((list) => list.map((p) => (p.id === photoId ? { ...p, ...fields } : p)));
 
@@ -174,18 +161,6 @@ export default function NewPost() {
     }
   };
 
-  const changeRatio = (key) => {
-    setRatio(key);
-    setPhotos((list) => list.map((p, i) => (i ? { ...p, crop: { x: 0, y: 0 }, zoom: 1, area: null, uploaded: null } : p)));
-  };
-  const changeHeroRatio = (key) => {
-    setHeroRatio(key);
-    setPhotos((list) => list.map((p, i) => (i ? p : { ...p, crop: { x: 0, y: 0 }, zoom: 1, area: null, uploaded: null })));
-  };
-  const changeCoverRatio = (key) => {
-    setCoverRatio(key);
-    setCover((c) => c && { ...c, crop: { x: 0, y: 0 }, zoom: 1, area: null, uploaded: null });
-  };
 
   const fields = () => ({
     title: title.trim(),
@@ -200,9 +175,9 @@ export default function NewPost() {
     bgColor,
     category: category.trim(),
     tags: tagsText.split(',').map((t) => t.trim()).filter(Boolean),
-    coverRatio,
-    ratio,
-    heroRatio,
+    coverRatio: PHOTO_RATIO,
+    ratio: PHOTO_RATIO,
+    heroRatio: PHOTO_RATIO,
     productIds,
     recipe: isRecipe ? recipeBody(recipe) : null,
   });
@@ -222,7 +197,7 @@ export default function NewPost() {
   };
 
   const showPreview = async () => {
-    const [coverOut, ...outs] = await Promise.all([cover ? renderPhoto(cover, coverRatio) : null, ...photos.map((p, i) => renderPhoto(p, i ? ratio : heroRatio))]);
+    const [coverOut, ...outs] = await Promise.all([cover ? renderPhoto(cover) : null, ...photos.map((p) => renderPhoto(p))]);
     setPreview({
       ...fields(),
       format: 'post',
@@ -237,8 +212,8 @@ export default function NewPost() {
 
   // Uploads whatever is new, keeping each result so that trying again after a
   // failure does not upload anything twice.
-  const uploadOne = async (photo, shape) => {
-    const out = await renderPhoto(photo, shape);
+  const uploadOne = async (photo) => {
+    const out = await renderPhoto(photo);
     const { url } = await api.upload(out.blob);
     return { url, width: out.width, height: out.height };
   };
@@ -246,7 +221,7 @@ export default function NewPost() {
     let coverUrl = cover?.uploaded?.url || '';
     if (cover && !cover.uploaded) {
       setProgress('Uploading cover picture…');
-      const uploaded = await uploadOne(cover, coverRatio);
+      const uploaded = await uploadOne(cover);
       setCover((c) => ({ ...c, uploaded }));
       coverUrl = uploaded.url;
     }
@@ -255,7 +230,7 @@ export default function NewPost() {
     for (let i = 0; i < list.length; i += 1) {
       if (!list[i].uploaded) {
         setProgress(`Uploading picture ${i + 1} of ${list.length}…`);
-        list[i] = { ...list[i], uploaded: await uploadOne(list[i], i ? ratio : heroRatio) };
+        list[i] = { ...list[i], uploaded: await uploadOne(list[i]) };
         setPhotos([...list]);
       }
       media.push(list[i].uploaded);
@@ -408,7 +383,8 @@ export default function NewPost() {
       {step === 'cover' &&
         (cover ? (
           <>
-            <PhotoCrop photo={cover} ratio={coverRatio} onRatio={changeCoverRatio} onChange={(f) => setCover((c) => ({ ...c, ...f }))} />
+            <p className="adm-hint">{SIZE_NOTE}</p>
+            <PhotoCrop photo={cover} ratio={PHOTO_RATIO} onChange={(f) => setCover((c) => ({ ...c, ...f }))} />
             <FilePick label="Change cover picture" onFiles={pickCover} testId="adm-cover" />
           </>
         ) : (
@@ -417,6 +393,7 @@ export default function NewPost() {
               <Icon name="image" size={44} />
               <strong>Add the cover picture</strong>
               <p>Shown on your blog’s card on the blog page. It does not appear inside the blog itself.</p>
+              <p>{SIZE_NOTE}</p>
             </div>
             <FilePick label="Choose cover picture" onFiles={pickCover} testId="adm-cover" camera />
           </div>
@@ -426,16 +403,11 @@ export default function NewPost() {
 
       {step === 'adjust' && photo && (
         <>
-          {photo.id === firstId ? (
-            <p className="adm-hint adm-hero-note">This first picture is the big one at the top of your blog. Wide crops it to a wide strip; Free uses the whole picture as it is.</p>
-          ) : null}
-          <PhotoCrop
-            photo={photo}
-            ratio={photo.id === firstId ? heroRatio : ratio}
-            ratios={photo.id === firstId ? HERO_RATIOS : PICTURE_RATIOS}
-            onRatio={photo.id === firstId ? changeHeroRatio : changeRatio}
-            onChange={(f) => patchPhoto(photo.id, f)}
-          />
+          <p className="adm-hint adm-hero-note">
+            {photo.id === firstId ? 'This first picture is the big one at the top of your blog. ' : ''}
+            {SIZE_NOTE}
+          </p>
+          <PhotoCrop photo={photo} ratio={PHOTO_RATIO} onChange={(f) => patchPhoto(photo.id, f)} />
           {photos.length > 1 && (
             <div className="adm-strip">
               {photos.map((p, i) => (

@@ -264,7 +264,11 @@ export default function PostMain({ post, preview, rating, commentCount }) {
   return (
     <div className="post-main" lang={post.language === 'ta' ? 'ta' : undefined}>
       {hero && (
-        <figure className={`post-hero${post.heroRatio === 'free' ? ' post-hero--free' : ''}`}>
+        <figure
+          className={`post-hero${post.heroRatio === 'free' ? ' post-hero--free' : ''}`}
+          // Blogs since the one picture size are 16:9; older ones keep their wide strip.
+          style={post.heroRatio === '16:9' ? { aspectRatio: '16 / 9' } : undefined}
+        >
           <img src={hero.url} alt={post.coverAlt || post.title} />
         </figure>
       )}

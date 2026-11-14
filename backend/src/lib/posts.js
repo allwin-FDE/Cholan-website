@@ -69,8 +69,7 @@ export function cleanPost(body, origin) {
   };
 }
 
-// ---- Posts sent from /admin: a cover, pictures, a title and written content ----
-const RATIOS = ['1:1', '4:5', '16:9'];
+// ---- Blogs from the composer: a cover, pictures, a title and written content ----
 // The picture at the top of a blog: cropped wide, or free (whole, as uploaded).
 const HERO_RATIOS = ['5:2', 'free'];
 const heroRatio = (value) => (HERO_RATIOS.includes(value) ? value : '5:2');
@@ -225,9 +224,10 @@ export function cleanShortPost(body, origin, { draft = false } = {}) {
       postedBy,
       category,
       media,
-      ratio: RATIOS.includes(input.ratio) || input.ratio === 'free' ? input.ratio : '4:5',
-      heroRatio: heroRatio(input.heroRatio),
-      coverRatio: RATIOS.includes(input.coverRatio) ? input.coverRatio : '16:9',
+      // One size for every picture: 16:9, 1600 x 900 (admin/photos.js).
+      ratio: '16:9',
+      heroRatio: '16:9',
+      coverRatio: '16:9',
       recipe: cleanRecipe(input.recipe),
       productIds: (Array.isArray(input.productIds) ? input.productIds : [])
         .filter((id) => typeof id === 'string' && /^[a-z0-9-]{1,60}$/.test(id))
