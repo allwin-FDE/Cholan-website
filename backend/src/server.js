@@ -35,7 +35,7 @@ app.use(
 // makes them large) and the warehouse, which parse their own body in their routes.
 const smallJson = express.json({ limit: '32kb' });
 app.use((req, res, next) =>
-  /^\/api\/(admin\/(my-)?posts|warehouse)/.test(req.path) ? next() : smallJson(req, res, next),
+  /^\/api\/(admin\/(short-)?posts|warehouse)/.test(req.path) ? next() : smallJson(req, res, next),
 );
 
 app.get('/health', (req, res) => {
