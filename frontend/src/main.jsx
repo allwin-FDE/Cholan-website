@@ -22,7 +22,6 @@ import './styles/policy.css';
 import './styles/checkout.css';
 import './styles/chat.css';
 import './styles/guide.css';
-import './styles/cookies.css';
 import './styles/dashboard-frame.css';
 
 // The page's HTML may be a saved copy from the build (scripts/prerender.mjs).

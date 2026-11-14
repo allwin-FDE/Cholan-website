@@ -27,7 +27,7 @@ const SECTIONS = [
       'Visitors are different people; visits are separate trips to the site (one person can visit many times).',
       '“Where visitors come from” shows Google, Instagram, WhatsApp, other websites, or Direct (typed in or a saved link).',
       '“Actions taken” counts the taps that matter: calls, WhatsApp, enquiries, directions and chat.',
-      'Every visitor is counted unless they chose “Don’t track me” on the cookie notice. Their visits still show as a plain number under Visits (“with tracking turned off”), with no pages or details.',
+      'Every visitor is counted; there is no cookie notice or opt-out on the website. A private or incognito window, or a browser that blocks cookies, shows up as a new visitor.',
       'Each device keeps the same ID for about 13 months, so a visitor who comes back weeks later counts as returning, not new. One person on two browsers or devices (or in a private window) still counts as two.',
     ],
   },
@@ -117,7 +117,7 @@ export default function Help() {
         <section className="dash-card">
           <h2>Privacy</h2>
           <p>
-            Visitor tracking runs unless a visitor turns it off (“Don’t track me”), never records what anyone types, and deletes visit data
+            Visitor tracking runs for every visitor, never records what anyone types, and deletes visit data
             after about 13 months. This matches the website’s <Link to="/policies/privacy">Privacy Policy</Link>. Enquiries hold
             phone numbers — only give Editor or Admin access to people who need them.
           </p>

@@ -4,8 +4,7 @@ import { site } from '../../config/site.js';
 import { footerNav, policyNav } from '../../config/navigation.js';
 import { categories } from '../../data/categories.js';
 import { Icon, iconPaths } from '../common/Icon.jsx';
-import { openCookieSettings } from '../common/Analytics.jsx';
-import { analyticsEnabled, track } from '../../lib/analytics.js';
+import { track } from '../../lib/analytics.js';
 import { hasBackend, subscribe } from '../../lib/api.js';
 import { enquiryContext } from '../../lib/tracker.js';
 
@@ -114,11 +113,6 @@ export default function Footer() {
                 {link.label}
               </Link>
             ))}
-            {analyticsEnabled && (
-              <button type="button" onClick={openCookieSettings}>
-                Cookie settings
-              </button>
-            )}
           </nav>
         </div>
       </div>

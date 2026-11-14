@@ -233,7 +233,7 @@ export const policies = {
               '**Business details** – business name, GSTIN and billing address, for bulk buyers.',
               '**Payment records** – payment method, transaction reference and amount paid. **We never see or store your card number, CVV, UPI PIN, password or OTP.**',
               '**Messages** – enquiries, complaints, photos and reviews you send us.',
-              '**Website usage** – device, browser, pages visited and IP address, collected through cookies. One cookie gives your browser a random ID, kept for about 13 months, so we can count return visits; it does not contain your name or contact details. You can turn this off at any time with “Cookie settings” at the bottom of any page, or block cookies in your browser settings. If you turn it off, we only count that a visit happened, with no ID and no details.',
+              '**Website usage** – device, browser, pages visited and IP address, collected through cookies. One cookie gives your browser a random ID, kept for about 13 months, so we can count return visits; it does not contain your name or contact details. This is collected from every visitor to the website. You can block or clear cookies in your browser settings, and a private or incognito window starts without the ID.',
             ],
           },
         ],

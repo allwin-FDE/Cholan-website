@@ -1,21 +1,15 @@
 import { GA_ID } from '../config/analytics.js';
-import { countAnonymousVisit, markVisitCounted, notePage, startTracking, stopTracking, trackEvent } from './tracker.js';
+import { notePage, startTracking, trackEvent } from './tracker.js';
 
 // Google Analytics 4 and the site's own visit counting (lib/tracker.js), for
-// every visitor unless they turn it off. The cookie notice
-// (components/common/Analytics.jsx) says so, and its "Don't track me", also
-// under Cookie settings in the footer, stops both and clears their cookies.
-// The choice is kept in localStorage. With it off, only the bare fact of a
-// visit is counted, with no ID or details (tracker.js countAnonymousVisit). Ads
-// features stay off: this is for measuring the site only.
+// every visitor, with no notice or opt-out on the site (the owner's decision,
+// 2026-11-14; the privacy policy says so). Ads features stay off: this is for
+// measuring the site only.
 
-const CONSENT_KEY = 'cholan-tracking'; // 'granted' (seen the notice) | 'denied' (turned off) | none yet
-
-// Choices made before this notice (the old banner's Accept/Reject, saved as
-// 'cholan-consent') are forgotten, at the owner's request: those visitors are
-// counted again and see the notice once more, where they can turn it off.
+// Choices saved by the old cookie notices are no longer used.
 try {
   localStorage.removeItem('cholan-consent');
+  localStorage.removeItem('cholan-tracking');
 } catch {
   // Storage blocked: nothing saved to forget.
 }
@@ -28,18 +22,9 @@ export const analyticsEnabled =
   Boolean(GA_ID) && typeof navigator !== 'undefined' && !navigator.webdriver && window.top === window.self;
 
 let loaded = false;
-let measuring = false; // counting now (not turned off since loading)
 
 function gtag() {
   window.dataLayer.push(arguments);
-}
-
-export function getConsent() {
-  try {
-    return localStorage.getItem(CONSENT_KEY);
-  } catch {
-    return null;
-  }
 }
 
 function load() {
@@ -65,60 +50,12 @@ function load() {
   startTracking();
 }
 
-// Clears Google Analytics' own cookies (_ga, _ga_<id>) after a withdrawal.
-function clearCookies() {
-  const host = location.hostname.replace(/^www\./, '');
-  for (const pair of document.cookie.split(';')) {
-    const name = pair.split('=')[0].trim();
-    if (!name.startsWith('_ga')) continue;
-    for (const domain of ['', `; domain=${host}`, `; domain=.${host}`]) {
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${domain}`;
-    }
-  }
-}
-
-export function setConsent(choice) {
-  try {
-    localStorage.setItem(CONSENT_KEY, choice);
-  } catch {
-    // Private mode: the choice holds for this visit only.
-  }
-  if (choice === 'granted') {
-    // Already counting (OK on the notice): nothing to restart, and the page
-    // in view has been counted. Turned back on: start again, from this page.
-    if (loaded && measuring) return window.dispatchEvent(new Event('cholan:consent'));
-    if (loaded) {
-      gtag('consent', 'update', { analytics_storage: 'granted' });
-      startTracking();
-    }
-    load();
-    measuring = true;
-    trackPageView();
-  } else {
-    // This visit was already counted, with its pages, before turning it off.
-    if (measuring) markVisitCounted();
-    measuring = false;
-    stopTracking();
-    if (loaded) {
-      gtag('consent', 'update', { analytics_storage: 'denied' });
-      clearCookies();
-    }
-  }
-  window.dispatchEvent(new Event('cholan:consent'));
-}
-
-// Called once at start-up: everyone is measured unless they turned it off.
+// Called once at start-up: every visitor is measured.
 export function initAnalytics() {
-  if (!analyticsEnabled) return;
-  if (getConsent() === 'denied') {
-    countAnonymousVisit();
-    return;
-  }
-  load();
-  measuring = loaded;
+  if (analyticsEnabled) load();
 }
 
-const active = () => loaded && getConsent() !== 'denied';
+const active = () => loaded;
 
 // The admin and warehouse are the shop's own tools, not part of the site's visits.
 const inDashboard = () => /^\/(dashboard|admin|warehouse)(\/|$)/.test(location.pathname);

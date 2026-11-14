@@ -1,8 +1,8 @@
 import { apiUrl, hasBackend } from './api.js';
 
 // The site's own visitor tracking, for the admin (/admin). It runs for every
-// visitor who has not turned it off in Cookie settings (lib/analytics.js
-// starts and stops it), and records how the site is used: pages, time on
+// visitor (lib/analytics.js starts it; there is no opt-out on the site), and
+// records how the site is used: pages, time on
 // each, how far down people scroll, where they click (for heatmaps) and
 // actions such as a call or WhatsApp tap. It never reads what anyone types.
 //
@@ -17,6 +17,8 @@ const VISITOR_KEY = 'cholan-vid';
 const SESSION_KEY = 'cholan-session';
 const SESSION_IDLE_MS = 2 * 60_000;
 const FLUSH_MS = 5000;
+// The shop's own tools, not part of the site's visits.
+const INTERNAL = /^\/(dashboard|admin|warehouse)(\/|$)/;
 
 // On the live site, the tracking route is reached through the site's own
 // address (firebase.json sends /api/track on to the backend), so the device's
@@ -90,18 +92,22 @@ function touch() {
 
 function push(event) {
   // The admin and warehouse are the shop's own tools, not part of the site's visits.
-  if (!running || /^\/(dashboard|admin|warehouse)(\/|$)/.test(location.pathname)) return;
+  if (!running || INTERNAL.test(location.pathname)) return;
   queue.push({ t: Date.now(), path: location.pathname, ...event });
   touch();
   if (queue.length >= 40) flush();
 }
 
 function flush(closing = false) {
-  if (!running || !ids || (!queue.length && ids.metaSent)) return;
+  // Nothing to send. A visit also starts only with something done on the
+  // site itself: the admin and warehouse queue nothing (push), so opening
+  // them is not a visit.
+  if (!running || !ids || !queue.length) return;
   const body = { sid: ids.sid, vid: ids.vid, events: queue.splice(0, 80) };
   if (!ids.metaSent) {
     body.meta = {
-      landing: context.landing,
+      // Came in through the admin, then onto the site: the visit starts there.
+      landing: INTERNAL.test(context.landing) ? body.events[0].path : context.landing,
       referrer: context.referrer,
       utmSource: context.utmSource,
       utmMedium: context.utmMedium,
