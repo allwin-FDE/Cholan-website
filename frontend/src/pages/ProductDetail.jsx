@@ -163,8 +163,13 @@ export default function ProductDetail() {
               )}
               <div className="pdp__actions">
                 {features.cart && pack.size && <AddToCart key={pack.size} product={product} pack={pack} className="pdp__atc" />}
+                {!features.cart && (
+                  <Link to={`/contact?product=${product.id}`} className="btn btn--primary">
+                    Enquire
+                  </Link>
+                )}
                 <a href={`tel:${site.phoneRaw}`} className="btn btn--ghost">
-                  Call to order
+                  {features.cart ? 'Call to order' : 'Call us'}
                 </a>
               </div>
               <ul className="pdp__assurance">

@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-11-13T10:51:40.967Z",
+  "builtAt": "2026-11-14T07:04:34.481Z",
   "chunks": [
     {
       "id": "business",
@@ -13,7 +13,7 @@
       "title": "How to order and prices",
       "label": "How to order and prices",
       "url": "/contact",
-      "text": "Prices are listed on each product page, for each pack size, in rupees. Prices can change; the current rate is confirmed when you order.\nProducts can be added to the cart and ordered through checkout on the website.\nEach product page has an Enquire button that opens the Contact page with that product filled in.\nPhone and WhatsApp: +91 90922 66667. Email: info@cholanrice.in.\nBulk and wholesale orders (26 kg bags, monthly supply) are quoted on request — see the bulk supply section."
+      "text": "Prices are listed on each product page, for each pack size, in rupees. Prices can change; the current rate is confirmed when you order.\nThere is no online cart or checkout at the moment. To order, send an enquiry on the Contact page, message on WhatsApp or call.\nEach product page has an Enquire button that opens the Contact page with that product filled in.\nPhone and WhatsApp: +91 90922 66667. Email: info@cholanrice.in.\nBulk and wholesale orders (26 kg bags, monthly supply) are quoted on request — see the bulk supply section."
     },
     {
       "id": "catalogue",
@@ -244,7 +244,7 @@
       "title": "Privacy Policy — 2. What we collect",
       "label": "Privacy Policy",
       "url": "/policies/privacy",
-      "text": "Privacy Policy, 2. What we collect:\n- Contact details – name, phone or WhatsApp number and email.\n- Order details – delivery address, pin code, products ordered and order history.\n- Business details – business name, GSTIN and billing address, for bulk buyers.\n- Payment records – payment method, transaction reference and amount paid. We never see or store your card number, CVV, UPI PIN, password or OTP.\n- Messages – enquiries, complaints, photos and reviews you send us.\n- Website usage – device, browser, pages visited and IP address, collected through cookies. You can block cookies in your browser settings."
+      "text": "Privacy Policy, 2. What we collect:\n- Contact details – name, phone or WhatsApp number and email.\n- Order details – delivery address, pin code, products ordered and order history.\n- Business details – business name, GSTIN and billing address, for bulk buyers.\n- Payment records – payment method, transaction reference and amount paid. We never see or store your card number, CVV, UPI PIN, password or OTP.\n- Messages – enquiries, complaints, photos and reviews you send us.\n- Website usage – device, browser, pages visited and IP address, collected through cookies. One cookie gives your browser a random ID, kept for about 13 months, so we can count return visits; it does not contain your name or contact details. You can turn this off at any time with “Cookie settings” at the bottom of any page, or block cookies in your browser settings. If you turn it off, we only count that a visit happened, with no ID and no details."
     },
     {
       "id": "policy-privacy-3",
