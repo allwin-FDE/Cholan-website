@@ -1,9 +1,9 @@
-// Dashboard sign-in. The browser signs in with Firebase Authentication (a
-// link emailed to the person) and sends its ID token with each request; here
-// the token is checked and the email looked up in the access list.
+// Admin sign-in (/admin on the website). The browser signs in with Firebase
+// Authentication (Google, or a link emailed to the person) and sends its ID
+// token with each request; here the token is checked and the email looked up
+// in the access list.
 //
 // Roles, each including everything below it:
-//   poster  — only /admin: send short posts for approval; nothing else
 //   viewer  — reports: overview, visitors, heatmaps
 //   editor  — and enquiries and the blog
 //   admin   — and Settings: who has access
@@ -11,13 +11,13 @@
 //
 // Warehouse workers (warehouse-staff, warehouse-manager) sit outside this
 // ladder: they rank below every role here, so requireRole refuses them on every
-// dashboard route, and only requireWarehouse lets them in.
+// admin route, and only requireWarehouse lets them in.
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { config } from '../config.js';
 import { collection } from './firestore.js';
 
-export const ROLES = ['poster', 'viewer', 'editor', 'admin', 'owner'];
+export const ROLES = ['viewer', 'editor', 'admin', 'owner'];
 const rank = (role) => ROLES.indexOf(role);
 
 export const WAREHOUSE_ROLES = ['warehouse-staff', 'warehouse-manager'];
@@ -61,16 +61,13 @@ export function requireRole(minRole = 'viewer') {
 
     try {
       const role = await roleFor(decoded.email);
-      if (!role) {
+      // No entry, or one left from a role that no longer exists (the old shared
+      // "poster" login), opens nothing.
+      if (!role || (!ROLES.includes(role) && !WAREHOUSE_ROLES.includes(role))) {
         return res.status(403).json({
-          error: `${decoded.email} does not have access to the dashboard. Ask an admin to add it in Settings.`,
+          error: `${decoded.email} does not have access to the admin. Ask an admin to add it in Settings.`,
           code: 'no-access',
         });
-      }
-      // The poster login is a shared password. Only that password opens it, so
-      // whoever controls the address at Google cannot get in by signing in there.
-      if (role === 'poster' && decoded.firebase?.sign_in_provider !== 'password') {
-        return res.status(403).json({ error: 'Please sign in with the email and password.', code: 'no-access' });
       }
       if (WAREHOUSE_ROLES.includes(role)) {
         return res.status(403).json({ error: 'This login is for the warehouse page only.', code: 'no-access' });

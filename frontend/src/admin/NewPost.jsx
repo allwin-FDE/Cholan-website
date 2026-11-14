@@ -10,14 +10,6 @@ import DocImport from './DocImport.jsx';
 import { docPlainText } from '../lib/docHtml.js';
 import { HERO_RATIO, HERO_RATIOS, MAX_PHOTOS, PICTURE_RATIOS, POST_CATEGORIES, clearDraft, fetchPhoto, loadDraft, readPhoto, renderPhoto, saveDraft } from './photos.js';
 
-const NAME_KEY = 'cholan-admin-name';
-const rememberedName = () => {
-  try {
-    return localStorage.getItem(NAME_KEY) || '';
-  } catch {
-    return '';
-  }
-};
 const TITLES = { cover: 'Cover picture', pictures: 'Main pictures', adjust: 'Adjust pictures', write: 'Write the blog' };
 const order = ['cover', 'pictures', 'adjust', 'write'];
 const EMPTY_RECIPE = { total: '', prep: '', cook: '', servings: '', cuisine: '', method: '', ingredients: '', notes: '' };
@@ -28,10 +20,19 @@ const EMPTY_PARTS = { subtitle: '', intro: '', takeaway: '', tips: '', conclusio
 const partsForm = (post) => ({ ...EMPTY_PARTS, subtitle: post.subtitle || '', intro: post.intro || '', takeaway: post.takeaway || '', tips: (post.tips || []).join('\n'), conclusion: post.conclusion || '' });
 const recipeBody = (form) => ({ ...form, ingredients: form.ingredients.split('\n').map((l) => l.trim()).filter(Boolean) });
 
-// Four steps: the cover, the main pictures, adjusting them, then the title and
-// the blog itself.
+// What a saved blog's state means, in the words of the person writing it.
+const STATUS = {
+  published: ['Live on the website', 'good'],
+  scheduled: ['Scheduled', 'info'],
+  pending: ['Not published', 'warn'],
+  changes: ['Not published', 'neutral'],
+};
+
+// The blog composer in /admin/blog. Four steps: the cover, the main pictures,
+// adjusting them, then the title and the blog itself. Publish puts it on the
+// website at once; there is no approval step.
 export default function NewPost() {
-  const { id } = useParams(); // editing a post already saved or sent
+  const { id } = useParams(); // editing a blog already saved
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState('cover'); // cover | pictures | adjust | write | done
@@ -53,10 +54,10 @@ export default function NewPost() {
   const [recipe, setRecipe] = useState(EMPTY_RECIPE);
   const [sentStatus, setSentStatus] = useState(null); // the status of a post being edited
   const [productIds, setProductIds] = useState([]);
-  const [postedBy, setPostedBy] = useState(rememberedName);
   const [errors, setErrors] = useState({});
   const [problem, setProblem] = useState('');
-  const [progress, setProgress] = useState(null); // text while sending
+  const [progress, setProgress] = useState(null); // text while publishing
+  const [published, setPublished] = useState(null); // the blog just published
   const [preview, setPreview] = useState(null); // a post object to show
 
   // Start from the post being edited, or the draft kept on this device.
@@ -64,9 +65,8 @@ export default function NewPost() {
     (async () => {
       try {
         if (id) {
-          const { posts } = await api.myPosts();
-          const post = posts.find((p) => p.id === id);
-          if (!post) return navigate('/admin', { replace: true });
+          const post = await api.post(id).catch((e) => (e.status === 404 ? null : Promise.reject(e)));
+          if (!post || post.format !== 'post') return navigate('/admin/blog', { replace: true });
           if (post.coverUrl) setCover(await fetchPhoto({ url: post.coverUrl }));
           setCoverRatio(post.coverRatio || '16:9');
           setPhotos(await Promise.all((post.media || []).map(fetchPhoto)));
@@ -83,7 +83,6 @@ export default function NewPost() {
           setIsRecipe(Boolean(post.recipe));
           setRecipe(recipeForm(post.recipe));
           setProductIds(post.productIds || []);
-          setPostedBy(post.postedBy || rememberedName());
           setSentStatus(post.status);
           setStep(post.coverUrl ? 'write' : 'cover');
         } else {
@@ -109,7 +108,6 @@ export default function NewPost() {
             setIsRecipe(Boolean(draft.isRecipe));
             setRecipe({ ...EMPTY_RECIPE, ...draft.recipe });
             setProductIds(draft.productIds);
-            if (draft.postedBy) setPostedBy(draft.postedBy);
             const named = { pick: 'pictures', share: 'write' }[draft.step] || draft.step;
             if (!oldCover || !order.includes(named)) setStep('cover');
             else setStep(named !== 'cover' && !pictures.length ? 'pictures' : named);
@@ -129,17 +127,17 @@ export default function NewPost() {
   useEffect(() => {
     if (!ready || id || step === 'done' || progress) return undefined;
     const timer = setTimeout(() => {
-      if (hasWork) saveDraft({ cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy, step });
+      if (hasWork) saveDraft({ cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, step });
       else clearDraft();
     }, 400);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, id, step, progress, cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds, postedBy]);
+  }, [ready, id, step, progress, cover, coverRatio, photos, ratio, heroRatio, title, parts, caption, captionHtml, docHtml, bgColor, category, tagsText, isRecipe, recipe, productIds]);
 
   // A message belongs to the step it came from, and a field's error goes as
   // soon as the person starts fixing it.
   useEffect(() => setProblem(''), [step]);
-  useEffect(() => setErrors((e) => (Object.keys(e).length ? {} : e)), [title, caption, postedBy, category]);
+  useEffect(() => setErrors((e) => (Object.keys(e).length ? {} : e)), [title, caption, category]);
 
   // The top picture has its own shape, so a photo moving into or out of
   // first place is cropped afresh.
@@ -200,7 +198,6 @@ export default function NewPost() {
     captionHtml,
     docHtml,
     bgColor,
-    postedBy: postedBy.trim(),
     category: category.trim(),
     tags: tagsText.split(',').map((t) => t.trim()).filter(Boolean),
     coverRatio,
@@ -216,7 +213,6 @@ export default function NewPost() {
     if (!photos.length) next.media = 'Add at least one main picture.';
     if (!title.trim()) next.title = 'Give the blog a title.';
     if (!caption.trim()) next.caption = 'Write the blog content.';
-    if (!postedBy.trim()) next.postedBy = 'Add your name.';
     if (!category.trim()) next.category = 'Choose a category.';
     setErrors(next);
     if (next.cover || next.media) setProblem(next.cover || next.media);
@@ -268,45 +264,53 @@ export default function NewPost() {
   };
 
   const save = async (body) => {
-    if (id) await api.updateMyPost(id, body);
-    else await api.createMyPost(body);
-    try {
-      if (postedBy.trim()) localStorage.setItem(NAME_KEY, postedBy.trim());
-    } catch {
-      // The name is only a convenience for next time.
-    }
+    const saved = id ? await api.updateShortPost(id, body) : await api.createShortPost(body);
     if (!id) await clearDraft();
+    return saved;
   };
 
-  const send = async () => {
+  const live = sentStatus === 'published' || sentStatus === 'scheduled';
+
+  const publish = async () => {
     if (!check()) return;
     setProblem('');
     try {
       const pictures = await uploadAll();
-      setProgress('Sending for approval…');
-      await save({ ...fields(), ...pictures });
+      setProgress(live ? 'Saving changes…' : 'Publishing…');
+      setPublished(await save({ ...fields(), ...pictures }));
       setStep('done');
     } catch (e) {
-      setProblem(`${e.message} Your blog is safe here; press Send to try again.`);
+      setProblem(`${e.message} Your blog is safe here; press Publish to try again.`);
     }
     setProgress(null);
   };
 
-  // Keeps the post in the account, so it can be finished later on any device.
+  // Keeps the blog in the admin, off the website, to finish later on any device.
   const saveAsDraft = async () => {
     if (!hasWork) {
       setProblem('Add a picture, a title or some content first.');
       return;
     }
+    if (live && !window.confirm('Saving as a draft takes this blog off the website until you publish it again. Continue?')) return;
     setProblem('');
     try {
       const pictures = await uploadAll();
       setProgress('Saving draft…');
       await save({ ...fields(), ...pictures, draft: true });
-      navigate('/admin', { state: { saved: 'Draft saved. Open it from Your posts to finish it.' } });
+      navigate('/admin/blog', { state: { saved: 'Draft saved. It is not on the website; open it from the list to finish it.' } });
     } catch (e) {
       setProblem(`${e.message} Your blog is safe here; please try again.`);
       setProgress(null);
+    }
+  };
+
+  const remove = async () => {
+    if (!window.confirm(live ? 'Delete this blog? It comes off the website and cannot be brought back.' : 'Delete this blog? It cannot be brought back.')) return;
+    try {
+      await api.deletePost(id);
+      navigate('/admin/blog', { state: { saved: 'Blog deleted.' } });
+    } catch (e) {
+      setProblem(e.message);
     }
   };
 
@@ -325,10 +329,15 @@ export default function NewPost() {
           <span className="adm-done__icon">
             <Icon name="check" size={34} />
           </span>
-          <h1>Sent for approval</h1>
-          <p>Your blog will appear on the website once it has been approved. You can see its status under Your posts.</p>
-          <Link to="/admin" className="adm-btn adm-btn--wide">
-            Done
+          <h1>{live ? 'Changes saved' : 'Your blog is live'}</h1>
+          <p>It is on the website now, on the Blog page. It can take up to a minute to appear everywhere.</p>
+          {published?.slug && (
+            <a href={`/blog/${published.slug}`} target="_blank" rel="noreferrer" className="adm-btn adm-btn--wide">
+              View on the website
+            </a>
+          )}
+          <Link to="/admin/blog" className="adm-btn adm-btn--ghost adm-btn--wide">
+            Back to Blog
           </Link>
         </div>
       </div>
@@ -340,7 +349,7 @@ export default function NewPost() {
   const setPart = (key) => (e) => setParts({ ...parts, [key]: e.target.value });
   const setR = (key) => (e) => setRecipe({ ...recipe, [key]: e.target.value });
 
-  const statusBadge = { pending: ['Waiting for approval', 'warn'], changes: ['Changes requested', 'bad'] }[sentStatus] || ['Draft', 'neutral'];
+  const statusBadge = STATUS[sentStatus] || ['Draft', 'neutral'];
 
   return (
     <div className={`adm-page adm-page--flow${step === 'write' ? ' adm-page--write' : ''}`}>
@@ -359,13 +368,11 @@ export default function NewPost() {
             <button type="button" className="dash-btn dash-btn--ghost adm-write-preview" onClick={showPreview} disabled={Boolean(progress)}>
               <Icon name="eye" /> Preview
             </button>
-            {sentStatus !== 'pending' && (
-              <button type="button" className="dash-btn dash-btn--ghost adm-write-save" onClick={saveAsDraft} disabled={Boolean(progress)}>
-                Save draft
-              </button>
-            )}
-            <button type="button" className="dash-btn adm-write-send" onClick={send} disabled={Boolean(progress)}>
-              {progress || 'Send for approval'}
+            <button type="button" className="dash-btn dash-btn--ghost adm-write-save" onClick={saveAsDraft} disabled={Boolean(progress)}>
+              Save draft
+            </button>
+            <button type="button" className="dash-btn adm-write-send" onClick={publish} disabled={Boolean(progress)}>
+              {progress || (live ? 'Save changes' : 'Publish')}
             </button>
           </div>
         </header>
@@ -377,18 +384,14 @@ export default function NewPost() {
             ← Back
           </button>
         ) : (
-          <Link to="/admin" className="adm-link">
+          <Link to="/admin/blog" className="adm-link">
             Cancel
           </Link>
         )}
         <h1>{TITLES[step]}</h1>
-        {sentStatus !== 'pending' ? (
-          <button type="button" className="adm-link adm-flow-head__save" onClick={saveAsDraft} disabled={Boolean(progress)}>
-            Save draft
-          </button>
-        ) : (
-          <span />
-        )}
+        <button type="button" className="adm-link adm-flow-head__save" onClick={saveAsDraft} disabled={Boolean(progress)}>
+          Save draft
+        </button>
       </header>
       <p className="adm-step-count">
         Step {order.indexOf(step) + 1} of {order.length}
@@ -566,13 +569,12 @@ export default function NewPost() {
 
           <aside className="dash-editor__side">
             <section className="dash-panel">
-              <h2>Approval</h2>
-              <p className="adm-write-note">Your blog goes to the dashboard team first. It appears on the website once it is approved.</p>
-              <div className={`adm-field${errors.postedBy ? ' has-error' : ''}`}>
-                <label htmlFor="adm-name">Your name</label>
-                <input id="adm-name" autoComplete="name" maxLength={60} value={postedBy} onChange={(e) => setPostedBy(e.target.value)} placeholder="Only the people approving see this" />
-                <span className="adm-error">{errors.postedBy}</span>
-              </div>
+              <h2>Publishing</h2>
+              <p className="adm-write-note">
+                {live
+                  ? 'This blog is on the website. Save changes updates it there straight away.'
+                  : 'Publish puts this blog on the website straight away. Save draft keeps it here, off the website.'}
+              </p>
             </section>
 
             <section className="dash-panel">
@@ -672,6 +674,15 @@ export default function NewPost() {
                 <BackgroundPicker value={bgColor} onChange={setBgColor} />
               </section>
             )}
+
+            {id && (
+              <section className="dash-panel">
+                <h2>Delete</h2>
+                <button type="button" className="dash-btn dash-btn--ghost dash-btn--sm" onClick={remove} disabled={Boolean(progress)}>
+                  <Icon name="trash" /> Delete this blog
+                </button>
+              </section>
+            )}
           </aside>
         </div>
       )}
@@ -705,8 +716,8 @@ export default function NewPost() {
             <button type="button" className="adm-btn adm-btn--ghost" onClick={showPreview} disabled={Boolean(progress)}>
               Preview
             </button>
-            <button type="button" className="adm-btn adm-btn--grow" onClick={send} disabled={Boolean(progress)}>
-              {progress || 'Send for approval'}
+            <button type="button" className="adm-btn adm-btn--grow" onClick={publish} disabled={Boolean(progress)}>
+              {progress || (live ? 'Save changes' : 'Publish')}
             </button>
           </>
         )}

@@ -43,7 +43,7 @@ export default function Overview() {
           cookies and come back in a minute.
         </Empty>
       )}
-      {data && data.kpis.visits > 0 && <OverviewBody data={data} onVisit={(id) => navigate(`/dashboard/visitors?visit=${id}`)} />}
+      {data && data.kpis.visits > 0 && <OverviewBody data={data} onVisit={(id) => navigate(`/admin/visitors?visit=${id}`)} />}
     </div>
   );
 }
@@ -81,7 +81,7 @@ function OverviewBody({ data, onVisit }) {
       </div>
 
       <div className="dash-grid dash-grid--2">
-        <Card title="Most viewed pages" action={<Link className="dash-link" to="/dashboard/pages">All pages →</Link>}>
+        <Card title="Most viewed pages" action={<Link className="dash-link" to="/admin/pages">All pages →</Link>}>
           <BarList items={pages} labelOf={(p) => pageName(p.name, p.title)} />
         </Card>
         <Card title="Products people looked at" hint="Product pages opened, most first.">
@@ -116,7 +116,7 @@ function OverviewBody({ data, onVisit }) {
         </Card>
       )}
 
-      <Card title="Latest visits" action={<Link className="dash-link" to="/dashboard/visitors">All visitors →</Link>}>
+      <Card title="Latest visits" action={<Link className="dash-link" to="/admin/visitors">All visitors →</Link>}>
         <div className="dash-table-wrap">
           <table className="dash-table">
             <thead>

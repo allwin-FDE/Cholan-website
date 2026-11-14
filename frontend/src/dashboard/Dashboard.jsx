@@ -12,6 +12,7 @@ import Subscribers from './pages/Subscribers.jsx';
 import BlogList from './pages/BlogList.jsx';
 import Comments from './pages/Comments.jsx';
 import BlogEditor from './pages/BlogEditor.jsx';
+import NewPost from '../admin/NewPost.jsx';
 import Settings from './pages/Settings.jsx';
 import Help from './pages/Help.jsx';
 import { Icon } from './ui.jsx';
@@ -20,28 +21,30 @@ import '../styles/dashboard.css';
 import '../styles/admin.css';
 
 const NAV = [
-  { to: '/dashboard', label: 'Overview', icon: 'grid', end: true, role: 'viewer' },
-  { to: '/dashboard/visitors', label: 'Visitors', icon: 'users', role: 'viewer' },
-  { to: '/dashboard/pages', label: 'Pages', icon: 'file', role: 'viewer' },
-  { to: '/dashboard/heatmaps', label: 'Heatmaps', icon: 'flame', role: 'viewer' },
-  { to: '/dashboard/enquiries', label: 'Enquiries', icon: 'inbox', role: 'editor' },
-  { to: '/dashboard/subscribers', label: 'Subscribers', icon: 'mail', role: 'editor' },
-  { to: '/dashboard/blog', label: 'Blog', icon: 'pen', role: 'editor' },
-  { to: '/dashboard/comments', label: 'Comments', icon: 'chat', role: 'editor' },
-  { to: '/dashboard/settings', label: 'Settings', icon: 'gear', role: 'admin' },
-  { to: '/dashboard/help', label: 'Help', icon: 'help', role: 'viewer' },
+  { to: '/admin', label: 'Overview', icon: 'grid', end: true, role: 'viewer' },
+  { to: '/admin/visitors', label: 'Visitors', icon: 'users', role: 'viewer' },
+  { to: '/admin/pages', label: 'Pages', icon: 'file', role: 'viewer' },
+  { to: '/admin/heatmaps', label: 'Heatmaps', icon: 'flame', role: 'viewer' },
+  { to: '/admin/enquiries', label: 'Enquiries', icon: 'inbox', role: 'editor' },
+  { to: '/admin/subscribers', label: 'Subscribers', icon: 'mail', role: 'editor' },
+  { to: '/admin/blog', label: 'Blog', icon: 'pen', role: 'editor' },
+  { to: '/admin/comments', label: 'Comments', icon: 'chat', role: 'editor' },
+  { to: '/admin/settings', label: 'Settings', icon: 'gear', role: 'admin' },
+  { to: '/admin/help', label: 'Help', icon: 'help', role: 'viewer' },
 ];
 
 const DAYS_KEY = 'cholan-dashboard-days';
 
-// /dashboard — the shop's own dashboard: visitors, heatmaps, enquiries, blog
-// and who has access. Sign-in is by an emailed link (Login.jsx); the backend
-// decides what each person may see from the access list in Settings.
+// /admin — the shop's own admin: visitors, heatmaps, enquiries, the blog,
+// comments and who has access. Sign-in is with Google or an emailed link
+// (Login.jsx); the backend decides what each person may see from the access
+// list in Settings. Blogs are written and published here, by the admins
+// themselves, in the composer (admin/NewPost.jsx).
 export default function Dashboard() {
   const [state, setState] = useState({ status: 'loading' }); // loading | signed-out | no-access | ready | error
   const [days, setDaysState] = useState(() => Number(localStorage.getItem(DAYS_KEY)) || 30);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [waiting, setWaiting] = useState({ count: 0, comments: 0 });
+  const [waiting, setWaiting] = useState({ comments: 0 });
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -72,7 +75,7 @@ export default function Dashboard() {
 
   useEffect(() => setMenuOpen(false), [pathname]);
 
-  // How many short posts are waiting, shown on the Blog menu item.
+  // How many comments are waiting, shown on the Comments menu item.
   const canReview = state.status === 'ready' && can(state.user.role, 'editor');
   useEffect(() => {
     if (!canReview) return undefined;
@@ -84,7 +87,7 @@ export default function Dashboard() {
 
   const signOut = async () => {
     await logout();
-    navigate('/dashboard');
+    navigate('/admin');
   };
 
   if (state.status === 'loading') {
@@ -99,32 +102,43 @@ export default function Dashboard() {
   }
 
   const { role, email } = state.user;
-  // The shared posting login has its own page, and nothing here.
-  if (role === 'poster') return <Navigate to="/admin" replace />;
   const allowed = (needed) => can(role, needed);
   const guard = (needed, element) => (allowed(needed) ? element : <NoRole needed={needed} role={role} />);
 
+  const context = { user: state.user, role, days, setDays, allowed };
+
+  // Writing a blog takes the whole screen, like a phone's composer.
+  if (/^\/admin\/blog\/(new|edit\/[^/]+)\/?$/.test(pathname)) {
+    return (
+      <DashContext.Provider value={context}>
+        <title>Write a blog · Cholan</title>
+        <meta name="robots" content="noindex, nofollow" />
+        <div className="adm">
+          <Routes>
+            <Route path="blog/new" element={guard('editor', <NewPost />)} />
+            <Route path="blog/edit/:id" element={guard('editor', <NewPost />)} />
+          </Routes>
+        </div>
+      </DashContext.Provider>
+    );
+  }
+
   return (
-    <DashContext.Provider value={{ user: state.user, role, days, setDays, allowed }}>
-      <title>Dashboard · Cholan</title>
+    <DashContext.Provider value={context}>
+      <title>Admin · Cholan</title>
       <meta name="robots" content="noindex, nofollow" />
       <div className={`dash${menuOpen ? ' dash--menu' : ''}`}>
         <aside className="dash-side">
           <div className="dash-brand">
             <img src="/images/cholan-logo.png" alt="Cholan" />
-            <span>Dashboard</span>
+            <span>Admin</span>
           </div>
-          <nav className="dash-nav" aria-label="Dashboard">
+          <nav className="dash-nav" aria-label="Admin">
             {NAV.filter((item) => allowed(item.role)).map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className="dash-nav__link">
                 <Icon name={item.icon} />
                 {item.label}
-                {item.to === '/dashboard/blog' && waiting.count > 0 && (
-                  <span className="dash-nav__count" aria-label={`${waiting.count} waiting for approval`}>
-                    {waiting.count}
-                  </span>
-                )}
-                {item.to === '/dashboard/comments' && waiting.comments > 0 && (
+                {item.to === '/admin/comments' && waiting.comments > 0 && (
                   <span className="dash-nav__count" aria-label={`${waiting.comments} waiting for approval`}>
                     {waiting.comments}
                   </span>
@@ -174,13 +188,12 @@ export default function Dashboard() {
             <Route path="enquiries" element={guard('editor', <Enquiries />)} />
             <Route path="subscribers" element={guard('editor', <Subscribers />)} />
             <Route path="blog" element={guard('editor', <BlogList />)} />
-            <Route path="blog/new" element={guard('editor', <BlogEditor />)} />
             <Route path="blog/:id" element={guard('editor', <BlogEditor />)} />
             <Route path="comments" element={guard('editor', <Comments />)} />
             <Route path="settings" element={guard('admin', <Settings />)} />
             <Route path="help" element={<Help />} />
-            <Route path="login" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="login" element={<Navigate to="/admin" replace />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
         </div>
       </div>

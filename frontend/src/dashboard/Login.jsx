@@ -21,7 +21,7 @@ export default function Login({ state, onSignOut }) {
       return;
     }
     finishLogin(saved)
-      .then(() => window.history.replaceState(null, '', '/dashboard'))
+      .then(() => window.history.replaceState(null, '', '/admin'))
       .catch((e) => {
         setError(friendly(e));
         setStep('ask');
@@ -62,7 +62,7 @@ export default function Login({ state, onSignOut }) {
     setError('');
     try {
       await finishLogin(email.trim().toLowerCase());
-      window.history.replaceState(null, '', '/dashboard');
+      window.history.replaceState(null, '', '/admin');
     } catch (e) {
       setError(friendly(e));
     }
@@ -77,9 +77,9 @@ export default function Login({ state, onSignOut }) {
         </div>
         <h1>No access yet</h1>
         <p>
-          You’re signed in as <strong>{state.email}</strong>, but this address isn’t on the dashboard’s access list.
+          You’re signed in as <strong>{state.email}</strong>, but this address isn’t on the admin’s access list.
         </p>
-        <p className="dash-muted">Ask the site owner or an admin to add it in Dashboard → Settings, then reload this page.</p>
+        <p className="dash-muted">Ask the site owner or an admin to add it in Admin → Settings, then reload this page.</p>
         <div className="dash-login__row">
           <button type="button" className="dash-btn" onClick={() => window.location.reload()}>
             <Icon name="refresh" /> Check again
@@ -136,7 +136,7 @@ export default function Login({ state, onSignOut }) {
     const confirming = step === 'confirm';
     body = (
       <>
-        <h1>{confirming ? 'Confirm your email' : 'Sign in to the dashboard'}</h1>
+        <h1>{confirming ? 'Confirm your email' : 'Sign in to the admin'}</h1>
         <p className="dash-muted">
           {confirming
             ? 'You opened the link on a different device. Enter the same email address to finish signing in.'
@@ -174,14 +174,14 @@ export default function Login({ state, onSignOut }) {
             <Icon name="arrow" />
           </button>
         </form>
-        <p className="dash-login__note">Only email addresses added in Settings can see the dashboard.</p>
+        <p className="dash-login__note">Only email addresses added in Settings can open the admin.</p>
       </>
     );
   }
 
   return (
     <div className="dash-login">
-      <title>Sign in · Cholan Dashboard</title>
+      <title>Sign in · Cholan Admin</title>
       <meta name="robots" content="noindex, nofollow" />
       <div className="dash-login__card">
         <img className="dash-login__logo" src="/images/cholan-logo.png" alt="Cholan Rice and Millet Shop" />
@@ -201,7 +201,7 @@ function friendly(error) {
   if (code.includes('invalid-email')) return 'That email address does not look right.';
   if (code.includes('invalid-action-code') || code.includes('expired')) return 'That sign-in link has expired or was already used. Send a new one.';
   if (code.includes('too-many-requests') || code.includes('quota')) return 'Too many sign-in emails just now. Wait a few minutes and try again.';
-  if (code.includes('unauthorized-continue-uri') || code.includes('unauthorized-domain')) return 'Sign-in is not allowed from this address. Use www.cholanrice.in/dashboard.';
+  if (code.includes('unauthorized-continue-uri') || code.includes('unauthorized-domain')) return 'Sign-in is not allowed from this address. Use www.cholanrice.in/admin.';
   if (code.includes('network')) return 'Could not reach the sign-in service. Check your connection.';
   if (code.includes('popup-closed') || code.includes('cancelled-popup')) return 'The Google window was closed before signing in. Try again.';
   if (code.includes('operation-not-allowed')) return 'Google sign-in is not switched on yet. Use the email link for now.';

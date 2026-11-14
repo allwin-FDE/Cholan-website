@@ -117,9 +117,9 @@ export default function Warehouse() {
           </nav>
           <div className="dash-side__foot">
             {isAdmin && (
-              <a href="/dashboard" className="dash-nav__link">
+              <a href="/admin" className="dash-nav__link">
                 <Icon name="external" />
-                Dashboard
+                Admin
               </a>
             )}
             <div className="dash-me">

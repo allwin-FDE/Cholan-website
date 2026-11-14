@@ -32,7 +32,7 @@ const EMAIL_KEY = 'cholan-dashboard-email';
 // the link can finish signing in without asking for it again.
 export async function sendLoginLink(email) {
   await sendSignInLinkToEmail(auth, email, {
-    url: `${window.location.origin}/dashboard/login`,
+    url: `${window.location.origin}/admin/login`,
     handleCodeInApp: true,
   });
   localStorage.setItem(EMAIL_KEY, email);

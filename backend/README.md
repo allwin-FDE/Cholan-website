@@ -158,10 +158,15 @@ question ──▶ topic check (small model)
   of history and 1000 characters per message. Groq's free plan allows about
   5–6 questions a minute across all visitors; a paid plan raises that.
 
-## Dashboard (`/dashboard` on the website)
+## Admin (`/admin` on the website)
 
-The shop's own dashboard: visitors, heatmaps, enquiries, the blog and who has
-access. The pages are in `frontend/src/dashboard/`; the backend side is here.
+The shop's own admin: visitors, heatmaps, enquiries, the blog, comments and
+who has access. It used to be at `/dashboard`, which now redirects here. The
+pages are in `frontend/src/dashboard/`, the blog composer in
+`frontend/src/admin/`; the backend side is here. Admins write and publish
+blogs themselves (`POST/PUT /api/admin/short-posts`): Publish puts a blog
+live at once, with no approval step. The old shared "poster" login is gone;
+an access entry left with that role opens nothing.
 
 - **Sign-in** is Firebase Authentication with an emailed link (no passwords),
   in the `cholan-rice-site` project. Every `/api/admin/*` request carries the
@@ -174,7 +179,7 @@ access. The pages are in `frontend/src/dashboard/`; the backend side is here.
   time on page and actions. Stored in `visits` (one per visit) and `activity`
   (the events), both deleted by Firestore TTL on `expireAt`. Bots and headless
   browsers are ignored. `src/lib/insights.js` turns them into the reports.
-- **Enquiries** in the dashboard read the `enquiries` Firestore collection;
+- **Enquiries** in the admin read the `enquiries` Firestore collection;
   each now also records the page it was sent from, the landing page, referrer,
   campaign and the visit id (`meta` in SQLite).
 - **Blog**: posts in the `posts` collection (`src/lib/posts.js`), public at

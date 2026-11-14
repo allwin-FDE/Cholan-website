@@ -72,7 +72,7 @@ export default function Login({ state, onSignOut }) {
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
         <p className="dash-muted dash-small">
-          Forgot your password? Ask your admin to reset it. Admins sign in at <a href="/dashboard">the dashboard</a>, then come back here.
+          Forgot your password? Ask your admin to reset it. Admins sign in at <a href="/admin">the admin</a>, then come back here.
         </p>
       </form>
     </div>

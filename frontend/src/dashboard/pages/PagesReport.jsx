@@ -68,7 +68,7 @@ export default function PagesReport() {
                       <td key={c.key}>{c.format(p[c.key])}</td>
                     ))}
                     <td>
-                      <Link className="dash-link dash-nowrap" to={`/dashboard/heatmaps?path=${encodeURIComponent(p.path)}`}>
+                      <Link className="dash-link dash-nowrap" to={`/admin/heatmaps?path=${encodeURIComponent(p.path)}`}>
                         Heatmap →
                       </Link>
                     </td>

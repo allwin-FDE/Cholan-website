@@ -5,7 +5,7 @@ const SECTIONS = [
   {
     title: 'Signing in',
     steps: [
-      'Go to www.cholanrice.in/dashboard.',
+      'Go to www.cholanrice.in/admin.',
       'Click “Continue with Google” and choose your Google account — the quickest way if your email is a Gmail or Google Workspace address.',
       'Or type your email address and click “Email me a sign-in link”, then open the email (from noreply@cholan-rice-site.firebaseapp.com) and click the link. Check Spam if it isn’t in your inbox.',
       'You stay signed in on that device until you click the sign-out button at the bottom of the menu.',
@@ -17,7 +17,7 @@ const SECTIONS = [
     steps: [
       'Open Settings.',
       'Type their email, choose Viewer, Editor or Admin, and click “Give access”.',
-      'Tell them to go to www.cholanrice.in/dashboard and sign in with that email.',
+      'Tell them to go to www.cholanrice.in/admin and sign in with that email.',
       'To change what they can do, pick a different level next to their name. To take access away, click Remove — it works immediately.',
     ],
   },
@@ -70,16 +70,6 @@ const SECTIONS = [
     ],
   },
   {
-    title: 'Approving blogs from /admin (editors)',
-    steps: [
-      'The shared login writes blogs at www.cholanrice.in/admin: a cover, main pictures, a title and the content, with recipe details if it is a recipe. Nothing it sends goes live until someone here approves it.',
-      'A number on the Blog menu shows how many posts are waiting. Open Blog and choose “Waiting”.',
-      'Click a blog to see it as visitors will. You can fix the title, content and formatting, change the background colour or category, and crop or remove a picture.',
-      'Choose “Approve” to put it live now, “Approve for this time” to pick a date, or “Ask for changes” with a note the poster will see.',
-      'A live post can be fixed, or taken off the website, from the same screen.',
-    ],
-  },
-  {
     title: 'Approving comments (editors)',
     steps: [
       'Visitors can leave a comment and a star rating under any blog post. A number on the Comments menu shows how many are waiting.',
@@ -88,14 +78,14 @@ const SECTIONS = [
     ],
   },
   {
-    title: 'Writing a blog post (editors)',
+    title: 'Writing and publishing a blog (editors)',
     steps: [
-      'Open Blog and click “New post”.',
-      'Write a title and a short summary, then the post itself. The toolbar adds headings, bold, lists, quotes, links, photos and YouTube videos.',
-      'Add a cover image on the right — photos are resized automatically, so straight from the phone is fine.',
-      'Pick a category and add a few tags. Fill in “Google & sharing” to choose how the post looks on Google.',
-      'Click Preview to see it as visitors will. Then choose: Save draft (private), Publish (live now) or Schedule (live at a date you pick).',
-      'Published posts appear on www.cholanrice.in/blog within a minute. To take one down, open it and click Unpublish.',
+      'Open Blog and click “New blog”. It opens full screen, on a phone or a computer.',
+      'Choose a cover picture (shown on the blog’s card), then the main pictures, and crop them to the shape you want.',
+      'Write the title and the content. The toolbar adds headings, bold, lists, links and photos, or you can upload a Word document and it is shown as written. Turn on recipe details if it is a recipe.',
+      'Pick a category, add a few tags and tag the products it mentions. Click Preview to see it as visitors will.',
+      'Click Publish and it goes live on www.cholanrice.in/blog straight away; there is no approval step. Save draft keeps it here, off the website, to finish later on any device.',
+      'To correct a live blog, open it from the list and click “Save changes”. To take it down, choose Save draft, or Delete to remove it for good.',
     ],
   },
 ];
@@ -103,7 +93,7 @@ const SECTIONS = [
 export default function Help() {
   return (
     <div className="dash-page">
-      <PageHead title="Help" intro="How to use each part of the dashboard." range={false} />
+      <PageHead title="Help" intro="How to use each part of the admin." range={false} />
       <nav className="dash-help-toc" aria-label="Topics">
         {SECTIONS.map((s, i) => (
           <a key={s.title} href={`#help-${i}`}>

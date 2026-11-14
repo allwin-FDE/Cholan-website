@@ -307,7 +307,7 @@ function EnquiryDetail({ e, onUpdate, onDelete }) {
       <h3 className="dash-subhead">Message</h3>
       <p className="dash-enquiry__msg">{e.message}</p>
       {e.sessionId && (
-        <Link className="dash-link" to={`/dashboard/visitors?visit=${e.sessionId}`}>
+        <Link className="dash-link" to={`/admin/visitors?visit=${e.sessionId}`}>
           See this visitor’s journey on the site →
         </Link>
       )}

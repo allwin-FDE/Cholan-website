@@ -94,7 +94,7 @@ export default function BlogEditor() {
       .then((data) => {
         const loaded = { ...EMPTY, ...data, publishAt: data.publishAt || '' };
         // Photo posts are reviewed from the Blog list, not written here.
-        if (loaded.format === 'post') return navigate('/dashboard/blog', { replace: true });
+        if (loaded.format === 'post') return navigate(`/admin/blog/edit/${id}`, { replace: true });
         setPost(loaded);
         setSaved(loaded);
         setLoading(false);
@@ -154,9 +154,9 @@ export default function BlogEditor() {
             ? 'Published. It is live on the Blog page now.'
             : s === 'scheduled'
               ? `Scheduled. It goes live on ${new Date(next.publishAt).toLocaleString('en-IN')}.`
-              : 'Draft saved. Only people with dashboard access can see it.',
+              : 'Draft saved. Only people with admin access can see it.',
       });
-      if (isNew) navigate(`/dashboard/blog/${result.id}`, { replace: true });
+      if (isNew) navigate(`/admin/blog/${result.id}`, { replace: true });
     } catch (error) {
       setMessage({ tone: 'bad', text: error.message });
       setFieldErrors(error.fields || {});
@@ -168,7 +168,7 @@ export default function BlogEditor() {
   const remove = async () => {
     if (!window.confirm(`Delete “${post.title || 'this post'}” for good? This cannot be undone.`)) return;
     await api.deletePost(id);
-    navigate('/dashboard/blog');
+    navigate('/admin/blog');
   };
 
   const chooseImage = (url) => {
@@ -186,7 +186,7 @@ export default function BlogEditor() {
   return (
     <div className="dash-page dash-editor">
       <div className="dash-editor__top">
-        <Link to="/dashboard/blog" className="dash-link">
+        <Link to="/admin/blog" className="dash-link">
           <Icon name="back" /> All posts
         </Link>
         <div className="dash-editor__state">

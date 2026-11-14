@@ -7,7 +7,7 @@ import { fetchPosts, hasBackend } from '../../lib/api.js';
 import BlogSidebar, { monthKey, monthName } from '../../components/blog/BlogSidebar.jsx';
 import { postDate } from '../../components/blog/PostMain.jsx';
 
-// /blog: the journal. Posts are written in the dashboard (/dashboard/blog)
+// /blog: the journal. Posts are written in the admin (/admin/blog)
 // and load from the backend; with none published yet, an empty state.
 export default function Blog() {
   const [posts, setPosts] = useState(null); // null while loading

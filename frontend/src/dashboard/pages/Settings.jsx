@@ -5,7 +5,6 @@ import { Badge, Card, ErrorNote, Icon, Loading, PageHead, ago, useLoad } from '.
 import { GA_ID } from '../../config/analytics.js';
 
 const ROLES = {
-  poster: { label: 'Poster', can: 'Only the simple posting page, /admin: sends photo posts for approval. Used by the shared password login.' },
   viewer: { label: 'Viewer', can: 'Sees the reports: overview, visitors, pages and heatmaps.' },
   editor: { label: 'Editor', can: 'Everything a viewer sees, plus enquiries (with phone numbers) and writing blog posts.' },
   admin: { label: 'Admin', can: 'Everything, including this Settings page: adding and removing people.' },
@@ -27,7 +26,7 @@ export default function Settings() {
       setData({ ...data, people: [...data.people.filter((p) => p.email !== entry.email), entry].sort((a, b) => a.email.localeCompare(b.email)) });
       setMessage({
         tone: 'good',
-        text: `${entry.email} can now sign in at cholanrice.in/dashboard with their email. Let them know.`,
+        text: `${entry.email} can now sign in at cholanrice.in/admin with their email. Let them know.`,
       });
       setForm({ email: '', role: 'viewer', note: '' });
     } catch (e) {
@@ -58,12 +57,12 @@ export default function Settings() {
 
   return (
     <div className="dash-page">
-      <PageHead title="Settings" intro="Who can open this dashboard, and what each person can do." range={false} />
+      <PageHead title="Settings" intro="Who can open the admin, and what each person can do." range={false} />
       {error && <ErrorNote error={error} onRetry={reload} />}
       {loading && !data && <Loading />}
       {data && (
         <>
-          <Card title="Give someone access" hint="They sign in at cholanrice.in/dashboard with this email — with Google, or a link sent by email. No password to share.">
+          <Card title="Give someone access" hint="They sign in at cholanrice.in/admin with this email — with Google, or a link sent by email. No password to share.">
             <form className="dash-access-form" onSubmit={add}>
               <label className="dash-field">
                 <span className="dash-field__label">Email address</span>
@@ -72,7 +71,7 @@ export default function Settings() {
               <label className="dash-field">
                 <span className="dash-field__label">Access</span>
                 <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                  {Object.entries(ROLES).filter(([key]) => key !== 'poster').map(([key, r]) => (
+                  {Object.entries(ROLES).map(([key, r]) => (
                     <option key={key} value={key}>
                       {r.label}
                     </option>
@@ -124,13 +123,18 @@ export default function Settings() {
                         {p.note && <span className="dash-muted dash-block">{p.note}</span>}
                       </td>
                       <td>
-                        <select value={p.role} onChange={(e) => changeRole(p, e.target.value)} aria-label={`Access for ${p.email}`} disabled={p.email === user.email}>
-                          {Object.entries(ROLES).filter(([key]) => key !== 'poster' || p.role === 'poster').map(([key, r]) => (
-                            <option key={key} value={key}>
-                              {r.label}
-                            </option>
-                          ))}
-                        </select>
+                        {ROLES[p.role] ? (
+                          <select value={p.role} onChange={(e) => changeRole(p, e.target.value)} aria-label={`Access for ${p.email}`} disabled={p.email === user.email}>
+                            {Object.entries(ROLES).map(([key, r]) => (
+                              <option key={key} value={key}>
+                                {r.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          // Left from the old shared posting login, which no longer opens anything.
+                          <Badge tone="muted">No access</Badge>
+                        )}
                       </td>
                       <td className="dash-muted dash-small">
                         {ago(p.addedAt)}

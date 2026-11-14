@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { features } from './config/features.js';
 import { CartProvider } from './context/CartContext.jsx';
 import ScrollToTop from './components/layout/ScrollToTop.jsx';
@@ -23,11 +23,10 @@ import NotFound from './pages/NotFound';
 import Guide from './pages/Guide';
 import Post from './pages/Blog/Post.jsx';
 
-// The shop's own dashboard, loaded only when someone opens /dashboard, so the
-// public pages never carry its code.
+// The shop's own admin (reports, enquiries, blog, comments, settings),
+// loaded only when someone opens /admin, so the public pages never carry its
+// code. Its pages live in dashboard/, the blog composer in admin/.
 const Dashboard = lazy(() => import('./dashboard/Dashboard.jsx'));
-// The simple posting page, likewise loaded only when someone opens /admin.
-const Admin = lazy(() => import('./admin/Admin.jsx'));
 // The warehouse's orders, stock and invoices, likewise only when opened.
 const Warehouse = lazy(() => import('./warehouse/Warehouse.jsx'));
 
@@ -70,8 +69,15 @@ function AppShell() {
   );
 }
 
+// The admin used to be at /dashboard. Old bookmarks and sign-in links keep
+// working: the rest of the address and its ?query (a sign-in link's code) go along.
+function ToAdmin() {
+  const { pathname, search, hash } = useLocation();
+  return <Navigate to={`${pathname.replace(/^\/dashboard/, '/admin')}${search}${hash}`} replace />;
+}
+
 // Root component (original `Um`): router + cart provider. /story is a full-bleed page without the shell,
-// and /dashboard is the shop's own tool, with its own layout.
+// and /admin is the shop's own tool, with its own layout.
 export default function App() {
   return (
     <BrowserRouter>
@@ -81,21 +87,14 @@ export default function App() {
         <Routes>
           <Route path="/story" element={<Story />} />
           <Route
-            path="/dashboard/*"
+            path="/admin/*"
             element={
               <Suspense fallback={<div className="dash-center" />}>
                 <Dashboard />
               </Suspense>
             }
           />
-          <Route
-            path="/admin/*"
-            element={
-              <Suspense fallback={<div className="dash-center" />}>
-                <Admin />
-              </Suspense>
-            }
-          />
+          <Route path="/dashboard/*" element={<ToAdmin />} />
           <Route
             path="/warehouse/*"
             element={

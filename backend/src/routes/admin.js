@@ -1,4 +1,4 @@
-// /api/admin/* — everything behind the dashboard sign-in. Each route states
+// /api/admin/* — everything behind the /admin sign-in. Each route states
 // the least role it needs (lib/auth.js).
 import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
@@ -17,7 +17,7 @@ const days = (req) => Math.min(Math.max(Number(req.query.days) || 30, 1), 400);
 const wrap = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 
 // ---- Who am I ----
-router.get('/me', requireRole('poster'), (req, res) => res.json(req.user));
+router.get('/me', requireRole('viewer'), (req, res) => res.json(req.user));
 
 // ---- Reports ----
 router.get(
@@ -158,7 +158,7 @@ router.put(
     const email = String(req.params.email || '').trim().toLowerCase();
     const role = String(req.body.role || '');
     if (!EMAIL.test(email)) return res.status(400).json({ error: 'That email address does not look right.' });
-    if (!['poster', 'viewer', 'editor', 'admin'].includes(role)) return res.status(400).json({ error: 'Choose poster, viewer, editor or admin.' });
+    if (!['viewer', 'editor', 'admin'].includes(role)) return res.status(400).json({ error: 'Choose viewer, editor or admin.' });
     if (config.ownerEmails.includes(email)) return res.status(400).json({ error: 'That address is an owner and always has full access.' });
     const ref = accessCollection().doc(email);
     const existing = await ref.get();
@@ -250,165 +250,92 @@ router.delete(
   }),
 );
 
-// ---- Short posts from /admin: photos and a caption, sent for approval ----
-// The status is only ever set here, never read from what the browser sends,
-// so sending a post can never publish it.
+// ---- Blogs from the composer (/admin/blog/new): pictures and content ----
+// Publish puts the blog live at once; Save draft keeps it off the website.
+// Only the person's role, checked here, decides who may do either.
 const backendOrigin = (req) => `${req.protocol}://${req.get('host')}`;
 const allSlugs = async () => new Set((await postsCollection().get()).docs.map((doc) => doc.data().slug));
 
-async function myPost(req, res) {
+async function shortPost(req, res) {
   const ref = postsCollection().doc(req.params.id);
   const doc = await ref.get();
-  if (!doc.exists || doc.data().format !== 'post' || doc.data().createdBy !== req.user.email) {
+  if (!doc.exists || doc.data().format !== 'post') {
     res.status(404).json({ error: 'Post not found.' });
-    return null;
-  }
-  // Once approved, a post belongs to the people who approved it.
-  if (!['draft', 'pending', 'changes'].includes(doc.data().status)) {
-    res.status(409).json({ error: 'This post has already been reviewed, so it cannot be changed here.' });
     return null;
   }
   return { ref, doc };
 }
 
-router.get(
-  '/my-posts',
-  requireRole('poster'),
-  wrap(async (req, res) => {
-    const snap = await postsCollection().where('createdBy', '==', req.user.email).get();
-    const posts = snap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((post) => post.format === 'post')
-      .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
-    res.json({ posts });
-  }),
-);
-
 router.post(
-  '/my-posts',
-  requireRole('poster'),
+  '/short-posts',
+  requireRole('editor'),
   express.json({ limit: '2mb' }),
   wrap(async (req, res) => {
     const draft = req.body?.draft === true;
-    const { value, errors } = cleanShortPost(req.body, backendOrigin(req), { draft });
+    const { value, errors } = cleanShortPost({ ...req.body, postedBy: req.user.email }, backendOrigin(req), { draft });
     if (errors) return res.status(400).json({ error: 'Please check the post.', fields: errors });
     const now = new Date().toISOString();
     const ref = postsCollection().doc();
     const post = {
       ...value,
-      // A draft gets its web address when it is sent, from its final title.
+      // A draft gets its web address when it is published, from its final title.
       slug: draft ? '' : uniqueSlug(value.title, await allSlugs()),
-      status: draft ? 'draft' : 'pending',
-      publishAt: null,
-      submittedAt: draft ? null : now,
+      status: draft ? 'draft' : 'published',
+      publishAt: draft ? null : now,
       createdAt: now,
       updatedAt: now,
       createdBy: req.user.email,
       updatedBy: req.user.email,
     };
     await ref.set(post);
+    clearPostCache();
     return res.status(201).json({ id: ref.id, ...post });
   }),
 );
 
 router.put(
-  '/my-posts/:id',
-  requireRole('poster'),
+  '/short-posts/:id',
+  requireRole('editor'),
   express.json({ limit: '2mb' }),
   wrap(async (req, res) => {
-    const found = await myPost(req, res);
+    const found = await shortPost(req, res);
     if (!found) return undefined;
+    const existing = found.doc.data();
     const draft = req.body?.draft === true;
-    const { value, errors } = cleanShortPost(req.body, backendOrigin(req), { draft });
+    const postedBy = existing.postedBy || req.user.email;
+    const { value, errors } = cleanShortPost({ ...req.body, postedBy }, backendOrigin(req), { draft });
     if (errors) return res.status(400).json({ error: 'Please check the post.', fields: errors });
     const now = new Date().toISOString();
-    const existing = found.doc.data();
+    const wasLive = existing.status === 'published' && existing.publishAt;
     const post = {
       ...existing,
       ...value,
       updatedAt: now,
       updatedBy: req.user.email,
+      reviewNote: '',
+      // A live blog keeps its date when it is corrected; saving it as a draft
+      // takes it off the website.
       ...(draft
-        ? { status: 'draft' }
+        ? { status: 'draft', publishAt: null }
         : {
-            status: 'pending',
-            reviewNote: '',
-            submittedAt: now,
+            status: 'published',
+            publishAt: wasLive ? existing.publishAt : now,
             slug: existing.slug || uniqueSlug(value.title, await allSlugs()),
           }),
     };
     await found.ref.set(post);
+    clearPostCache();
     return res.json({ id: found.ref.id, ...post });
   }),
 );
 
-router.delete(
-  '/my-posts/:id',
-  requireRole('poster'),
-  wrap(async (req, res) => {
-    const found = await myPost(req, res);
-    if (!found) return undefined;
-    await found.ref.delete();
-    return res.json({ ok: true });
-  }),
-);
-
-// How many posts are waiting, for the count on the dashboard's Blog menu.
+// How many comments are waiting, for the count on the Comments menu.
 router.get(
   '/review-count',
   requireRole('editor'),
   wrap(async (req, res) => {
-    const [posts, comments] = await Promise.all([
-      postsCollection().where('status', '==', 'pending').count().get(),
-      commentsCollection().where('status', '==', 'pending').count().get(),
-    ]);
-    res.json({ count: posts.data().count, comments: comments.data().count });
-  }),
-);
-
-// An approver's decision on a short post, along with any fixes they made.
-// approve: live now. schedule: live at publishAt. changes: back to the poster
-// with a note. unpublish: off the site. save: keep the status, apply the fixes.
-router.post(
-  '/posts/:id/review',
-  requireRole('editor'),
-  express.json({ limit: '2mb' }),
-  wrap(async (req, res) => {
-    const ref = postsCollection().doc(req.params.id);
-    const doc = await ref.get();
-    if (!doc.exists || doc.data().format !== 'post') return res.status(404).json({ error: 'Post not found.' });
-    const existing = doc.data();
-    const action = String(req.body?.action || '');
-    const now = new Date().toISOString();
-    const update = { updatedAt: now, updatedBy: req.user.email, reviewedBy: req.user.email, reviewedAt: now };
-
-    if (req.body?.edits) {
-      const { value, errors } = cleanShortPost({ postedBy: existing.postedBy, ...req.body.edits }, backendOrigin(req));
-      if (errors) return res.status(400).json({ error: 'Please check the post.', fields: errors });
-      Object.assign(update, value);
-    }
-
-    if (action === 'approve') {
-      Object.assign(update, { status: 'published', publishAt: now, reviewNote: '' });
-    } else if (action === 'schedule') {
-      const at = new Date(req.body?.publishAt);
-      if (Number.isNaN(at.getTime()) || at.getTime() <= Date.now()) {
-        return res.status(400).json({ error: 'Pick a date and time in the future.' });
-      }
-      Object.assign(update, { status: 'scheduled', publishAt: at.toISOString(), reviewNote: '' });
-    } else if (action === 'changes') {
-      const note = String(req.body?.note || '').trim().slice(0, 500);
-      if (!note) return res.status(400).json({ error: 'Say what needs changing.' });
-      Object.assign(update, { status: 'changes', publishAt: null, reviewNote: note });
-    } else if (action === 'unpublish') {
-      Object.assign(update, { status: 'changes', publishAt: null, reviewNote: String(req.body?.note || 'Taken off the website.').slice(0, 500) });
-    } else if (action !== 'save') {
-      return res.status(400).json({ error: 'Unknown action.' });
-    }
-
-    await ref.set(update, { merge: true });
-    clearPostCache();
-    return res.json({ id: ref.id, ...existing, ...update });
+    const comments = await commentsCollection().where('status', '==', 'pending').count().get();
+    res.json({ comments: comments.data().count });
   }),
 );
 
@@ -454,7 +381,7 @@ const mediaUrl = (req, name) => `${req.protocol}://${req.get('host')}/api/media/
 
 router.post(
   '/media',
-  requireRole('poster'),
+  requireRole('editor'),
   express.raw({ type: Object.keys(TYPES), limit: '10mb' }),
   wrap(async (req, res) => {
     const type = req.get('content-type');
