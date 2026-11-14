@@ -57,6 +57,21 @@ router.get(
   }),
 );
 
+// Every visit from one device (its lasting ID, routes/track.js), oldest first.
+router.get(
+  '/visitors/:vid',
+  requireRole('viewer'),
+  wrap(async (req, res) => {
+    const vid = String(req.params.vid || '');
+    const visits = (await loadPeriod(400)).visits
+      .filter((v) => v.vid === vid)
+      .map(visitSummary)
+      .sort((a, b) => a.start - b.start);
+    if (!visits.length) return res.status(404).json({ error: 'No visits from that device.' });
+    return res.json({ vid, firstSeen: visits[0].start, lastSeen: visits[visits.length - 1].last, visitCount: visits.length, visits });
+  }),
+);
+
 router.get(
   '/heatmap',
   requireRole('viewer'),

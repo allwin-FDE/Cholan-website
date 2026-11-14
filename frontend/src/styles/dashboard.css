@@ -1911,3 +1911,12 @@
   height: 1px;
   background: var(--d-line);
 }
+
+/* One device's visits, in the visit drawer */
+.dash-device-visits {
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}

@@ -174,7 +174,7 @@ export default function Settings() {
             <dl className="dash-facts">
               <div>
                 <dt>Website visitor tracking</dt>
-                <dd>On — only for visitors who click “Accept” on the cookie banner.</dd>
+                <dd>On for every visitor, unless they choose “Don’t track me” on the cookie notice. Each device keeps one ID for about 13 months.</dd>
               </div>
               <div>
                 <dt>Google Analytics</dt>

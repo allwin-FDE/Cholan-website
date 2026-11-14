@@ -5,18 +5,24 @@ import { analyticsEnabled, getConsent, initAnalytics, setConsent, trackPageView 
 // Opens the banner again, from the footer's "Cookie settings" link.
 export const openCookieSettings = () => window.dispatchEvent(new Event('cholan:cookie-settings'));
 
-// Google Analytics on the site: a page view on every route change, and the
-// cookie banner that asks first. Renders nothing while analytics is off
-// (no measurement ID yet, see config/analytics.js).
+// Visit counting on the site: a page view on every route change, and the
+// cookie notice. Visits are counted unless the visitor turns it off ("Don't
+// track me", here or under Cookie settings). Renders nothing while analytics
+// is off (no measurement ID, see config/analytics.js).
 export default function Analytics() {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const [choice, setChoice] = useState(null);
 
   useEffect(() => {
     if (!analyticsEnabled) return;
     initAnalytics();
+    setChoice(getConsent());
     if (getConsent() === null) setOpen(true);
-    const reopen = () => setOpen(true);
+    const reopen = () => {
+      setChoice(getConsent());
+      setOpen(true);
+    };
     window.addEventListener('cholan:cookie-settings', reopen);
     return () => window.removeEventListener('cholan:cookie-settings', reopen);
   }, []);
@@ -28,24 +34,41 @@ export default function Analytics() {
 
   if (!analyticsEnabled || !open || /^\/(dashboard|admin)(\/|$)/.test(pathname)) return null;
 
-  const choose = (choice) => {
-    setConsent(choice);
+  const choose = (next) => {
+    setConsent(next);
+    setChoice(next);
     setOpen(false);
   };
+  const off = choice === 'denied';
 
   return (
-    <div className="cookies" role="region" aria-label="Cookie choice">
+    <div className="cookies" role="region" aria-label="Cookies">
       <p className="cookies__text">
-        We use cookies to see how visitors use our website, so we can make it better. See our{' '}
-        <Link to="/policies/privacy">Privacy Policy</Link>.
+        {off
+          ? 'You have turned off visit counting on this website. '
+          : 'We use cookies to count visits and see how our website is used, so we can make it better. '}
+        See our <Link to="/policies/privacy">Privacy Policy</Link>.
       </p>
       <div className="cookies__actions">
-        <button type="button" className="cookies__btn cookies__btn--ghost" onClick={() => choose('denied')}>
-          Reject
-        </button>
-        <button type="button" className="cookies__btn" onClick={() => choose('granted')}>
-          Accept
-        </button>
+        {off ? (
+          <>
+            <button type="button" className="cookies__btn cookies__btn--ghost" onClick={() => setOpen(false)}>
+              Keep it off
+            </button>
+            <button type="button" className="cookies__btn" onClick={() => choose('granted')}>
+              Turn on
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="cookies__btn cookies__btn--ghost" onClick={() => choose('denied')}>
+              Don’t track me
+            </button>
+            <button type="button" className="cookies__btn" onClick={() => choose('granted')}>
+              OK
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

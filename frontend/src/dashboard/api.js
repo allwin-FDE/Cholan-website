@@ -50,6 +50,7 @@ export const api = {
   pages: (days) => adminFetch(`/pages?days=${days}`),
   visits: (days, params = {}) => adminFetch(`/visits?${new URLSearchParams({ days, ...params })}`),
   visit: (id) => adminFetch(`/visits/${encodeURIComponent(id)}`),
+  visitor: (vid) => adminFetch(`/visitors/${encodeURIComponent(vid)}`),
   heatmap: (days, path, device) => adminFetch(`/heatmap?${new URLSearchParams({ days, path, device })}`),
   enquiries: () => adminFetch('/enquiries'),
   updateEnquiry: (id, patch) => adminFetch(`/enquiries/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),

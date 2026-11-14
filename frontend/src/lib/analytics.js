@@ -1,13 +1,14 @@
 import { GA_ID } from '../config/analytics.js';
 import { notePage, startTracking, stopTracking, trackEvent } from './tracker.js';
 
-// Google Analytics 4, behind the visitor's consent. Nothing from Google loads
-// and no cookie is set until the visitor accepts in the cookie banner
-// (components/common/Analytics.jsx); the choice is kept in localStorage.
-// Ads features stay off: this is for measuring the site only. The same choice
-// starts and stops the site's own tracking for the dashboard (lib/tracker.js).
+// Google Analytics 4 and the site's own visit counting (lib/tracker.js), for
+// every visitor unless they turn it off. The cookie notice
+// (components/common/Analytics.jsx) says so, and its "Don't track me", also
+// under Cookie settings in the footer, stops both and clears their cookies.
+// The choice is kept in localStorage. A visitor who pressed Reject on the old
+// banner stays off. Ads features stay off: this is for measuring the site only.
 
-const CONSENT_KEY = 'cholan-consent'; // 'granted' | 'denied'
+const CONSENT_KEY = 'cholan-consent'; // 'granted' (seen the notice) | 'denied' (turned off) | none yet
 
 // Off without an ID, and off for automated browsers, so the build's page
 // snapshots (scripts/prerender.mjs) carry no banner and send no visits. Off
@@ -17,6 +18,7 @@ export const analyticsEnabled =
   Boolean(GA_ID) && typeof navigator !== 'undefined' && !navigator.webdriver && window.top === window.self;
 
 let loaded = false;
+let measuring = false; // counting now (not turned off since loading)
 
 function gtag() {
   window.dataLayer.push(arguments);
@@ -72,10 +74,18 @@ export function setConsent(choice) {
     // Private mode: the choice holds for this visit only.
   }
   if (choice === 'granted') {
-    if (loaded) gtag('consent', 'update', { analytics_storage: 'granted' });
+    // Already counting (OK on the notice): nothing to restart, and the page
+    // in view has been counted. Turned back on: start again, from this page.
+    if (loaded && measuring) return window.dispatchEvent(new Event('cholan:consent'));
+    if (loaded) {
+      gtag('consent', 'update', { analytics_storage: 'granted' });
+      startTracking();
+    }
     load();
+    measuring = true;
     trackPageView();
   } else {
+    measuring = false;
     stopTracking();
     if (loaded) {
       gtag('consent', 'update', { analytics_storage: 'denied' });
@@ -85,14 +95,17 @@ export function setConsent(choice) {
   window.dispatchEvent(new Event('cholan:consent'));
 }
 
-// Called once at start-up: a visitor who accepted before is measured again.
+// Called once at start-up: everyone is measured unless they turned it off.
 export function initAnalytics() {
-  if (analyticsEnabled && getConsent() === 'granted') load();
+  if (analyticsEnabled && getConsent() !== 'denied') {
+    load();
+    measuring = loaded;
+  }
 }
 
-const active = () => loaded && getConsent() === 'granted';
+const active = () => loaded && getConsent() !== 'denied';
 
-// The dashboard and posting page are the shop's own tools, not part of the site's visits.
+// The admin and warehouse are the shop's own tools, not part of the site's visits.
 const inDashboard = () => /^\/(dashboard|admin|warehouse)(\/|$)/.test(location.pathname);
 
 export function trackPageView() {

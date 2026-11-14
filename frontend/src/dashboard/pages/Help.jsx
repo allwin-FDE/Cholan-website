@@ -27,7 +27,8 @@ const SECTIONS = [
       'Visitors are different people; visits are separate trips to the site (one person can visit many times).',
       '“Where visitors come from” shows Google, Instagram, WhatsApp, other websites, or Direct (typed in or a saved link).',
       '“Actions taken” counts the taps that matter: calls, WhatsApp, enquiries, directions and chat.',
-      'Only visitors who clicked “Accept” on the cookie banner are counted, so real traffic is higher.',
+      'Every visitor is counted unless they chose “Don’t track me” on the cookie notice.',
+      'Each device keeps the same ID for about 13 months, so a visitor who comes back weeks later counts as returning, not new. One person on two browsers or devices (or in a private window) still counts as two.',
     ],
   },
   {
@@ -35,6 +36,7 @@ const SECTIONS = [
     steps: [
       'Open Visitors and click any row.',
       'You see where they came from, their device, every page they opened in order, how long they stayed, what they clicked, and whether they called, sent WhatsApp or an enquiry.',
+      'Under “This device” you see every other visit from the same device: when it was first seen, how many times it came, and each visit. Click one to open it. Each device has a short number like #a1b2c3, also shown in the list.',
       'Use the filters to find, for example, every visitor who tapped WhatsApp, or everyone from Instagram.',
       'Names and phone numbers are never part of a visit — they only appear in Enquiries, when someone sends the form.',
     ],
@@ -114,7 +116,7 @@ export default function Help() {
         <section className="dash-card">
           <h2>Privacy</h2>
           <p>
-            Visitor tracking only runs for people who accept cookies, never records what anyone types, and deletes visit data
+            Visitor tracking runs unless a visitor turns it off (“Don’t track me”), never records what anyone types, and deletes visit data
             after about 13 months. This matches the website’s <Link to="/policies/privacy">Privacy Policy</Link>. Enquiries hold
             phone numbers — only give Editor or Admin access to people who need them.
           </p>

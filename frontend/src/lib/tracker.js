@@ -1,18 +1,28 @@
 import { apiUrl, hasBackend } from './api.js';
 
-// The site's own visitor tracking, for the dashboard (/dashboard). It runs
-// only after the visitor accepts cookies (lib/analytics.js starts and stops
-// it), and records how the site is used: pages, time on each, how far down
-// people scroll, where they click (for heatmaps) and actions such as a call
-// or WhatsApp tap. It never reads what anyone types.
+// The site's own visitor tracking, for the admin (/admin). It runs for every
+// visitor who has not turned it off in Cookie settings (lib/analytics.js
+// starts and stops it), and records how the site is used: pages, time on
+// each, how far down people scroll, where they click (for heatmaps) and
+// actions such as a call or WhatsApp tap. It never reads what anyone types.
 //
 // Events are queued and sent every few seconds, and when the page is hidden
 // or closed, to POST /api/track (backend routes/track.js).
+//
+// Each device has a lasting ID. The server keeps it in a cookie of the site's
+// own (__session, about 13 months); the copy here in localStorage is a backup,
+// and is brought into line with the cookie whenever the server answers.
 
 const VISITOR_KEY = 'cholan-vid';
 const SESSION_KEY = 'cholan-session';
 const SESSION_IDLE_MS = 30 * 60_000;
 const FLUSH_MS = 5000;
+
+// On the live site, the tracking route is reached through the site's own
+// address (firebase.json sends /api/track on to the backend), so the device's
+// cookie belongs to the site. Elsewhere (a local copy), straight to the backend.
+const sameSite = typeof location !== 'undefined' && /(^|\.)cholanrice\.in$|^cholan-rice-site\.(web\.app|firebaseapp\.com)$/.test(location.hostname);
+const trackUrl = (path = '') => (sameSite ? `/api/track${path}` : `${apiUrl}/api/track${path}`);
 
 // Where this visit started and how the visitor arrived. Kept for the whole
 // visit even without consent (in memory only), because the enquiry form
@@ -79,7 +89,7 @@ function touch() {
 }
 
 function push(event) {
-  // The dashboard and posting page are the shop's own tools, not part of the site's visits.
+  // The admin and warehouse are the shop's own tools, not part of the site's visits.
   if (!running || /^\/(dashboard|admin|warehouse)(\/|$)/.test(location.pathname)) return;
   queue.push({ t: Date.now(), path: location.pathname, ...event });
   touch();
@@ -106,12 +116,21 @@ function flush(closing = false) {
   }
   // Sent as text/plain, so no permission check goes ahead of it. As the page
   // closes, a beacon: the browser finishes sending it after the page is gone.
-  const url = `${apiUrl}/api/track`;
+  const url = trackUrl();
   const text = JSON.stringify(body);
   if (closing && navigator.sendBeacon?.(url, new Blob([text], { type: 'text/plain' }))) return;
-  fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: text, keepalive: closing }).catch(() => {
-    // Lost on a bad connection: a few events, not worth a retry queue.
-  });
+  fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: text, keepalive: closing })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((answer) => {
+      // The cookie's ID wins: keep this copy, and the rest of the visit, in step.
+      if (answer?.vid && ids && answer.vid !== ids.vid && /^[a-z0-9-]{8,64}$/i.test(answer.vid)) {
+        ids.vid = answer.vid;
+        write(localStorage, VISITOR_KEY, answer.vid);
+      }
+    })
+    .catch(() => {
+      // Lost on a bad connection: a few events, not worth a retry queue.
+    });
 }
 
 // ---- Pages: time visible and scroll depth ----
@@ -195,8 +214,18 @@ function onPageHide() {
   flush(true);
 }
 
-// On withdrawal: stop, and forget the visitor's ids.
+// Turned off in Cookie settings: stop, and forget the device's ids, the
+// server's cookie included (only the server can remove it).
 export function stopTracking() {
+  if (hasBackend && typeof window !== 'undefined') {
+    fetch(trackUrl('/forget'), { method: 'POST', keepalive: true }).catch(() => {});
+  }
+  try {
+    localStorage.removeItem(VISITOR_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Nothing stored to remove.
+  }
   if (!running) return;
   running = false;
   queue = [];
@@ -206,12 +235,6 @@ export function stopTracking() {
   window.removeEventListener('scroll', onScroll);
   document.removeEventListener('visibilitychange', onVisibility);
   window.removeEventListener('pagehide', onPageHide);
-  try {
-    localStorage.removeItem(VISITOR_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    // Nothing stored to remove.
-  }
   ids = null;
 }
 

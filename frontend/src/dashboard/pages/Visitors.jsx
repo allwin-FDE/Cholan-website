@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useDash } from '../context.js';
 import {
@@ -17,6 +17,9 @@ import {
   useLoad,
   when,
 } from '../ui.jsx';
+
+// A device's lasting ID, shortened to a label people can compare by eye.
+const deviceLabel = (vid) => (vid ? `#${vid.replace(/-/g, '').slice(0, 6)}` : '');
 
 const ACTIONS = {
   call_click: 'Called',
@@ -44,7 +47,7 @@ export default function Visitors() {
         (!filters.device || v.device === filters.device) &&
         (!filters.source || v.source === filters.source) &&
         (!filters.action || v.actionNames.includes(filters.action)) &&
-        (!q || [v.source, v.landing, v.referrer, v.campaign, v.os, v.browser, ...v.pages].join(' ').toLowerCase().includes(q)),
+        (!q || [deviceLabel(v.vid), v.source, v.landing, v.referrer, v.campaign, v.os, v.browser, ...v.pages].join(' ').toLowerCase().includes(q)),
     );
   }, [data, filters]);
 
@@ -52,9 +55,10 @@ export default function Visitors() {
 
   const exportCsv = () =>
     downloadCsv(`cholan-visits-${days}d.csv`, [
-      ['Started', 'Source', 'Campaign', 'Landing page', 'Pages', 'Device', 'OS', 'Browser', 'Screen', 'Language', 'Time on site (s)', 'Clicks', 'Actions', 'Returning'],
+      ['Started', 'Device ID', 'Source', 'Campaign', 'Landing page', 'Pages', 'Device', 'OS', 'Browser', 'Screen', 'Language', 'Time on site (s)', 'Clicks', 'Actions', 'Returning'],
       ...list.map((v) => [
         new Date(v.start).toISOString(),
+        deviceLabel(v.vid),
         v.source,
         v.campaign || '',
         v.landing || '',
@@ -75,7 +79,7 @@ export default function Visitors() {
     <div className="dash-page">
       <PageHead
         title="Visitors"
-        intro="Every visit, newest first. Click a visit to see the whole journey, step by step."
+        intro="Every visit, newest first. Each device has its own number (#a1b2c3), the same on every visit. Click a visit to see the whole journey, and that device's other visits."
         actions={
           <button type="button" className="dash-btn dash-btn--ghost" onClick={exportCsv} disabled={!list.length}>
             <Icon name="download" /> Export
@@ -85,7 +89,7 @@ export default function Visitors() {
       <div className="dash-filters">
         <label className="dash-search">
           <Icon name="search" />
-          <input placeholder="Search pages, sources, campaigns…" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+          <input placeholder="Search pages, sources, campaigns, #device…" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
         </label>
         <select value={filters.source} onChange={(e) => setFilters({ ...filters, source: e.target.value })} aria-label="Source">
           <option value="">All sources</option>
@@ -143,6 +147,7 @@ export default function Visitors() {
                     <td className="dash-journey-cell">{v.pages.map((p) => pageName(p)).join(' → ') || pageName(v.landing)}</td>
                     <td className="dash-nowrap">
                       {v.device} · {v.os}
+                      {v.vid && <span className="dash-muted dash-block">{deviceLabel(v.vid)}</span>}
                     </td>
                     <td className="dash-nowrap">{duration(v.activeMs)}</td>
                     <td>
@@ -214,9 +219,13 @@ export function Journey({ id }) {
         </div>
         <div>
           <dt>Visitor</dt>
-          <dd>{v.returning ? 'Has visited before' : 'First visit'}</dd>
+          <dd>
+            {v.returning ? 'Has visited before' : 'First visit'}
+            {v.vid && <span className="dash-muted"> · device {deviceLabel(v.vid)}</span>}
+          </dd>
         </div>
       </dl>
+      {v.vid && <DeviceVisits vid={v.vid} current={v.id} />}
       <h3 className="dash-subhead">Step by step</h3>
       <ol className="dash-steps">
         {steps
@@ -226,6 +235,45 @@ export function Journey({ id }) {
           ))}
       </ol>
     </div>
+  );
+}
+
+// Every visit from the same device, so one device's whole history is in view.
+function DeviceVisits({ vid, current }) {
+  const { data, loading, error } = useLoad(() => api.visitor(vid), [vid]);
+  if (loading) return <Loading />;
+  if (error) return <ErrorNote error={error} />;
+  const at = data.visits.findIndex((x) => x.id === current) + 1;
+  return (
+    <>
+      <h3 className="dash-subhead">This device</h3>
+      <p className="dash-muted">
+        {at ? `Visit ${at} of ${data.visitCount}` : `${data.visitCount} visits`} · first seen {when(data.firstSeen)} · last seen {when(data.lastSeen)}
+      </p>
+      {data.visitCount > 1 && (
+        <ol className="dash-device-visits">
+          {data.visits
+            .slice()
+            .reverse()
+            .map((x) => (
+              <li key={x.id}>
+                {x.id === current ? (
+                  <strong>{when(x.start)} · this visit</strong>
+                ) : (
+                  <Link className="dash-link" to={`?visit=${encodeURIComponent(x.id)}`}>
+                    {when(x.start)}
+                  </Link>
+                )}
+                <span className="dash-muted">
+                  {' '}
+                  · {x.source} · {x.pageviews} page{x.pageviews === 1 ? '' : 's'} · {duration(x.activeMs)}
+                  {x.actionNames.filter((a) => ACTIONS[a]).length > 0 && ` · ${x.actionNames.filter((a) => ACTIONS[a]).map((a) => ACTIONS[a]).join(', ')}`}
+                </span>
+              </li>
+            ))}
+        </ol>
+      )}
+    </>
   );
 }
 
