@@ -15,7 +15,7 @@ import { apiUrl, hasBackend } from './api.js';
 
 const VISITOR_KEY = 'cholan-vid';
 const SESSION_KEY = 'cholan-session';
-const SESSION_IDLE_MS = 30 * 60_000;
+const SESSION_IDLE_MS = 2 * 60_000;
 const FLUSH_MS = 5000;
 
 // On the live site, the tracking route is reached through the site's own
@@ -152,19 +152,44 @@ function onScroll() {
   if (page) page.depth = Math.max(page.depth, scrollDepth());
 }
 
+// Back after a break: the tab shown again, the browser reopened on it, the
+// phone unlocked, or the page restored from the browser's back/forward store.
+// Away longer than SESSION_IDLE_MS (2 minutes): a new visit, starting on this
+// page as if they had just arrived. Otherwise the same visit carries on.
+function resume() {
+  if (!running || !ids || Date.now() - (ids.lastAt || 0) <= SESSION_IDLE_MS) return false;
+  ids = { vid: ids.vid, returning: true, sid: uid(), metaSent: false };
+  // They came back to the site themselves: no referrer or campaign this time.
+  Object.assign(context, { landing: location.pathname, referrer: '', utmSource: '', utmMedium: '', utmCampaign: '' });
+  touch();
+  page = null;
+  notePage(location.pathname, document.title);
+  flush();
+  return true;
+}
+
 function onVisibility() {
-  if (!page) return;
-  if (document.visibilityState === 'hidden') {
-    if (page.shownAt) page.visibleMs += Date.now() - page.shownAt;
-    page.shownAt = 0;
-    // Send what we have, with the time so far, in case the tab never returns.
-    queue.push({ t: Date.now(), path: page.path, type: 'scroll', depth: page.depth });
-    queue.push({ t: Date.now(), path: page.path, type: 'leave', ms: page.visibleMs });
-    page.visibleMs = 0;
-    flush(true);
-  } else {
-    page.shownAt = Date.now();
+  if (document.visibilityState === 'visible') {
+    if (!resume() && page) page.shownAt = Date.now();
+    return;
   }
+  // Leaving: the break is timed from now.
+  touch();
+  if (!page) return;
+  if (page.shownAt) page.visibleMs += Date.now() - page.shownAt;
+  page.shownAt = 0;
+  // Send what we have, with the time so far, in case the tab never returns.
+  queue.push({ t: Date.now(), path: page.path, type: 'scroll', depth: page.depth });
+  queue.push({ t: Date.now(), path: page.path, type: 'leave', ms: page.visibleMs });
+  page.visibleMs = 0;
+  flush(true);
+}
+
+// The page restored from the back/forward store (common on phones when the
+// browser is reopened). Its page view was ended as it was put away.
+function onPageShow(event) {
+  if (!event.persisted || resume()) return;
+  if (!page) notePage(location.pathname, document.title);
 }
 
 // ---- Clicks, for heatmaps ----
@@ -206,6 +231,7 @@ export function startTracking() {
   window.addEventListener('scroll', onScroll, { passive: true });
   document.addEventListener('visibilitychange', onVisibility);
   window.addEventListener('pagehide', onPageHide);
+  window.addEventListener('pageshow', onPageShow);
   timer = setInterval(() => flush(), FLUSH_MS);
 }
 
@@ -247,6 +273,7 @@ export function stopTracking() {
   window.removeEventListener('scroll', onScroll);
   document.removeEventListener('visibilitychange', onVisibility);
   window.removeEventListener('pagehide', onPageHide);
+  window.removeEventListener('pageshow', onPageShow);
   ids = null;
 }
 
