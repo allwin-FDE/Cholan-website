@@ -192,6 +192,7 @@ export function visitSummary(v) {
   return {
     id: v.id,
     vid: v.vid,
+    visitorNo: v.visitorNo || null,
     start: v.start,
     last: v.last,
     source: v.source || 'Direct',

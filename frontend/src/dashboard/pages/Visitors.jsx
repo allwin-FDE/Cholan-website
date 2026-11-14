@@ -18,8 +18,9 @@ import {
   when,
 } from '../ui.jsx';
 
-// A device's lasting ID, shortened to a label people can compare by eye.
-const deviceLabel = (vid) => (vid ? `#${vid.replace(/-/g, '').slice(0, 6)}` : '');
+// A device's visitor number (V-12), the same on every visit from it. A visit
+// from before numbering began shows a short form of its ID instead.
+const visitorLabel = (v) => (v.visitorNo ? `V-${v.visitorNo}` : v.vid ? `#${v.vid.replace(/-/g, '').slice(0, 6)}` : '—');
 
 const ACTIONS = {
   call_click: 'Called',
@@ -39,26 +40,47 @@ export default function Visitors() {
   const { data, loading, error, reload } = useLoad(() => api.visits(days, { limit: 1000 }), [days]);
   const openId = params.get('visit');
 
-  const list = useMemo(() => {
-    if (!data) return [];
+  // One row per visitor: their latest visit (of those matching the filters),
+  // how many visits they made in the period, and everything they did. The
+  // visitor whose latest visit started most recently comes first.
+  const { list, visitCount } = useMemo(() => {
+    if (!data) return { list: [], visitCount: 0 };
     const q = filters.q.toLowerCase();
-    return data.visits.filter(
+    const matching = data.visits.filter(
       (v) =>
         (!filters.device || v.device === filters.device) &&
         (!filters.source || v.source === filters.source) &&
         (!filters.action || v.actionNames.includes(filters.action)) &&
-        (!q || [deviceLabel(v.vid), v.source, v.landing, v.referrer, v.campaign, v.os, v.browser, ...v.pages].join(' ').toLowerCase().includes(q)),
+        (!q || [visitorLabel(v), v.source, v.landing, v.referrer, v.campaign, v.os, v.browser, ...v.pages].join(' ').toLowerCase().includes(q)),
     );
+    const byVisitor = new Map();
+    for (const v of matching) {
+      const key = v.vid || v.id;
+      const row = byVisitor.get(key);
+      if (!row) {
+        byVisitor.set(key, { latest: v, visits: 1, no: v.visitorNo, did: new Set(v.actionNames) });
+        continue;
+      }
+      row.visits += 1;
+      row.no = row.no || v.visitorNo;
+      v.actionNames.forEach((a) => row.did.add(a));
+      if (v.start > row.latest.start) row.latest = v;
+    }
+    const rows = [...byVisitor.values()]
+      .map((r) => ({ ...r.latest, visitorNo: r.no || null, visits: r.visits, did: [...r.did] }))
+      .sort((a, b) => b.start - a.start);
+    return { list: rows, visitCount: matching.length };
   }, [data, filters]);
 
   const options = (key) => [...new Set((data?.visits || []).map((v) => v[key]).filter(Boolean))].sort();
 
   const exportCsv = () =>
-    downloadCsv(`cholan-visits-${days}d.csv`, [
-      ['Started', 'Device ID', 'Source', 'Campaign', 'Landing page', 'Pages', 'Device', 'OS', 'Browser', 'Screen', 'Language', 'Time on site (s)', 'Clicks', 'Actions', 'Returning'],
+    downloadCsv(`cholan-visitors-${days}d.csv`, [
+      ['Visitor', 'Visits', 'Latest visit', 'Source', 'Campaign', 'Landing page', 'Pages', 'Device', 'OS', 'Browser', 'Screen', 'Language', 'Time on site (s)', 'Clicks', 'Actions', 'Returning'],
       ...list.map((v) => [
+        visitorLabel(v),
+        v.visits,
         new Date(v.start).toISOString(),
-        deviceLabel(v.vid),
         v.source,
         v.campaign || '',
         v.landing || '',
@@ -70,8 +92,8 @@ export default function Visitors() {
         v.lang || '',
         Math.round(v.activeMs / 1000),
         v.clicks,
-        v.actionNames.join(' '),
-        v.returning ? 'yes' : 'no',
+        v.did.join(' '),
+        v.returning || v.visits > 1 ? 'yes' : 'no',
       ]),
     ]);
 
@@ -79,7 +101,7 @@ export default function Visitors() {
     <div className="dash-page">
       <PageHead
         title="Visitors"
-        intro="Every visit, newest first. Each device has its own number (#a1b2c3), the same on every visit. Click a visit to see the whole journey, and that device's other visits."
+        intro="Every visitor, latest visit first. Each device has its own visitor number (V-1, V-2…), the same on every visit. Click a visitor to see how many times they came, each visit and its journey."
         actions={
           <button type="button" className="dash-btn dash-btn--ghost" onClick={exportCsv} disabled={!list.length}>
             <Icon name="download" /> Export
@@ -89,7 +111,7 @@ export default function Visitors() {
       <div className="dash-filters">
         <label className="dash-search">
           <Icon name="search" />
-          <input placeholder="Search pages, sources, campaigns, #device…" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+          <input placeholder="Search visitor (V-12), pages, sources…" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
         </label>
         <select value={filters.source} onChange={(e) => setFilters({ ...filters, source: e.target.value })} aria-label="Source">
           <option value="">All sources</option>
@@ -115,19 +137,20 @@ export default function Visitors() {
 
       {error && <ErrorNote error={error} onRetry={reload} />}
       {loading && !data && <Loading />}
-      {data && !list.length && <Empty icon="users" title="No visits match">Try a longer period or clear the filters.</Empty>}
+      {data && !list.length && <Empty icon="users" title="No visitors match">Try a longer period or clear the filters.</Empty>}
       {list.length > 0 && (
         <Card>
           <p className="dash-muted dash-count">
-            {list.length} visit{list.length === 1 ? '' : 's'}
+            {list.length} visitor{list.length === 1 ? '' : 's'} · {visitCount} visit{visitCount === 1 ? '' : 's'}
           </p>
           <div className="dash-table-wrap">
             <table className="dash-table">
               <thead>
                 <tr>
-                  <th>Started</th>
+                  <th>Visitor</th>
+                  <th>Latest visit</th>
+                  <th>Visits</th>
                   <th>Came from</th>
-                  <th>Journey</th>
                   <th>Device</th>
                   <th>Time</th>
                   <th>Did</th>
@@ -137,21 +160,21 @@ export default function Visitors() {
                 {list.slice(0, 500).map((v) => (
                   <tr key={v.id} className="dash-row-link" onClick={() => setParams({ visit: v.id })}>
                     <td className="dash-nowrap">
-                      {when(v.start)}
-                      {v.returning && <Badge tone="info">returning</Badge>}
+                      <strong className="dash-visitor">{visitorLabel(v)}</strong>
+                      {(v.returning || v.visits > 1) && <Badge tone="info">returning</Badge>}
                     </td>
+                    <td className="dash-nowrap">{when(v.start)}</td>
+                    <td className="dash-num">{v.visits}</td>
                     <td>
                       {v.source}
                       {v.campaign && <span className="dash-muted"> · {v.campaign}</span>}
                     </td>
-                    <td className="dash-journey-cell">{v.pages.map((p) => pageName(p)).join(' → ') || pageName(v.landing)}</td>
                     <td className="dash-nowrap">
                       {v.device} · {v.os}
-                      {v.vid && <span className="dash-muted dash-block">{deviceLabel(v.vid)}</span>}
                     </td>
                     <td className="dash-nowrap">{duration(v.activeMs)}</td>
                     <td>
-                      {v.actionNames
+                      {v.did
                         .filter((a) => ACTIONS[a])
                         .map((a) => (
                           <Badge key={a} tone={a === 'generate_lead' || a === 'call_click' || a === 'whatsapp_click' ? 'good' : 'neutral'}>
@@ -166,7 +189,7 @@ export default function Visitors() {
           </div>
         </Card>
       )}
-      <Drawer open={Boolean(openId)} onClose={() => setParams({})} title="Visit journey" wide>
+      <Drawer open={Boolean(openId)} onClose={() => setParams({})} title="Visitor details" wide>
         {openId && <Journey id={openId} />}
       </Drawer>
     </div>
@@ -180,6 +203,8 @@ export function Journey({ id }) {
   const { visit: v, steps } = data;
   return (
     <div className="dash-journey">
+      {v.vid && <DeviceVisits vid={v.vid} current={v.id} />}
+      <h3 className="dash-subhead">This visit</h3>
       <dl className="dash-facts">
         <div>
           <dt>Started</dt>
@@ -220,12 +245,10 @@ export function Journey({ id }) {
         <div>
           <dt>Visitor</dt>
           <dd>
-            {v.returning ? 'Has visited before' : 'First visit'}
-            {v.vid && <span className="dash-muted"> · device {deviceLabel(v.vid)}</span>}
+            <strong>{visitorLabel(v)}</strong> · {v.returning ? 'has visited before' : 'first visit'}
           </dd>
         </div>
       </dl>
-      {v.vid && <DeviceVisits vid={v.vid} current={v.id} />}
       <h3 className="dash-subhead">Step by step</h3>
       <ol className="dash-steps">
         {steps
@@ -244,12 +267,27 @@ function DeviceVisits({ vid, current }) {
   if (loading) return <Loading />;
   if (error) return <ErrorNote error={error} />;
   const at = data.visits.findIndex((x) => x.id === current) + 1;
+  const numbered = data.visits.find((x) => x.visitorNo) || data.visits[0];
   return (
     <>
-      <h3 className="dash-subhead">This device</h3>
-      <p className="dash-muted">
-        {at ? `Visit ${at} of ${data.visitCount}` : `${data.visitCount} visits`} · first seen {when(data.firstSeen)} · last seen {when(data.lastSeen)}
-      </p>
+      <h3 className="dash-subhead">Visitor {visitorLabel(numbered)}</h3>
+      <dl className="dash-facts">
+        <div>
+          <dt>Number of visits</dt>
+          <dd>
+            <strong>{data.visitCount}</strong>
+            {at ? <span className="dash-muted"> · showing visit {at}</span> : null}
+          </dd>
+        </div>
+        <div>
+          <dt>First seen</dt>
+          <dd>{when(data.firstSeen)}</dd>
+        </div>
+        <div>
+          <dt>Last seen</dt>
+          <dd>{when(data.lastSeen)}</dd>
+        </div>
+      </dl>
       {data.visitCount > 1 && (
         <ol className="dash-device-visits">
           {data.visits

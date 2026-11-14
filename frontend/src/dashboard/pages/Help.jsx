@@ -36,7 +36,8 @@ const SECTIONS = [
     steps: [
       'Open Visitors and click any row.',
       'You see where they came from, their device, every page they opened in order, how long they stayed, what they clicked, and whether they called, sent WhatsApp or an enquiry.',
-      'Under “This device” you see every other visit from the same device: when it was first seen, how many times it came, and each visit. Click one to open it. Each device has a short number like #a1b2c3, also shown in the list.',
+      'Visitors lists one row per visitor, the one whose latest visit is newest at the top. Each device has its own visitor number, V-1, V-2 and so on, the same on every visit; “Visits” is how many times they came in the chosen period. Search for a number (e.g. V-12) to find that visitor.',
+      'Click a visitor to see the number of visits, when they were first and last seen, and each visit. Below that is their latest visit, step by step. Click any other visit to open it.',
       'Use the filters to find, for example, every visitor who tapped WhatsApp, or everyone from Instagram.',
       'Names and phone numbers are never part of a visit — they only appear in Enquiries, when someone sends the form.',
     ],

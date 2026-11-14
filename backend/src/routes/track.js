@@ -46,6 +46,25 @@ function cookieVid(req) {
   }
   return null;
 }
+// Each device's visitor number (V-1, V-2…), handed out in the order devices
+// first visit and kept with its ID (visitorIds/{vid}), so the same device
+// always shows the same number. The counter sits at visitorIds/_counter, a
+// name no device ID can have (they never contain "_").
+export async function visitorNumber(vid) {
+  const ref = collection('visitorIds').doc(vid);
+  const known = await ref.get();
+  if (known.exists) return known.data().no;
+  return ref.firestore.runTransaction(async (tx) => {
+    const again = await tx.get(ref);
+    if (again.exists) return again.data().no;
+    const counter = collection('visitorIds').doc('_counter');
+    const no = ((await tx.get(counter)).data()?.last || 0) + 1;
+    tx.set(counter, { last: no });
+    tx.set(ref, { no, firstSeen: Timestamp.now() });
+    return no;
+  });
+}
+
 const setVidCookie = (res, value, maxAgeSeconds) =>
   res.set('Set-Cookie', `${COOKIE}=${value}; Max-Age=${maxAgeSeconds}; Path=/; Secure; HttpOnly; SameSite=Lax`);
 
@@ -202,6 +221,12 @@ router.post('/', limit, express.text({ type: '*/*', limit: '64kb' }), async (req
       // Seen before, by the page's own copy of the ID or by the cookie.
       returning: Boolean(m.returning) || Boolean(known),
     });
+    // Looked up once per visit, with its first batch.
+    try {
+      visit.visitorNo = await visitorNumber(vid);
+    } catch (error) {
+      console.error('[track] could not number the visitor:', error.message);
+    }
   }
 
   try {

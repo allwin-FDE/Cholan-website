@@ -1920,3 +1920,13 @@
   gap: 6px;
   font-size: 0.9rem;
 }
+
+/* A visitor's number in the Visitors table */
+.dash-visitor {
+  margin-right: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.dash-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
