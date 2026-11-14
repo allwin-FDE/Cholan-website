@@ -214,6 +214,18 @@ function onPageHide() {
   flush(true);
 }
 
+// Tracking turned off: count only that a visit happened, once per visit (per
+// tab), with no ID, cookie or details (backend /api/track/anon).
+const ANON_KEY = 'cholan-anon-visit';
+export function countAnonymousVisit() {
+  if (!hasBackend || typeof window === 'undefined' || /^\/(dashboard|admin|warehouse)(\/|$)/.test(location.pathname)) return;
+  if (read(sessionStorage, ANON_KEY)) return;
+  write(sessionStorage, ANON_KEY, '1');
+  fetch(trackUrl('/anon'), { method: 'POST', keepalive: true }).catch(() => {});
+}
+// Turned off part-way through a visit: that visit is already counted.
+export const markVisitCounted = () => write(sessionStorage, ANON_KEY, '1');
+
 // Turned off in Cookie settings: stop, and forget the device's ids, the
 // server's cookie included (only the server can remove it).
 export function stopTracking() {

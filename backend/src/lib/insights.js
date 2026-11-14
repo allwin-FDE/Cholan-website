@@ -21,10 +21,13 @@ export async function loadPeriod(days) {
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.data;
 
   const from = Timestamp.fromMillis(Date.now() - days * 86_400_000);
-  const [visitSnap, activitySnap] = await Promise.all([
+  const [visitSnap, activitySnap, anonSnap] = await Promise.all([
     collection('visits').where('last', '>=', from).orderBy('last', 'desc').limit(20_000).get(),
     collection('activity').where('at', '>=', from).limit(60_000).get(),
+    // Visits from people who turned tracking off: a count per day, nothing more.
+    collection('anonVisits').where('day', '>=', dayKey(from.toMillis())).get(),
   ]);
+  const anonVisits = anonSnap.docs.reduce((sum, doc) => sum + (doc.data().count || 0), 0);
   const visits = visitSnap.docs.map((doc) => {
     const v = doc.data();
     return {
@@ -42,7 +45,7 @@ export async function loadPeriod(days) {
     for (const e of a.events || []) events.push({ ...e, sid: a.sid, vid: a.vid });
   }
   events.sort((a, b) => a.t - b.t);
-  const data = { days, from: from.toMillis(), visits, bySid, events };
+  const data = { days, from: from.toMillis(), visits, bySid, events, anonVisits };
   cache.set(key, { at: Date.now(), data });
   return data;
 }
@@ -71,7 +74,7 @@ export const ACTION_LABELS = {
 };
 
 // Everything on the Overview page.
-export function overview({ days, visits, events }) {
+export function overview({ days, visits, events, anonVisits = 0 }) {
   const now = Date.now();
   const visitors = new Set(visits.map((v) => v.vid)).size;
   const pageviews = events.filter((e) => e.type === 'pageview');
@@ -115,6 +118,7 @@ export function overview({ days, visits, events }) {
     kpis: {
       visitors,
       visits: visits.length,
+      anonVisits,
       pageviews: pageviews.length,
       avgTimeMs: active.length ? Math.round(active.reduce((s, v) => s + v.activeMs, 0) / active.length) : 0,
       pagesPerVisit: visits.length ? Math.round((pageviews.length / visits.length) * 10) / 10 : 0,

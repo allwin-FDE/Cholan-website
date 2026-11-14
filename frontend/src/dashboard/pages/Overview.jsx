@@ -55,7 +55,12 @@ function OverviewBody({ data, onVisit }) {
     <>
       <div className="dash-stats">
         <Stat icon="users" label="Visitors" value={num(k.visitors)} sub={`${k.returningRate}% came back again`} />
-        <Stat icon="page" label="Visits" value={num(k.visits)} sub={`${k.pagesPerVisit} pages per visit`} />
+        <Stat
+          icon="page"
+          label="Visits"
+          value={num(k.visits)}
+          sub={`${k.pagesPerVisit} pages per visit${k.anonVisits ? ` · + ${num(k.anonVisits)} with tracking turned off` : ''}`}
+        />
         <Stat icon="eye" label="Page views" value={num(k.pageviews)} sub={`${k.bounceRate}% left after one page`} />
         <Stat icon="clock" label="Avg. time on site" value={duration(k.avgTimeMs)} sub="per visit, while the tab was open" />
         <Stat icon="inbox" label="Enquiries sent" value={num(k.enquiries)} sub="from the contact form" />

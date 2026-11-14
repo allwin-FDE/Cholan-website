@@ -45,7 +45,7 @@ export default function Analytics() {
     <div className="cookies" role="region" aria-label="Cookies">
       <p className="cookies__text">
         {off
-          ? 'You have turned off visit counting on this website. '
+          ? 'You have turned off tracking on this website. We only count that a visit happened, with no ID and no details. '
           : 'We use cookies to count visits and see how our website is used, so we can make it better. '}
         See our <Link to="/policies/privacy">Privacy Policy</Link>.
       </p>

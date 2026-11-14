@@ -24,6 +24,7 @@ import { FieldValue, Timestamp } from '@google-cloud/firestore';
 import { collection, firestoreEnabled } from '../lib/firestore.js';
 import { createRateLimit } from '../lib/rateLimit.js';
 import { config } from '../config.js';
+import { dayKey } from '../lib/insights.js';
 
 const router = Router();
 
@@ -222,6 +223,21 @@ router.post('/', limit, express.text({ type: '*/*', limit: '64kb' }), async (req
     console.error('[track] could not store activity:', error.message);
     return res.status(500).json({ error: 'Could not store.' });
   }
+});
+
+// A visit from someone who turned tracking off: only that a visit happened,
+// added to the day's total (anonVisits/{YYYY-MM-DD}, India time). No ID, no
+// cookie, no pages and no device details, so nothing links it to anyone.
+router.post('/anon', limit, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  if (!firestoreEnabled || BOT.test(req.get('user-agent') || '')) return res.status(204).end();
+  const day = dayKey(Date.now());
+  try {
+    await collection('anonVisits').doc(day).set({ day, count: FieldValue.increment(1) }, { merge: true });
+  } catch (error) {
+    console.error('[track] could not count an anonymous visit:', error.message);
+  }
+  return res.status(204).end();
 });
 
 // Turned off in Cookie settings: the cookie goes. The page's script cannot

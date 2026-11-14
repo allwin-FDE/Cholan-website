@@ -1,12 +1,14 @@
 import { GA_ID } from '../config/analytics.js';
-import { notePage, startTracking, stopTracking, trackEvent } from './tracker.js';
+import { countAnonymousVisit, markVisitCounted, notePage, startTracking, stopTracking, trackEvent } from './tracker.js';
 
 // Google Analytics 4 and the site's own visit counting (lib/tracker.js), for
 // every visitor unless they turn it off. The cookie notice
 // (components/common/Analytics.jsx) says so, and its "Don't track me", also
 // under Cookie settings in the footer, stops both and clears their cookies.
 // The choice is kept in localStorage. A visitor who pressed Reject on the old
-// banner stays off. Ads features stay off: this is for measuring the site only.
+// banner stays off. With it off, only the bare fact of a visit is counted, with
+// no ID or details (tracker.js countAnonymousVisit). Ads features stay off:
+// this is for measuring the site only.
 
 const CONSENT_KEY = 'cholan-consent'; // 'granted' (seen the notice) | 'denied' (turned off) | none yet
 
@@ -85,6 +87,8 @@ export function setConsent(choice) {
     measuring = true;
     trackPageView();
   } else {
+    // This visit was already counted, with its pages, before turning it off.
+    if (measuring) markVisitCounted();
     measuring = false;
     stopTracking();
     if (loaded) {
@@ -97,10 +101,13 @@ export function setConsent(choice) {
 
 // Called once at start-up: everyone is measured unless they turned it off.
 export function initAnalytics() {
-  if (analyticsEnabled && getConsent() !== 'denied') {
-    load();
-    measuring = loaded;
+  if (!analyticsEnabled) return;
+  if (getConsent() === 'denied') {
+    countAnonymousVisit();
+    return;
   }
+  load();
+  measuring = loaded;
 }
 
 const active = () => loaded && getConsent() !== 'denied';

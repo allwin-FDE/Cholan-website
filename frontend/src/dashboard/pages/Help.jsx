@@ -27,7 +27,7 @@ const SECTIONS = [
       'Visitors are different people; visits are separate trips to the site (one person can visit many times).',
       '“Where visitors come from” shows Google, Instagram, WhatsApp, other websites, or Direct (typed in or a saved link).',
       '“Actions taken” counts the taps that matter: calls, WhatsApp, enquiries, directions and chat.',
-      'Every visitor is counted unless they chose “Don’t track me” on the cookie notice.',
+      'Every visitor is counted unless they chose “Don’t track me” on the cookie notice. Their visits still show as a plain number under Visits (“with tracking turned off”), with no pages or details.',
       'Each device keeps the same ID for about 13 months, so a visitor who comes back weeks later counts as returning, not new. One person on two browsers or devices (or in a private window) still counts as two.',
     ],
   },
