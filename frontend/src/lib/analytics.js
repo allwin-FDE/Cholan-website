@@ -5,12 +5,20 @@ import { countAnonymousVisit, markVisitCounted, notePage, startTracking, stopTra
 // every visitor unless they turn it off. The cookie notice
 // (components/common/Analytics.jsx) says so, and its "Don't track me", also
 // under Cookie settings in the footer, stops both and clears their cookies.
-// The choice is kept in localStorage. A visitor who pressed Reject on the old
-// banner stays off. With it off, only the bare fact of a visit is counted, with
-// no ID or details (tracker.js countAnonymousVisit). Ads features stay off:
-// this is for measuring the site only.
+// The choice is kept in localStorage. With it off, only the bare fact of a
+// visit is counted, with no ID or details (tracker.js countAnonymousVisit). Ads
+// features stay off: this is for measuring the site only.
 
-const CONSENT_KEY = 'cholan-consent'; // 'granted' (seen the notice) | 'denied' (turned off) | none yet
+const CONSENT_KEY = 'cholan-tracking'; // 'granted' (seen the notice) | 'denied' (turned off) | none yet
+
+// Choices made before this notice (the old banner's Accept/Reject, saved as
+// 'cholan-consent') are forgotten, at the owner's request: those visitors are
+// counted again and see the notice once more, where they can turn it off.
+try {
+  localStorage.removeItem('cholan-consent');
+} catch {
+  // Storage blocked: nothing saved to forget.
+}
 
 // Off without an ID, and off for automated browsers, so the build's page
 // snapshots (scripts/prerender.mjs) carry no banner and send no visits. Off
