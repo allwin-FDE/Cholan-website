@@ -6,10 +6,9 @@ const SECTIONS = [
     title: 'Signing in',
     steps: [
       'Go to www.cholanrice.in/admin.',
-      'Click “Continue with Google” and choose your Google account — the quickest way if your email is a Gmail or Google Workspace address.',
-      'Or type your email address and click “Email me a sign-in link”, then open the email (from noreply@cholan-rice-site.firebaseapp.com) and click the link. Check Spam if it isn’t in your inbox.',
+      'Click “Continue with Google” and choose your Google account. Google is the only way to sign in.',
       'You stay signed in on that device until you click the sign-out button at the bottom of the menu.',
-      'Only email addresses added in Settings can see anything.',
+      'Only Google accounts added in Settings can see anything.',
     ],
   },
   {
@@ -17,7 +16,7 @@ const SECTIONS = [
     steps: [
       'Open Settings.',
       'Type their email, choose Viewer, Editor or Admin, and click “Give access”.',
-      'Tell them to go to www.cholanrice.in/admin and sign in with that email.',
+      'Tell them to go to www.cholanrice.in/admin and click “Continue with Google” with that account.',
       'To change what they can do, pick a different level next to their name. To take access away, click Remove — it works immediately.',
     ],
   },

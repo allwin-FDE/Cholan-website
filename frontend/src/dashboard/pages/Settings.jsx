@@ -26,7 +26,7 @@ export default function Settings() {
       setData({ ...data, people: [...data.people.filter((p) => p.email !== entry.email), entry].sort((a, b) => a.email.localeCompare(b.email)) });
       setMessage({
         tone: 'good',
-        text: `${entry.email} can now sign in at cholanrice.in/admin with their email. Let them know.`,
+        text: `${entry.email} can now sign in at cholanrice.in/admin with Google. Let them know.`,
       });
       setForm({ email: '', role: 'viewer', note: '' });
     } catch (e) {
@@ -62,7 +62,7 @@ export default function Settings() {
       {loading && !data && <Loading />}
       {data && (
         <>
-          <Card title="Give someone access" hint="They sign in at cholanrice.in/admin with this email — with Google, or a link sent by email. No password to share.">
+          <Card title="Give someone access" hint="They sign in at cholanrice.in/admin with “Continue with Google”, so this must be a Google account (Gmail or Google Workspace). No password to share.">
             <form className="dash-access-form" onSubmit={add}>
               <label className="dash-field">
                 <span className="dash-field__label">Email address</span>

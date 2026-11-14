@@ -1,7 +1,6 @@
 // Admin sign-in (/admin on the website). The browser signs in with Firebase
-// Authentication (Google, or a link emailed to the person) and sends its ID
-// token with each request; here the token is checked and the email looked up
-// in the access list.
+// Authentication, with a Google account only, and sends its ID token with each
+// request; here the token is checked and the email looked up in the access list.
 //
 // Roles, each including everything below it:
 //   viewer  — reports: overview, visitors, heatmaps
@@ -54,9 +53,8 @@ export function requireRole(minRole = 'viewer') {
     } catch {
       return res.status(401).json({ error: 'Your sign-in has expired. Please sign in again.' });
     }
-    // An email-link sign-in proves the person owns the address.
     if (!decoded.email || !decoded.email_verified) {
-      return res.status(401).json({ error: 'Please sign in with the link sent to your email.' });
+      return res.status(401).json({ error: 'Please sign in with Google.' });
     }
 
     try {
@@ -71,6 +69,11 @@ export function requireRole(minRole = 'viewer') {
       }
       if (WAREHOUSE_ROLES.includes(role)) {
         return res.status(403).json({ error: 'This login is for the warehouse page only.', code: 'no-access' });
+      }
+      // The admin is opened with Google only; a session from an old emailed
+      // link, or any other way in, has to sign in again with Google.
+      if (decoded.firebase?.sign_in_provider !== 'google.com') {
+        return res.status(403).json({ error: 'The admin now uses Google sign-in only. Sign out, then choose “Continue with Google”.' });
       }
       if (rank(role) < rank(minRole)) {
         return res.status(403).json({ error: `This needs ${minRole} access; you have ${role} access.` });

@@ -3,13 +3,10 @@ import {
   GoogleAuthProvider,
   getAuth,
   getRedirectResult,
-  isSignInWithEmailLink,
   signInWithPopup,
   signInWithRedirect,
   onAuthStateChanged,
-  sendSignInLinkToEmail,
   signInWithEmailAndPassword,
-  signInWithEmailLink,
   signOut,
 } from 'firebase/auth';
 
@@ -26,30 +23,9 @@ const app = initializeApp({
 
 export const auth = getAuth(app);
 
-const EMAIL_KEY = 'cholan-dashboard-email';
-
-// Step 1: email a sign-in link. The address is remembered on this device so
-// the link can finish signing in without asking for it again.
-export async function sendLoginLink(email) {
-  await sendSignInLinkToEmail(auth, email, {
-    url: `${window.location.origin}/admin/login`,
-    handleCodeInApp: true,
-  });
-  localStorage.setItem(EMAIL_KEY, email);
-}
-
-export const isLoginLink = (href = window.location.href) => isSignInWithEmailLink(auth, href);
-export const rememberedEmail = () => localStorage.getItem(EMAIL_KEY) || '';
-
-// Step 2: the person opened the link.
-export async function finishLogin(email, href = window.location.href) {
-  const result = await signInWithEmailLink(auth, email, href);
-  localStorage.setItem(EMAIL_KEY, email);
-  return result.user;
-}
-
-// Or: sign in with a Google account. A popup where the browser allows one;
-// where it blocks it (some phones), the whole page goes to Google and back.
+// Sign in with a Google account, the admin's only way in. A popup where the
+// browser allows one; where it blocks it (some phones), the whole page goes to
+// Google and back.
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
@@ -62,7 +38,7 @@ export async function loginWithGoogle() {
   return undefined;
 }
 
-// The shared login of the posting page, /admin.
+// The warehouse workers' username and password (warehouse/Login.jsx).
 export const loginWithPassword = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
 // Finishes a Google sign-in that went by redirect; errors surface on the screen.
