@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
-import { useDash } from '../context.js';
+import { periodName, useDash } from '../context.js';
 import { Card, Empty, ErrorNote, Icon, Loading, PageHead, downloadCsv, duration, num, pageName, useLoad } from '../ui.jsx';
 
 const COLUMNS = [
@@ -20,7 +20,7 @@ export default function PagesReport() {
   const pages = useMemo(() => [...(data?.pages || [])].sort((a, b) => b[sort] - a[sort]), [data, sort]);
 
   const exportCsv = () =>
-    downloadCsv(`cholan-pages-${days}d.csv`, [
+    downloadCsv(`cholan-pages-${periodName(days)}.csv`, [
       ['Page', 'Path', ...COLUMNS.map((c) => c.label)],
       ...pages.map((p) => [pageName(p.path, p.title), p.path, p.views, p.visitors, Math.round(p.avgTimeMs / 1000), p.avgScroll, p.clicks, p.exitRate]),
     ]);

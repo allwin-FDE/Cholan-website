@@ -7,13 +7,38 @@ import { Storage } from '@google-cloud/storage';
 import { config } from '../config.js';
 import { ROLES, WAREHOUSE_ROLES, requireRole, accessCollection } from '../lib/auth.js';
 import { collection, firestore } from '../lib/firestore.js';
-import { loadPeriod, overview, pageStats, visitSummary, journey, heatmap } from '../lib/insights.js';
+import {
+  loadPeriod,
+  overview,
+  pageStats,
+  visitSummary,
+  journey,
+  heatmap,
+  productStats,
+  behaviour,
+  scrollDepth,
+  journeys,
+  JOURNEY_STEPS,
+  realtime,
+  forgetPeriods,
+} from '../lib/insights.js';
 import { cleanPost, cleanShortPost, postsCollection, uniqueSlug } from '../lib/posts.js';
 import { clearPostCache } from './posts.js';
 import { commentsCollection } from './comments.js';
 
 const router = Router();
-const days = (req) => Math.min(Math.max(Number(req.query.days) || 30, 1), 400);
+// The period asked for: ?days=N back from now, or ?from=YYYY-MM-DD&to=YYYY-MM-DD,
+// whole days in India time (at most 400).
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+function period(req) {
+  const { from, to } = req.query;
+  if (DAY_RE.test(from) && DAY_RE.test(to)) {
+    const start = Date.parse(`${from}T00:00:00+05:30`);
+    const end = Date.parse(`${to}T23:59:59.999+05:30`);
+    if (start <= end && end - start <= 400 * 86_400_000) return { from: start, to: end };
+  }
+  return Math.min(Math.max(Number(req.query.days) || 30, 1), 400);
+}
 const wrap = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 
 // ---- Who am I ----
@@ -23,20 +48,20 @@ router.get('/me', requireRole('viewer'), (req, res) => res.json(req.user));
 router.get(
   '/overview',
   requireRole('viewer'),
-  wrap(async (req, res) => res.json(overview(await loadPeriod(days(req))))),
+  wrap(async (req, res) => res.json(overview(await loadPeriod(period(req))))),
 );
 
 router.get(
   '/pages',
   requireRole('viewer'),
-  wrap(async (req, res) => res.json({ pages: pageStats(await loadPeriod(days(req))) })),
+  wrap(async (req, res) => res.json({ pages: pageStats(await loadPeriod(period(req))) })),
 );
 
 router.get(
   '/visits',
   requireRole('viewer'),
   wrap(async (req, res) => {
-    const period = await loadPeriod(days(req));
+    const period = await loadPeriod(period(req));
     const q = String(req.query.q || '').toLowerCase();
     let list = period.visits.map(visitSummary);
     if (req.query.device) list = list.filter((v) => v.device === req.query.device);
@@ -76,9 +101,78 @@ router.get(
   '/heatmap',
   requireRole('viewer'),
   wrap(async (req, res) => {
-    const period = await loadPeriod(days(req));
+    const period = await loadPeriod(period(req));
     const path = String(req.query.path || '/');
     res.json(heatmap(path, req.query.device || '', period));
+  }),
+);
+
+// ---- The /warehouse analyst pages ----
+router.get(
+  '/analyst/products',
+  requireRole('viewer'),
+  wrap(async (req, res) => res.json({ products: productStats(await loadPeriod(period(req))) })),
+);
+
+router.get(
+  '/analyst/behaviour',
+  requireRole('viewer'),
+  wrap(async (req, res) => res.json(behaviour(await loadPeriod(period(req))))),
+);
+
+router.get(
+  '/analyst/scroll',
+  requireRole('viewer'),
+  wrap(async (req, res) => res.json({ pages: scrollDepth(await loadPeriod(period(req))) })),
+);
+
+router.get(
+  '/analyst/realtime',
+  requireRole('viewer'),
+  wrap(async (req, res) => res.json(await realtime())),
+);
+
+// Each visit's journey towards contacting the shop. Editors and up also see
+// the name and phone of anyone who sent an enquiry in that visit.
+router.get(
+  '/analyst/journeys',
+  requireRole('viewer'),
+  wrap(async (req, res) => {
+    const list = journeys(await loadPeriod(period(req)));
+    if (ROLES.indexOf(req.user.role) >= ROLES.indexOf('editor') && list.some((j) => j.status === 'Sent enquiry')) {
+      const snap = await enquiries().orderBy('createdAt', 'desc').limit(2000).get();
+      const bySession = new Map();
+      for (const doc of snap.docs) {
+        const e = doc.data();
+        if (e.sessionId && !bySession.has(e.sessionId)) {
+          bySession.set(e.sessionId, { id: doc.id, name: e.name, phone: e.phone, email: e.email, product: e.product, message: e.message, status: e.status || 'new' });
+        }
+      }
+      for (const j of list) if (bySession.has(j.id)) j.contact = bySession.get(j.id);
+    }
+    res.json({ steps: JOURNEY_STEPS, journeys: list });
+  }),
+);
+
+// Removes visits (with their clicks and pages) from the reports.
+router.post(
+  '/visits/delete',
+  requireRole('admin'),
+  wrap(async (req, res) => {
+    const ids = (Array.isArray(req.body?.ids) ? req.body.ids : []).filter((id) => typeof id === 'string' && /^[\w-]{6,64}$/.test(id)).slice(0, 500);
+    if (!ids.length) return res.status(400).json({ error: 'No visits chosen.' });
+    const db = firestore();
+    let removed = 0;
+    for (const id of ids) {
+      const writer = db.batch();
+      writer.delete(collection('visits').doc(id));
+      const acts = await collection('activity').where('sid', '==', id).get();
+      acts.docs.slice(0, 450).forEach((doc) => writer.delete(doc.ref));
+      await writer.commit();
+      removed += 1;
+    }
+    forgetPeriods();
+    return res.json({ removed });
   }),
 );
 

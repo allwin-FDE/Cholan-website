@@ -27,7 +27,7 @@ import Post from './pages/Blog/Post.jsx';
 // loaded only when someone opens /admin, so the public pages never carry its
 // code. Its pages live in dashboard/, the blog composer in admin/.
 const Dashboard = lazy(() => import('./dashboard/Dashboard.jsx'));
-// The warehouse's orders, stock and invoices, likewise only when opened.
+// The website analyst at /warehouse, likewise only when opened.
 const Warehouse = lazy(() => import('./warehouse/Warehouse.jsx'));
 
 // Everything except /story renders inside the shell: header, page, footer, cart drawer and effects (original `Wm`).

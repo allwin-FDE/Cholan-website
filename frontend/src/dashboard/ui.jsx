@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { RANGES, useDash } from './context.js';
+import { RANGES, isRange, useDash } from './context.js';
 
 // Shared pieces of the dashboard: icons, page header with the date range,
 // stat tiles, bar lists, the daily chart, the side drawer, and formatters.
@@ -39,6 +39,14 @@ const PATHS = {
   mobile: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1ZM11 18h2',
   copy: 'M9 9h10v11H9zM5 15V4h10',
   link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  box: 'M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3ZM4 7.5l8 4.5 8-4.5M12 12v9',
+  route: 'M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM18 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM8 17h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7',
+  bolt: 'M13 3 5 14h6l-1 7 8-11h-6l1-7Z',
+  target: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM12 12.01V12',
+  down: 'M12 4v14M6 12l6 6 6-6M5 21h14',
+  pulse: 'M3 12h4l2-6 4 12 2-6h6',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21a7 7 0 0 1 14 0',
+  funnel: 'M4 5h16l-6 7v6l-4 2v-8L4 5Z',
 };
 
 export function Icon({ name, size }) {
@@ -102,7 +110,25 @@ export function useLoad(load, deps) {
 
 // ---- Layout pieces ----
 export function PageHead({ title, intro, range = true, actions }) {
-  const { days, setDays } = useDash();
+  const { days, setDays, customRange } = useDash();
+  if (customRange) {
+    return (
+      <header className="dash-head an-head">
+        <div className="an-head__top">
+          <div>
+            <h1>{title}</h1>
+            {intro && <p>{intro}</p>}
+          </div>
+        </div>
+        {(range || actions) && (
+          <div className="an-head__tools">
+            {range && <PeriodPicker days={days} setDays={setDays} />}
+            {actions && <div className="an-head__actions">{actions}</div>}
+          </div>
+        )}
+      </header>
+    );
+  }
   return (
     <header className="dash-head">
       <div>
@@ -122,6 +148,41 @@ export function PageHead({ title, intro, range = true, actions }) {
         )}
       </div>
     </header>
+  );
+}
+
+const iso = (ms) => new Date(ms + 330 * 60_000).toISOString().slice(0, 10);
+
+// Last 7, 30 or 90 days, or Custom: any From and To day.
+function PeriodPicker({ days, setDays }) {
+  const custom = isRange(days);
+  const [from, to] = custom ? days.split('_') : [iso(Date.now() - (Number(days) - 1) * 86_400_000), iso(Date.now())];
+  const today = iso(Date.now());
+  const pick = (f, t) => {
+    if (!f || !t) return;
+    setDays(f <= t ? `${f}_${t}` : `${t}_${f}`);
+  };
+  return (
+    <div className="an-period">
+      <div className="an-pills" role="group" aria-label="Period">
+        {[7, 30, 90].map((d) => (
+          <button key={d} type="button" className={!custom && days === d ? 'is-on' : ''} onClick={() => setDays(d)}>
+            Last {d} days
+          </button>
+        ))}
+        <button type="button" className={custom ? 'is-on' : ''} onClick={() => pick(from, to)}>
+          Custom
+        </button>
+      </div>
+      <label className="an-date">
+        From
+        <input type="date" value={from} max={today} onChange={(e) => pick(e.target.value, to)} />
+      </label>
+      <label className="an-date">
+        To
+        <input type="date" value={to} max={today} onChange={(e) => pick(from, e.target.value)} />
+      </label>
+    </div>
   );
 }
 

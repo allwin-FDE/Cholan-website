@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { useDash } from '../context.js';
+import { periodName, useDash } from '../context.js';
 import {
   Badge,
   Card,
@@ -75,7 +75,7 @@ export default function Visitors() {
   const options = (key) => [...new Set((data?.visits || []).map((v) => v[key]).filter(Boolean))].sort();
 
   const exportCsv = () =>
-    downloadCsv(`cholan-visitors-${days}d.csv`, [
+    downloadCsv(`cholan-visitors-${periodName(days)}.csv`, [
       ['Visitor', 'Visits', 'Latest visit', 'Source', 'Campaign', 'Landing page', 'Pages', 'Device', 'OS', 'Browser', 'Screen', 'Language', 'Time on site (s)', 'Clicks', 'Actions', 'Returning'],
       ...list.map((v) => [
         visitorLabel(v),

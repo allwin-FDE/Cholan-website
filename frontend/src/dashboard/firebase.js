@@ -38,7 +38,7 @@ export async function loginWithGoogle() {
   return undefined;
 }
 
-// The warehouse workers' username and password (warehouse/Login.jsx).
+// Username and password sign-in (no longer used by any screen; kept for later).
 export const loginWithPassword = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
 // Finishes a Google sign-in that went by redirect; errors surface on the screen.

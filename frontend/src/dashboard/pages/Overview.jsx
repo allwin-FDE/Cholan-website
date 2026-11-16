@@ -20,7 +20,7 @@ import {
 } from '../ui.jsx';
 
 export default function Overview() {
-  const { days } = useDash();
+  const { days, base = '/admin' } = useDash();
   const navigate = useNavigate();
   const { data, loading, error, reload } = useLoad(() => api.overview(days), [days]);
 
@@ -28,7 +28,7 @@ export default function Overview() {
     <div className="dash-page">
       <PageHead
         title="Overview"
-        intro="How people find and use the website. Counts visitors who accepted cookies."
+        intro="How people find and use the website. Every visitor is counted."
         actions={
           <button type="button" className="dash-icon-btn" onClick={reload} title="Refresh" aria-label="Refresh">
             <Icon name="refresh" />
@@ -43,12 +43,13 @@ export default function Overview() {
           cookies and come back in a minute.
         </Empty>
       )}
-      {data && data.kpis.visits > 0 && <OverviewBody data={data} onVisit={(id) => navigate(`/admin/visitors?visit=${id}`)} />}
+      {data && data.kpis.visits > 0 && <OverviewBody data={data} onVisit={(id) => navigate(`${base}/visitors?visit=${id}`)} />}
     </div>
   );
 }
 
 function OverviewBody({ data, onVisit }) {
+  const { base = '/admin' } = useDash();
   const k = data.kpis;
   const pages = data.pages.map((p) => ({ name: p.path, value: p.views, title: p.title }));
   return (
@@ -86,7 +87,7 @@ function OverviewBody({ data, onVisit }) {
       </div>
 
       <div className="dash-grid dash-grid--2">
-        <Card title="Most viewed pages" action={<Link className="dash-link" to="/admin/pages">All pages →</Link>}>
+        <Card title="Most viewed pages" action={<Link className="dash-link" to={`${base}/pages`}>All pages →</Link>}>
           <BarList items={pages} labelOf={(p) => pageName(p.name, p.title)} />
         </Card>
         <Card title="Products people looked at" hint="Product pages opened, most first.">
@@ -121,7 +122,7 @@ function OverviewBody({ data, onVisit }) {
         </Card>
       )}
 
-      <Card title="Latest visits" action={<Link className="dash-link" to="/admin/visitors">All visitors →</Link>}>
+      <Card title="Latest visits" action={<Link className="dash-link" to={`${base}/visitors`}>All visitors →</Link>}>
         <div className="dash-table-wrap">
           <table className="dash-table">
             <thead>

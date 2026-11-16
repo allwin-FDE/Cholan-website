@@ -1,5 +1,8 @@
 import { apiUrl } from '../lib/api.js';
 import { auth } from './firebase.js';
+import { periodQuery } from './context.js';
+
+const q = (period, extra = {}) => new URLSearchParams({ ...periodQuery(period), ...extra });
 
 // Calls to the backend's /api/admin routes, signed with the person's login.
 export class AdminError extends Error {
@@ -46,12 +49,19 @@ export async function adminFetch(path, { method = 'GET', body, raw, contentType,
 
 export const api = {
   me: () => adminFetch('/me'),
-  overview: (days) => adminFetch(`/overview?days=${days}`),
-  pages: (days) => adminFetch(`/pages?days=${days}`),
-  visits: (days, params = {}) => adminFetch(`/visits?${new URLSearchParams({ days, ...params })}`),
+  overview: (days) => adminFetch(`/overview?${q(days)}`),
+  pages: (days) => adminFetch(`/pages?${q(days)}`),
+  visits: (days, params = {}) => adminFetch(`/visits?${q(days, params)}`),
   visit: (id) => adminFetch(`/visits/${encodeURIComponent(id)}`),
   visitor: (vid) => adminFetch(`/visitors/${encodeURIComponent(vid)}`),
-  heatmap: (days, path, device) => adminFetch(`/heatmap?${new URLSearchParams({ days, path, device })}`),
+  heatmap: (days, path, device) => adminFetch(`/heatmap?${q(days, { path, device })}`),
+  // The /warehouse analyst pages.
+  products: (days) => adminFetch(`/analyst/products?${q(days)}`),
+  behaviour: (days) => adminFetch(`/analyst/behaviour?${q(days)}`),
+  scroll: (days) => adminFetch(`/analyst/scroll?${q(days)}`),
+  journeys: (days) => adminFetch(`/analyst/journeys?${q(days)}`),
+  realtime: () => adminFetch('/analyst/realtime'),
+  deleteVisits: (ids) => adminFetch('/visits/delete', { method: 'POST', body: { ids } }),
   enquiries: () => adminFetch('/enquiries'),
   updateEnquiry: (id, patch) => adminFetch(`/enquiries/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
   deleteEnquiry: (id) => adminFetch(`/enquiries/${encodeURIComponent(id)}`, { method: 'DELETE' }),

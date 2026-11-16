@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
-import { useDash } from '../context.js';
+import { periodBounds, periodName, useDash } from '../context.js';
 import { getProduct } from '../../lib/products.js';
 import {
   Badge,
@@ -54,14 +54,14 @@ const waLink = (phone) => {
 };
 
 export default function Enquiries() {
-  const { days, allowed } = useDash();
+  const { days, allowed, base = '/admin' } = useDash();
   const { data, loading, error, reload, setData } = useLoad(() => api.enquiries(), []);
   const [filters, setFilters] = useState({ status: '', page: '', type: '', q: '' });
   const [openId, setOpenId] = useState(null);
 
   const inPeriod = useMemo(() => {
-    const since = Date.now() - days * 86_400_000;
-    return (data?.enquiries || []).filter((e) => Date.parse(e.createdAt) >= since);
+    const { from: since, to: until } = periodBounds(days);
+    return (data?.enquiries || []).filter((e) => Date.parse(e.createdAt) >= since && Date.parse(e.createdAt) <= until);
   }, [data, days]);
 
   const list = useMemo(() => {
@@ -99,7 +99,7 @@ export default function Enquiries() {
   };
 
   const exportCsv = () =>
-    downloadCsv(`cholan-enquiries-${days}d.csv`, [
+    downloadCsv(`cholan-enquiries-${periodName(days)}.csv`, [
       ['Received', 'Name', 'Phone', 'Email', 'Type', 'Product', 'Message', 'From page', 'How they found us', 'Status', 'Note'],
       ...list.map((e) => [
         e.createdAt,
@@ -227,7 +227,6 @@ export default function Enquiries() {
 }
 
 function EnquiryDetail({ e, onUpdate, onDelete }) {
-  const { allowed } = useDash();
   const [note, setNote] = useState(e.note || '');
   const [saving, setSaving] = useState('');
   const save = async (patch, label) => {
@@ -257,14 +256,6 @@ function EnquiryDetail({ e, onUpdate, onDelete }) {
         <a className="dash-btn dash-btn--wa" href={waLink(e.phone)} target="_blank" rel="noreferrer">
           <Icon name="chat" /> WhatsApp
         </a>
-        {allowed('admin') && (
-          <a
-            className="dash-btn dash-btn--ghost"
-            href={`/warehouse/orders/new?${new URLSearchParams({ enquiry: e.id, name: e.name || '', phone: e.phone || '', product: e.product || '', message: e.message || '' })}`}
-          >
-            <Icon name="plus" /> Make an order
-          </a>
-        )}
         {e.email && (
           <a className="dash-btn dash-btn--ghost" href={`mailto:${e.email}?subject=${encodeURIComponent('Your enquiry — Cholan Rice and Millet Shop')}`}>
             <Icon name="mail" /> Email
@@ -307,7 +298,7 @@ function EnquiryDetail({ e, onUpdate, onDelete }) {
       <h3 className="dash-subhead">Message</h3>
       <p className="dash-enquiry__msg">{e.message}</p>
       {e.sessionId && (
-        <Link className="dash-link" to={`/admin/visitors?visit=${e.sessionId}`}>
+        <Link className="dash-link" to={`${base}/visitors?visit=${e.sessionId}`}>
           See this visitor’s journey on the site →
         </Link>
       )}

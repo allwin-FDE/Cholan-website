@@ -1,171 +1,212 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { api } from '../dashboard/api.js';
 import { logout, watchUser } from '../dashboard/firebase.js';
+import Login from '../dashboard/Login.jsx';
+import Overview from '../dashboard/pages/Overview.jsx';
+import Visitors from '../dashboard/pages/Visitors.jsx';
+import PagesReport from '../dashboard/pages/PagesReport.jsx';
+import Heatmaps from '../dashboard/pages/Heatmaps.jsx';
+import Enquiries from '../dashboard/pages/Enquiries.jsx';
 import { Icon } from '../dashboard/ui.jsx';
-import { WhContext, wh } from './shared.jsx';
-import Login from './Login.jsx';
-import Today from './pages/Today.jsx';
-import Orders from './pages/Orders.jsx';
-import OrderForm from './pages/OrderForm.jsx';
-import OrderPage from './pages/OrderPage.jsx';
-import PackingSlip from './pages/PackingSlip.jsx';
-import Packing from './pages/Packing.jsx';
-import Stock from './pages/Stock.jsx';
+import { DashContext, can } from '../dashboard/context.js';
+import Products from './pages/Products.jsx';
+import Journeys from './pages/Journeys.jsx';
+import Behaviour from './pages/Behaviour.jsx';
+import ScrollDepth from './pages/ScrollDepth.jsx';
+import Realtime from './pages/Realtime.jsx';
 import Customers from './pages/Customers.jsx';
-import Payments from './pages/Payments.jsx';
-import Invoices, { InvoiceView } from './pages/Invoices.jsx';
 import Reports from './pages/Reports.jsx';
-import Team from './pages/Team.jsx';
-import Activity from './pages/Activity.jsx';
-import WhSettings from './pages/WhSettings.jsx';
 import '../styles/dashboard.css';
-import '../styles/warehouse.css';
+import '../styles/analyst.css';
 
+// The menu, in the order of the owner's reference. Sections still waiting
+// for their data (online buying, ad accounts, an AI assistant, or the
+// owner's say on what goes in them) are listed as coming soon.
 const NAV = [
-  { to: '/warehouse', label: 'Today', icon: 'grid', end: true },
-  { to: '/warehouse/orders', label: 'Orders', icon: 'inbox' },
-  { to: '/warehouse/packing', label: 'Packing', icon: 'check' },
-  { to: '/warehouse/stock', label: 'Stock', icon: 'page' },
-  { to: '/warehouse/customers', label: 'Customers', icon: 'users' },
-  { to: '/warehouse/payments', label: 'Payments', icon: 'star', money: true },
-  { to: '/warehouse/invoices', label: 'Invoices', icon: 'file', money: true },
-  { to: '/warehouse/reports', label: 'Reports', icon: 'flame', money: true },
-  { to: '/warehouse/activity', label: 'Activity', icon: 'clock', money: true },
-  { to: '/warehouse/team', label: 'Team', icon: 'lock', admin: true },
-  { to: '/warehouse/settings', label: 'Settings', icon: 'gear', money: true },
+  { to: '/warehouse', label: 'Overview', icon: 'grid', end: true, role: 'viewer' },
+  { to: '/warehouse/visitors', label: 'Visitors', icon: 'users', role: 'viewer' },
+  { to: '/warehouse/products', label: 'Products', icon: 'box', role: 'viewer' },
+  { to: '/warehouse/journeys', label: 'Journeys', icon: 'route', role: 'viewer' },
+  { to: '/warehouse/behaviour', label: 'Behaviour', icon: 'bolt', role: 'viewer' },
+  { to: '/warehouse/heatmap', label: 'Heatmap', icon: 'target', role: 'viewer' },
+  { to: '/warehouse/scroll-depth', label: 'Scroll depth', icon: 'down', role: 'viewer' },
+  { to: '/warehouse/realtime', label: 'Realtime', icon: 'pulse', role: 'viewer' },
+  { to: '/warehouse/customers', label: 'Customers', icon: 'user', role: 'editor' },
+  { to: '/warehouse/enquiries', label: 'Enquiries', icon: 'mail', role: 'editor' },
+  { to: '/warehouse/reports', label: 'Reports', icon: 'file', role: 'viewer' },
 ];
-const LEVEL_NAME = { staff: 'Staff', manager: 'Manager', admin: 'Admin' };
+const SOON = [
+  { label: 'Funnel', icon: 'funnel' },
+  { label: 'Checkout journeys', icon: 'route' },
+  { label: 'Analyst', icon: 'grid' },
+  { label: 'Business Advisor', icon: 'bolt' },
+  { label: 'Ad campaigns', icon: 'target' },
+  { label: 'Cloud Centre', icon: 'pulse' },
+  { label: 'MIS dashboard', icon: 'grid' },
+  { label: 'Journal', icon: 'pen' },
+  { label: 'Settings', icon: 'gear' },
+];
 
-// /warehouse: orders, stock, payments and invoices, for the people who pack and
-// send the rice. Its own sign-in and its own rules (lib/auth.js on the backend);
-// what staff may not see never leaves the server.
+const DAYS_KEY = 'cholan-warehouse-days';
+function readDays() {
+  try {
+    const saved = localStorage.getItem(DAYS_KEY) || '';
+    if (/^\d+$/.test(saved)) return Number(saved);
+    return /^\d{4}-\d{2}-\d{2}_\d{4}-\d{2}-\d{2}$/.test(saved) ? saved : 30;
+  } catch {
+    return 30;
+  }
+}
+
+// /warehouse — the website analyst: visitors, products, journeys towards an
+// enquiry, behaviour, heatmaps, scroll depth, who is on the site now,
+// customers who enquired, and downloadable reports. Same Google sign-in and
+// access list as /admin (Admin → Settings).
 export default function Warehouse() {
-  const [state, setState] = useState({ status: 'loading' }); // loading | signed-out | no-access | ready | error
+  const [state, setState] = useState({ status: 'loading' });
+  const [days, setDaysState] = useState(readDays);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const location = useLocation();
+
+  const setDays = (value) => {
+    setDaysState(value);
+    try {
+      localStorage.setItem(DAYS_KEY, String(value));
+    } catch {
+      // Private mode: the period holds for this visit only.
+    }
+  };
 
   useEffect(() => {
     document.documentElement.classList.add('dash-root');
     return () => document.documentElement.classList.remove('dash-root');
   }, []);
-  useEffect(() => setMenuOpen(false), [location.pathname]);
 
   useEffect(
     () =>
       watchUser(async (user) => {
         if (!user) return setState({ status: 'signed-out' });
         try {
-          setState({ status: 'ready', user: await wh.get('/me') });
+          setState({ status: 'ready', user: await api.me() });
         } catch (error) {
-          setState({ status: error.code === 'no-access' ? 'no-access' : 'error', message: error.message });
+          if (error.code === 'no-access') setState({ status: 'no-access', email: user.email, message: error.message });
+          else setState({ status: 'error', message: error.message });
         }
-        return undefined;
       }),
     [],
   );
+
+  useEffect(() => setMenuOpen(false), [pathname]);
 
   const signOut = async () => {
     await logout();
     navigate('/warehouse');
   };
 
-  const head = (
-    <>
-      <title>Warehouse · Cholan</title>
-      <meta name="robots" content="noindex, nofollow" />
-    </>
-  );
   if (state.status === 'loading') {
     return (
       <div className="dash-center">
-        {head}
         <div className="dash-spinner" aria-label="Loading" />
       </div>
     );
   }
-  if (state.status !== 'ready') {
-    return (
-      <>
-        {head}
-        <Login state={state} onSignOut={signOut} />
-      </>
-    );
-  }
+  if (state.status !== 'ready') return <Login state={state} onSignOut={signOut} />;
 
-  const { user } = state;
-  const seesMoney = user.level !== 'staff';
-  const isAdmin = user.level === 'admin';
-  const money = (element) => (seesMoney ? element : <Navigate to="/warehouse" replace />);
+  const { role, email } = state.user;
+  const allowed = (needed) => can(role, needed);
+  const guard = (needed, element) => (allowed(needed) ? element : <NoRole needed={needed} role={role} />);
+  const context = { user: state.user, role, days, setDays, allowed, base: '/warehouse', customRange: true };
 
   return (
-    <WhContext.Provider value={{ user, seesMoney, isAdmin }}>
-      {head}
-      <div className={`dash wh${menuOpen ? ' dash--menu' : ''}`}>
-        <aside className="dash-side wh-noprint">
-          <div className="dash-brand">
-            <img src="/images/cholan-logo.png" alt="Cholan" />
-            <span>Warehouse</span>
+    <DashContext.Provider value={context}>
+      <title>Warehouse · Cholan</title>
+      <meta name="robots" content="noindex, nofollow" />
+      <div className={`dash an${menuOpen ? ' dash--menu' : ''}`}>
+        <aside className="dash-side an-side">
+          <div className="an-brand">
+            <span className="an-brand__mark">CR</span>
+            <span className="an-brand__name">Warehouse</span>
           </div>
-          <nav className="dash-nav" aria-label="Warehouse">
-            {NAV.filter((item) => (!item.money || seesMoney) && (!item.admin || isAdmin)).map((item) => (
-              <NavLink key={item.to} to={item.to} end={item.end} className="dash-nav__link">
+          <nav className="an-nav" aria-label="Warehouse">
+            {NAV.filter((item) => allowed(item.role)).map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.end} className="an-nav__link">
                 <Icon name={item.icon} />
                 {item.label}
               </NavLink>
             ))}
+            <div className="an-nav__rule" />
+            {SOON.map((item) => (
+              <span key={item.label} className="an-nav__link is-soon" aria-disabled="true" title="Coming soon">
+                <Icon name={item.icon} />
+                {item.label}
+                <span className="an-soon">Soon</span>
+              </span>
+            ))}
           </nav>
-          <div className="dash-side__foot">
-            {isAdmin && (
-              <a href="/admin" className="dash-nav__link">
+          <div className="an-side__foot">
+            {allowed('editor') && (
+              <a href="/admin" className="an-nav__link">
                 <Icon name="external" />
                 Admin
               </a>
             )}
-            <div className="dash-me">
-              <span className="dash-me__avatar">{user.name[0].toUpperCase()}</span>
-              <span className="dash-me__text">
-                <span className="dash-me__email" title={user.email}>
-                  {user.name}
+            <div className="an-me">
+              <span className="an-me__avatar">{email[0].toUpperCase()}</span>
+              <span className="an-me__text">
+                <span className="an-me__email" title={email}>
+                  {email}
                 </span>
-                <span className="dash-me__role">{LEVEL_NAME[user.level]}</span>
+                <span className="an-me__role">{role}</span>
               </span>
-              <button type="button" className="dash-icon-btn" onClick={signOut} title="Sign out" aria-label="Sign out">
-                <Icon name="logout" />
-              </button>
             </div>
           </div>
         </aside>
         <div className="dash-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
-        <div className="dash-main">
-          <header className="dash-mobilebar wh-noprint">
+        <div className="dash-main an-main">
+          <header className="dash-mobilebar an-mobilebar">
             <button type="button" className="dash-icon-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu">
               <Icon name="menu" />
             </button>
-            <img src="/images/cholan-logo.png" alt="Cholan" />
+            <span className="an-brand__name">Warehouse</span>
             <span />
           </header>
+          <button type="button" className="an-signout" onClick={signOut}>
+            Sign out
+          </button>
           <Routes>
-            <Route index element={<Today />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="orders/new" element={<OrderForm />} />
-            <Route path="orders/:id" element={<OrderPage />} />
-            <Route path="orders/:id/edit" element={<OrderForm />} />
-            <Route path="orders/:id/slip" element={<PackingSlip />} />
-            <Route path="packing" element={<Packing />} />
-            <Route path="stock" element={<Stock />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="payments" element={money(<Payments />)} />
-            <Route path="invoices" element={money(<Invoices />)} />
-            <Route path="invoices/:id" element={money(<InvoiceView />)} />
-            <Route path="reports" element={money(<Reports />)} />
-            <Route path="activity" element={money(<Activity />)} />
-            <Route path="settings" element={money(<WhSettings />)} />
-            <Route path="team" element={isAdmin ? <Team /> : <Navigate to="/warehouse" replace />} />
+            <Route index element={<Overview />} />
+            <Route path="visitors" element={<Visitors />} />
+            <Route path="pages" element={<PagesReport />} />
+            <Route path="products" element={<Products />} />
+            <Route path="journeys" element={<Journeys />} />
+            <Route path="behaviour" element={<Behaviour />} />
+            <Route path="heatmap" element={<Heatmaps />} />
+            <Route path="scroll-depth" element={<ScrollDepth />} />
+            <Route path="realtime" element={<Realtime />} />
+            <Route path="customers" element={guard('editor', <Customers />)} />
+            <Route path="enquiries" element={guard('editor', <Enquiries />)} />
+            <Route path="reports" element={<Reports />} />
             <Route path="*" element={<Navigate to="/warehouse" replace />} />
           </Routes>
         </div>
       </div>
-    </WhContext.Provider>
+    </DashContext.Provider>
+  );
+}
+
+function NoRole({ needed, role }) {
+  return (
+    <div className="dash-page">
+      <div className="dash-empty">
+        <Icon name="lock" />
+        <h2>You don’t have access to this section</h2>
+        <p>
+          It needs <strong>{needed}</strong> access, and you have <strong>{role}</strong> access. Ask an admin to change
+          your role in Admin → Settings.
+        </p>
+      </div>
+    </div>
   );
 }

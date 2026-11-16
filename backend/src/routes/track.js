@@ -50,6 +50,21 @@ function cookieVid(req) {
 // first visit and kept with its ID (visitorIds/{vid}), so the same device
 // always shows the same number. The counter sits at visitorIds/_counter, a
 // name no device ID can have (they never contain "_").
+// Visits this instance has stored, so a later batch needs no look-up to
+// know its visit has a record. Kept small; forgetting one costs one read.
+const seenVisits = new Set();
+async function visitExists(sid) {
+  try {
+    return (await collection('visits').doc(sid).get()).exists;
+  } catch {
+    return true; // can't tell: leave the record as it is
+  }
+}
+function remember(sid) {
+  if (seenVisits.size >= 5000) seenVisits.clear();
+  seenVisits.add(sid);
+}
+
 export async function visitorNumber(vid) {
   const ref = collection('visitorIds').doc(vid);
   const known = await ref.get();
@@ -112,15 +127,15 @@ function deviceOf(ua = '') {
           : /Linux/i.test(ua)
             ? 'Linux'
             : 'Other';
-  const browser = /Edg\//.test(ua)
+  const browser = /Edg\/|EdgiOS\//.test(ua)
     ? 'Edge'
     : /SamsungBrowser/.test(ua)
       ? 'Samsung Internet'
       : /OPR\/|Opera/.test(ua)
         ? 'Opera'
-        : /Firefox\//.test(ua)
+        : /Firefox\/|FxiOS\//.test(ua)
           ? 'Firefox'
-          : /Chrome\//.test(ua)
+          : /Chrome\/|CriOS\//.test(ua)
             ? 'Chrome'
             : /Safari\//.test(ua)
               ? 'Safari'
@@ -221,7 +236,21 @@ router.post('/', limit, express.text({ type: '*/*', limit: '64kb' }), async (req
       // Seen before, by the page's own copy of the ID or by the cookie.
       returning: Boolean(m.returning) || Boolean(known),
     });
-    // Looked up once per visit, with its first batch.
+  } else if (!seenVisits.has(sid) && !(await visitExists(sid))) {
+    // A visit with no record, though its first batch went out earlier (the
+    // data was cleared, or it ran out, while the tab stayed open): start it
+    // again from what this batch shows, so it is never a blank row.
+    const first = events.find((e) => e.type === 'pageview') || events[0];
+    Object.assign(visit, deviceOf(ua), {
+      // From its earliest event, within the last hour (the device clock may be off).
+      start: Timestamp.fromMillis(Math.max(now.getTime() - 3_600_000, Math.min(now.getTime(), ...events.map((e) => e.t)))),
+      landing: first.path,
+      ...sourceOf({}),
+      returning: Boolean(known),
+    });
+  }
+  // Numbered with the visit's first batch (or its restart, above).
+  if (visit.start) {
     try {
       visit.visitorNo = await visitorNumber(vid);
     } catch (error) {
@@ -242,6 +271,7 @@ router.post('/', limit, express.text({ type: '*/*', limit: '64kb' }), async (req
       });
     }
     await batch.commit();
+    remember(sid);
     // The browser keeps its copy of the ID in step with the cookie.
     return res.json({ vid });
   } catch (error) {
