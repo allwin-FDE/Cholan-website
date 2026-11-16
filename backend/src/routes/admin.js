@@ -61,9 +61,9 @@ router.get(
   '/visits',
   requireRole('viewer'),
   wrap(async (req, res) => {
-    const period = await loadPeriod(period(req));
+    const data = await loadPeriod(period(req));
     const q = String(req.query.q || '').toLowerCase();
-    let list = period.visits.map(visitSummary);
+    let list = data.visits.map(visitSummary);
     if (req.query.device) list = list.filter((v) => v.device === req.query.device);
     if (req.query.source) list = list.filter((v) => v.source === req.query.source);
     if (req.query.action) list = list.filter((v) => v.actionNames.includes(req.query.action));
@@ -101,9 +101,9 @@ router.get(
   '/heatmap',
   requireRole('viewer'),
   wrap(async (req, res) => {
-    const period = await loadPeriod(period(req));
+    const data = await loadPeriod(period(req));
     const path = String(req.query.path || '/');
-    res.json(heatmap(path, req.query.device || '', period));
+    res.json(heatmap(path, req.query.device || '', data));
   }),
 );
 
