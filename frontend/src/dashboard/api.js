@@ -48,6 +48,33 @@ export async function adminFetch(path, { method = 'GET', body, raw, contentType,
 }
 
 export const api = {
+  // Selling (business database): orders, stock, invoices, payments.
+  sales: {
+    orders: (status, q) => adminFetch(`/sales/orders?${new URLSearchParams({ status, q })}`),
+    order: (id) => adminFetch(`/sales/orders/${id}`),
+    preview: (body) => adminFetch('/sales/orders/preview', { method: 'POST', body }),
+    createOrder: (body) => adminFetch('/sales/orders', { method: 'POST', body }),
+    editOrder: (id, body) => adminFetch(`/sales/orders/${id}`, { method: 'PUT', body }),
+    move: (id, to, extra = {}) => adminFetch(`/sales/orders/${id}/move`, { method: 'POST', body: { to, ...extra } }),
+    dispatch: (id, body) => adminFetch(`/sales/orders/${id}/dispatch`, { method: 'POST', body }),
+    invoice: (id, body = {}) => adminFetch(`/sales/orders/${id}/invoice`, { method: 'POST', body }),
+    recordReturn: (id, body) => adminFetch(`/sales/orders/${id}/returns`, { method: 'POST', body }),
+    invoices: (q = '', partyId = '') => adminFetch(`/sales/invoices?${new URLSearchParams({ q, partyId })}`),
+    getInvoice: (id) => adminFetch(`/sales/invoices/${id}`),
+    cancelInvoice: (id, reason) => adminFetch(`/sales/invoices/${id}/cancel`, { method: 'POST', body: { reason } }),
+    creditNote: (id) => adminFetch(`/sales/credit-notes/${id}`),
+    receipts: (partyId = '') => adminFetch(`/sales/receipts?${new URLSearchParams({ partyId })}`),
+    createReceipt: (body) => adminFetch('/sales/receipts', { method: 'POST', body }),
+    allocate: (id, body) => adminFetch(`/sales/receipts/${id}/allocate`, { method: 'POST', body }),
+    reverseReceipt: (id, reason) => adminFetch(`/sales/receipts/${id}/reverse`, { method: 'POST', body: { reason } }),
+    dues: () => adminFetch('/sales/dues'),
+    account: (partyId) => adminFetch(`/sales/accounts/${partyId}`),
+    stock: () => adminFetch('/sales/stock'),
+    stockMoves: (itemId) => adminFetch(`/sales/stock/${itemId}/moves`),
+    adjustStock: (body) => adminFetch('/sales/stock/adjust', { method: 'POST', body }),
+    series: () => adminFetch('/sales/series'),
+    setSeries: (body) => adminFetch('/sales/series', { method: 'POST', body }),
+  },
   // Business screens (business database): products, customers and suppliers, price lists.
   business: {
     items: () => adminFetch('/business/items'),

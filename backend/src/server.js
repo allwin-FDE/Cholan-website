@@ -10,6 +10,7 @@ import subscribe from './routes/subscribe.js';
 import comments from './routes/comments.js';
 import warehouse from './routes/warehouse.js';
 import business from './routes/business.js';
+import sales from './routes/sales.js';
 import { dbEnabled, query } from './db/pool.js';
 import { knowledgeSize } from './chat/retrieve.js';
 import { startSyncWorker } from './lib/sync.js';
@@ -69,6 +70,7 @@ app.use('/api/track', track);
 app.use('/api/subscribe', subscribe);
 // The Business screens' data (products, customers and suppliers, price lists).
 app.use('/api/admin/business', business);
+app.use('/api/admin/sales', sales);
 app.use('/api/admin', admin);
 app.use('/api/warehouse', warehouse);
 app.use('/api', comments);

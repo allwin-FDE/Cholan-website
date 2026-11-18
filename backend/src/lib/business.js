@@ -77,6 +77,12 @@ export function friendly(error) {
     return say('That already exists.');
   }
   if (error.code === '23P01') return say(error.message);
+  if (c.startsWith('stock_balances')) {
+    return say(c.includes('damaged') ? 'There are not that many damaged bags.' : 'Not enough bags in stock for that. Someone may have just taken them; reload and check.');
+  }
+  if (c === 'invoices_one_live_per_order') return say('This order already has an invoice.');
+  // Our own rules (frozen invoices, receipts, allocations) explain themselves.
+  if (error.code === '23514' && !c && error.where?.includes('PL/pgSQL')) return say(error.message);
   if (error.code === '23514' || error.code === '22P02') return say('Please check the details: one of them is not in the right form.');
   if (error.code === '23503') return say('Something this refers to no longer exists. Reload the page and try again.');
   return error;

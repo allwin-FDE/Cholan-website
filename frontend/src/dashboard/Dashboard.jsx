@@ -18,6 +18,11 @@ import Help from './pages/Help.jsx';
 import Products from './pages/business/Products.jsx';
 import Parties from './pages/business/Parties.jsx';
 import PriceLists from './pages/business/PriceLists.jsx';
+import Orders from './pages/business/Orders.jsx';
+import Stock from './pages/business/Stock.jsx';
+import Invoices from './pages/business/Invoices.jsx';
+import Payments from './pages/business/Payments.jsx';
+import PrintDoc from './pages/business/PrintDoc.jsx';
 import { Icon } from './ui.jsx';
 import { DashContext, can } from './context.js';
 import '../styles/dashboard.css';
@@ -33,6 +38,10 @@ const NAV = [
   { to: '/admin/blog', label: 'Blog', icon: 'pen', role: 'editor' },
   { to: '/admin/comments', label: 'Comments', icon: 'chat', role: 'editor' },
   // The business database: everyone with access can look; Admin and Owner can change.
+  { to: '/admin/business/orders', label: 'Orders', icon: 'cart', role: 'viewer', section: 'Business' },
+  { to: '/admin/business/stock', label: 'Stock', icon: 'layers', role: 'viewer', section: 'Business' },
+  { to: '/admin/business/invoices', label: 'Invoices', icon: 'file', role: 'viewer', section: 'Business' },
+  { to: '/admin/business/payments', label: 'Payments and dues', icon: 'rupee', role: 'viewer', section: 'Business' },
   { to: '/admin/business/products', label: 'Products and packs', icon: 'box', role: 'viewer', section: 'Business' },
   { to: '/admin/business/parties', label: 'Customers and suppliers', icon: 'users', role: 'viewer', section: 'Business' },
   { to: '/admin/business/prices', label: 'Price lists', icon: 'tag', role: 'viewer', section: 'Business' },
@@ -113,6 +122,20 @@ export default function Dashboard() {
   const guard = (needed, element) => (allowed(needed) ? element : <NoRole needed={needed} role={role} />);
 
   const context = { user: state.user, role, days, setDays, allowed };
+
+  // An invoice or credit note to print takes the whole page.
+  const printing = /^\/admin\/print\/(invoice|credit-note)\/\d+\/?$/.exec(pathname);
+  if (printing) {
+    return (
+      <DashContext.Provider value={context}>
+        <meta name="robots" content="noindex, nofollow" />
+        <Routes>
+          <Route path="print/invoice/:id" element={<PrintDoc kind="invoice" />} />
+          <Route path="print/credit-note/:id" element={<PrintDoc kind="credit-note" />} />
+        </Routes>
+      </DashContext.Provider>
+    );
+  }
 
   // Writing a blog takes the whole screen, like a phone's composer.
   if (/^\/admin\/blog\/(new|edit\/[^/]+)\/?$/.test(pathname)) {
@@ -202,6 +225,10 @@ export default function Dashboard() {
             <Route path="blog" element={guard('editor', <BlogList />)} />
             <Route path="blog/:id" element={guard('editor', <BlogEditor />)} />
             <Route path="comments" element={guard('editor', <Comments />)} />
+            <Route path="business/orders" element={<Orders />} />
+            <Route path="business/stock" element={<Stock />} />
+            <Route path="business/invoices" element={<Invoices />} />
+            <Route path="business/payments" element={<Payments />} />
             <Route path="business/products" element={<Products />} />
             <Route path="business/parties" element={<Parties />} />
             <Route path="business/prices" element={<PriceLists />} />

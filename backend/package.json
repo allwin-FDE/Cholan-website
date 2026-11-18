@@ -14,7 +14,7 @@
     "test": "node --test \"test/*.test.js\"",
     "db:migrate": "node --env-file-if-exists=.env.local src/db/migrate.js",
     "db:seed": "node --env-file-if-exists=.env.local scripts/seed-reference.js",
-    "test:db": "node --env-file-if-exists=.env.local --test test/db.test.js"
+    "test:db": "node --env-file-if-exists=.env.local --test test/db.test.js test/sales.test.js"
   },
   "dependencies": {
     "@google-cloud/cloud-sql-connector": "^1.8.3",

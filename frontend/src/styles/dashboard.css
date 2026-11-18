@@ -2040,3 +2040,95 @@
 .biz-lists {
   flex-wrap: wrap;
 }
+
+/* ---- Selling pages (orders, stock, invoices, payments) ---- */
+.biz-picked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--d-line);
+  border-radius: 10px;
+  background: var(--d-card);
+}
+.biz-picker .dash-search {
+  width: 100%;
+}
+.biz-pick-list {
+  margin-top: 6px;
+  border: 1px solid var(--d-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.biz-pick-list li {
+  padding: 0;
+}
+.biz-pick {
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  background: var(--d-card);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.biz-pick:hover {
+  background: var(--d-line-soft);
+}
+.biz-lines {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.biz-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.biz-line select {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.biz-line__name {
+  flex: 1 1 200px;
+}
+.biz-qty {
+  width: 72px;
+}
+.biz-price {
+  width: 110px;
+}
+.biz-line__info {
+  flex: 1 1 100%;
+  padding-left: 2px;
+}
+.biz-warn {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fbefd5;
+  color: #6b4a07;
+}
+.biz-order-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.biz-actions {
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.biz-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+.biz-history li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--d-line-soft);
+}

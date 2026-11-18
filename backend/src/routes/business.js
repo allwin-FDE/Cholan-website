@@ -4,11 +4,9 @@
 // including prices and credit limits. Every change is recorded with the
 // signed-in person's email (see core.audit_log).
 import { Router } from 'express';
-import { requireRole } from '../lib/auth.js';
-import { dbEnabled, withTx } from '../db/pool.js';
+import { handle, idOf as id, need, needDb } from './handle.js';
 import {
   endPrice,
-  friendly,
   getParty,
   listItems,
   listParties,
@@ -22,31 +20,7 @@ import {
 } from '../lib/business.js';
 
 const router = Router();
-const id = (value) => (/^\d{1,12}$/.test(String(value)) ? Number(value) : null);
-
-router.use((req, res, next) =>
-  dbEnabled() ? next() : res.status(503).json({ error: 'The business database is not connected yet.', code: 'no-database' }),
-);
-
-// Runs one request in a transaction as the signed-in person; a database
-// refusal comes back as a plain message for the screen.
-const handle = (minRole, fn) => [
-  requireRole(minRole),
-  async (req, res, next) => {
-    try {
-      const result = await withTx(req.user.email, (client) => fn(client, req));
-      res.json(result ?? { ok: true });
-    } catch (error) {
-      const e = friendly(error);
-      if (e.status && e.status < 500) return res.status(e.status).json({ error: e.message, fields: e.fields || undefined });
-      next(e);
-    }
-  },
-];
-const need = (value, what) => {
-  if (value == null) throw Object.assign(new Error(`${what} not found.`), { status: 404 });
-  return value;
-};
+router.use(needDb);
 
 router.get('/items', ...handle('viewer', async (c) => ({ items: await listItems(c) })));
 router.patch('/items/:id', ...handle('admin', async (c, req) => ({ item: await updateItem(c, need(id(req.params.id), 'Item'), req.body || {}) })));
