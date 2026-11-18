@@ -9,6 +9,8 @@ import posts from './routes/posts.js';
 import subscribe from './routes/subscribe.js';
 import comments from './routes/comments.js';
 import warehouse from './routes/warehouse.js';
+import business from './routes/business.js';
+import { dbEnabled, query } from './db/pool.js';
 import { knowledgeSize } from './chat/retrieve.js';
 import { startSyncWorker } from './lib/sync.js';
 import { crmCounts, syncCounts } from './store/db.js';
@@ -38,10 +40,22 @@ app.use((req, res, next) =>
   /^\/api\/(admin\/(short-)?posts|warehouse)/.test(req.path) ? next() : smallJson(req, res, next),
 );
 
-app.get('/health', (req, res) => {
+// /health?db=1 also checks the business database answers (SELECT 1), saying
+// only whether it worked.
+app.get('/health', async (req, res) => {
+  let database = dbEnabled() ? 'configured' : 'off';
+  if (database === 'configured' && req.query.db === '1') {
+    database = await query('SELECT 1')
+      .then(() => 'ok')
+      .catch((error) => {
+        console.error('[health] database:', error.message);
+        return 'error';
+      });
+  }
   res.json({
     ok: true,
     firestore: firestoreEnabled,
+    database,
     salesDaddy: salesDaddyEnabled,
     chat: config.chat.enabled,
     sync: syncCounts(),
@@ -53,6 +67,8 @@ app.use('/api/enquiries', enquiries);
 app.use('/api/chat', chat);
 app.use('/api/track', track);
 app.use('/api/subscribe', subscribe);
+// The Business screens' data (products, customers and suppliers, price lists).
+app.use('/api/admin/business', business);
 app.use('/api/admin', admin);
 app.use('/api/warehouse', warehouse);
 app.use('/api', comments);

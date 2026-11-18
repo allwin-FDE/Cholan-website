@@ -16,6 +16,11 @@ pg.types.setTypeParser(20, (value) => {
   return n;
 });
 
+// A date column (a price's "from" date, an invoice date) stays the plain text
+// 'YYYY-MM-DD': turned into a JavaScript time it would be midnight UTC, which
+// is 5:30 am in India and can show the wrong day.
+pg.types.setTypeParser(1082, (value) => value);
+
 let pool = null;
 let connector = null;
 

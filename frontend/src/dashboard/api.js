@@ -48,6 +48,23 @@ export async function adminFetch(path, { method = 'GET', body, raw, contentType,
 }
 
 export const api = {
+  // Business screens (business database): products, customers and suppliers, price lists.
+  business: {
+    items: () => adminFetch('/business/items'),
+    updateItem: (id, patch) => adminFetch(`/business/items/${id}`, { method: 'PATCH', body: patch }),
+    priceLists: () => adminFetch('/business/price-lists'),
+    priceList: (id) => adminFetch(`/business/price-lists/${id}`),
+    setListPrice: (id, body) => adminFetch(`/business/price-lists/${id}/prices`, { method: 'POST', body }),
+    endListPrice: (id, priceId, validTo) => adminFetch(`/business/price-lists/${id}/prices/${priceId}/end`, { method: 'POST', body: { validTo } }),
+    parties: (type, q) => adminFetch(`/business/parties?${new URLSearchParams({ type, q })}`),
+    party: (id) => adminFetch(`/business/parties/${id}`),
+    createParty: (body) => adminFetch('/business/parties', { method: 'POST', body }),
+    updateParty: (id, body) => adminFetch(`/business/parties/${id}`, { method: 'PUT', body }),
+    saveAddress: (id, addressId, body) => adminFetch(`/business/parties/${id}/addresses${addressId ? `/${addressId}` : ''}`, { method: 'POST', body }),
+    saveContact: (id, contactId, body) => adminFetch(`/business/parties/${id}/contacts${contactId ? `/${contactId}` : ''}`, { method: 'POST', body }),
+    setCustomerPrice: (id, body) => adminFetch(`/business/parties/${id}/prices`, { method: 'POST', body }),
+    endCustomerPrice: (id, priceId, validTo) => adminFetch(`/business/parties/${id}/prices/${priceId}/end`, { method: 'POST', body: { validTo } }),
+  },
   me: () => adminFetch('/me'),
   overview: (days) => adminFetch(`/overview?${q(days)}`),
   pages: (days) => adminFetch(`/pages?${q(days)}`),

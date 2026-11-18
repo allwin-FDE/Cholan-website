@@ -9,7 +9,8 @@ import { after, before, describe, test } from 'node:test';
 import pg from 'pg';
 import { migrate, MIGRATIONS_DIR } from '../src/db/migrate.js';
 import { seed, loadSiteData } from '../scripts/seed-reference.js';
-import '../src/db/pool.js'; // bigint as Number
+import '../src/db/pool.js'; // bigint as Number, dates as 'YYYY-MM-DD'
+import { friendly, getParty, listParties, priceList, saveParty, setPrice, updateItem } from '../src/lib/business.js';
 
 const ADMIN = process.env.DEV_DB_ADMIN_URL;
 const name = `cholan_test_${process.pid}`;
@@ -157,5 +158,84 @@ describe('business database', { skip: !ADMIN && 'DEV_DB_ADMIN_URL is not set' },
     const household = (await app.query("INSERT INTO party.parties (kind, display_name, is_customer) VALUES ('person', 'Walk-in', true) RETURNING id")).rows[0].id;
     const walkIn = (await app.query('SELECT * FROM price.resolve($1, $2, 1)', [household, item])).rows[0];
     assert.equal(walkIn.source, 'list:WEB');
+  });
+
+  // ---- The Business screens (src/lib/business.js), as the website role ----
+  test('a new price from a date ends the old one the day before', async () => {
+    const item = await itemId('MGP-26KG');
+    const dist = await listId('DIST');
+    await asStaff('owner@cholanrice.in', (c) => setPrice(c, 'list', dist, { itemId: item, price: '2,300', validFrom: '2026-11-01' }));
+    await asStaff('owner@cholanrice.in', (c) => setPrice(c, 'list', dist, { itemId: item, price: '2290.50', validFrom: '2026-12-01' }));
+    const { prices } = await asStaff('owner@cholanrice.in', (c) => priceList(c, dist));
+    const rows = prices.filter((p) => p.item_id === item).map(({ price_paise, valid_from, valid_to }) => ({ price_paise, valid_from, valid_to }));
+    assert.deepEqual(rows, [
+      { price_paise: 229050, valid_from: '2026-12-01', valid_to: null },
+      { price_paise: 230000, valid_from: '2026-11-01', valid_to: '2026-11-30' },
+    ]);
+    await assert.rejects(
+      asStaff('owner@cholanrice.in', (c) => setPrice(c, 'list', dist, { itemId: item, price: '2280', validFrom: '2026-11-15' })),
+      /already starts on or after/,
+    );
+    await assert.rejects(asStaff('owner@cholanrice.in', (c) => setPrice(c, 'list', dist, { itemId: item, price: '0', validFrom: '2027-01-01' })), /more than zero/);
+  });
+
+  test('customers and suppliers are created and checked in plain words', async () => {
+    const hotel = await asStaff('owner@cholanrice.in', (c) =>
+      saveParty(c, null, {
+        kind: 'business',
+        displayName: 'Annapoorna Hotel',
+        gstin: '33abcde1234f1z5',
+        phone: '98765 43211',
+        isCustomer: true,
+        customer: { segment: 'hotel', creditLimit: '50,000', termsDays: 15 },
+        address: { line1: '12 Avinashi Road', city: 'Coimbatore', stateCode: '33', pincode: '641018' },
+      }),
+    );
+    assert.equal(hotel.gstin, '33ABCDE1234F1Z5');
+    assert.equal(hotel.pan, 'ABCDE1234F');
+    assert.equal(hotel.phone, '+919876543211');
+    assert.equal(hotel.price_list, 'HOTEL');
+    assert.equal(hotel.credit_limit_paise, 5_000_000);
+    assert.equal(hotel.addresses.length, 1);
+    assert.equal(hotel.addresses[0].is_default, true);
+
+    const asked = (body) => asStaff('owner@cholanrice.in', (c) => saveParty(c, null, body)).catch((e) => friendly(e));
+    const bad = await asked({ kind: 'business', displayName: 'X Mill', gstin: '33ABC', isSupplier: true, supplier: { supplierType: 'mill' } });
+    assert.match(bad.message, /GSTIN is not valid/);
+    assert.ok(bad.fields.gstin);
+    const twin = await asked({ kind: 'business', displayName: 'Copy Hotel', gstin: '33ABCDE1234F1Z5', isCustomer: true, customer: { segment: 'hotel' } });
+    assert.match(twin.message, /already has this GSTIN/);
+    const phone = await asked({ kind: 'person', displayName: 'Kumar', phone: '12345', isCustomer: true, customer: { segment: 'b2c' } });
+    assert.match(phone.message, /10-digit/);
+    const none = await asked({ kind: 'person', displayName: 'Nobody' });
+    assert.match(none.message, /customer, supplier or both/);
+
+    const mill = await asStaff('owner@cholanrice.in', (c) =>
+      saveParty(c, null, { kind: 'business', displayName: 'Kaveri Mill', isSupplier: true, supplier: { supplierType: 'mill', termsDays: 30 } }),
+    );
+    assert.equal(mill.supplier_type, 'mill');
+    const found = await asStaff('viewer@cholanrice.in', (c) => listParties(c, { type: 'supplier', q: 'kaveri' }));
+    assert.deepEqual(found.map((p) => p.display_name), ['Kaveri Mill']);
+    const byPhone = await asStaff('viewer@cholanrice.in', (c) => listParties(c, { type: 'customer', q: '43211' }));
+    assert.deepEqual(byPhone.map((p) => p.display_name), ['Annapoorna Hotel']);
+  });
+
+  test('a customer’s special price beats their list, and items can be corrected', async () => {
+    const item = await itemId('SEN-26KG');
+    const shop = await asStaff('owner@cholanrice.in', (c) =>
+      saveParty(c, null, { kind: 'business', displayName: 'Sri Murugan Stores', isCustomer: true, customer: { segment: 'retailer' } }),
+    );
+    await asStaff('owner@cholanrice.in', (c) => setPrice(c, 'list', shop.price_list_id, { itemId: item, price: '2250', validFrom: '2026-11-01' }));
+    await asStaff('owner@cholanrice.in', (c) => setPrice(c, 'customer', shop.id, { itemId: item, price: '2200', validFrom: '2026-11-10', note: 'Agreed on call' }));
+    const price = (await app.query("SELECT * FROM price.resolve($1, $2, 1, '2026-11-20')", [shop.id, item])).rows[0];
+    assert.deepEqual(price, { price_paise: 220000, includes_gst: true, source: 'special' });
+    const detail = await asStaff('owner@cholanrice.in', (c) => getParty(c, shop.id));
+    assert.equal(detail.prices[0].note, 'Agreed on call');
+
+    const updated = await asStaff('owner@cholanrice.in', (c) => updateItem(c, item, { gstPercent: '5', gstConfirmed: true, barcode: '8901234567890' }));
+    assert.deepEqual({ gst: updated.gst_rate_bp, ok: updated.gst_confirmed, barcode: updated.barcode }, { gst: 500, ok: true, barcode: '8901234567890' });
+    await assert.rejects(asStaff('owner@cholanrice.in', (c) => updateItem(c, item, { hsn: '10' })), /HSN is 4, 6 or 8 digits/);
+    const log = (await app.query("SELECT actor FROM core.audit_log WHERE table_name = 'catalog.items' AND row_id = $1 ORDER BY id DESC LIMIT 1", [String(item)])).rows[0];
+    assert.equal(log.actor, 'owner@cholanrice.in');
   });
 });

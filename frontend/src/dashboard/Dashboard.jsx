@@ -15,6 +15,9 @@ import BlogEditor from './pages/BlogEditor.jsx';
 import NewPost from '../admin/NewPost.jsx';
 import Settings from './pages/Settings.jsx';
 import Help from './pages/Help.jsx';
+import Products from './pages/business/Products.jsx';
+import Parties from './pages/business/Parties.jsx';
+import PriceLists from './pages/business/PriceLists.jsx';
 import { Icon } from './ui.jsx';
 import { DashContext, can } from './context.js';
 import '../styles/dashboard.css';
@@ -29,7 +32,11 @@ const NAV = [
   { to: '/admin/subscribers', label: 'Subscribers', icon: 'mail', role: 'editor' },
   { to: '/admin/blog', label: 'Blog', icon: 'pen', role: 'editor' },
   { to: '/admin/comments', label: 'Comments', icon: 'chat', role: 'editor' },
-  { to: '/admin/settings', label: 'Settings', icon: 'gear', role: 'admin' },
+  // The business database: everyone with access can look; Admin and Owner can change.
+  { to: '/admin/business/products', label: 'Products and packs', icon: 'box', role: 'viewer', section: 'Business' },
+  { to: '/admin/business/parties', label: 'Customers and suppliers', icon: 'users', role: 'viewer', section: 'Business' },
+  { to: '/admin/business/prices', label: 'Price lists', icon: 'tag', role: 'viewer', section: 'Business' },
+  { to: '/admin/settings', label: 'Settings', icon: 'gear', role: 'admin', section: 'Admin' },
   { to: '/admin/help', label: 'Help', icon: 'help', role: 'viewer' },
 ];
 
@@ -134,7 +141,12 @@ export default function Dashboard() {
             <span>Admin</span>
           </div>
           <nav className="dash-nav" aria-label="Admin">
-            {NAV.filter((item) => allowed(item.role)).map((item) => (
+            {NAV.filter((item) => allowed(item.role)).map((item, i, shown) => [
+              item.section && item.section !== shown[i - 1]?.section && (
+                <span key={`${item.section}-head`} className="dash-nav__group">
+                  {item.section}
+                </span>
+              ),
               <NavLink key={item.to} to={item.to} end={item.end} className="dash-nav__link">
                 <Icon name={item.icon} />
                 {item.label}
@@ -143,8 +155,8 @@ export default function Dashboard() {
                     {waiting.comments}
                   </span>
                 )}
-              </NavLink>
-            ))}
+              </NavLink>,
+            ])}
           </nav>
           <div className="dash-side__foot">
             {allowed('admin') && (
@@ -190,6 +202,9 @@ export default function Dashboard() {
             <Route path="blog" element={guard('editor', <BlogList />)} />
             <Route path="blog/:id" element={guard('editor', <BlogEditor />)} />
             <Route path="comments" element={guard('editor', <Comments />)} />
+            <Route path="business/products" element={<Products />} />
+            <Route path="business/parties" element={<Parties />} />
+            <Route path="business/prices" element={<PriceLists />} />
             <Route path="settings" element={guard('admin', <Settings />)} />
             <Route path="help" element={<Help />} />
             <Route path="login" element={<Navigate to="/admin" replace />} />
