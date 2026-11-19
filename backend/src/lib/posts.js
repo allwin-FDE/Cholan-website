@@ -224,7 +224,7 @@ export function cleanShortPost(body, origin, { draft = false } = {}) {
       postedBy,
       category,
       media,
-      // One size for every picture: 16:9, 1600 x 900 (admin/photos.js).
+      // One size for every picture: 16:9, 1600 x 900 (frontend/src/dashboards/admin/blog/photos.js).
       ratio: '16:9',
       heroRatio: '16:9',
       coverRatio: '16:9',

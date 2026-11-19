@@ -163,7 +163,7 @@ question ──▶ topic check (small model)
 The shop's own admin: visitors, heatmaps, enquiries, the blog, comments and
 who has access. It used to be at `/dashboard`, which now redirects here. The
 pages are in `frontend/src/dashboard/`, the blog composer in
-`frontend/src/admin/`; the backend side is here. Admins write and publish
+`frontend/src/dashboards/admin/blog/`; the backend side is here. Admins write and publish
 blogs themselves (`POST/PUT /api/admin/short-posts`): Publish puts a blog
 live at once, with no approval step. The old shared "poster" login is gone;
 an access entry left with that role opens nothing.

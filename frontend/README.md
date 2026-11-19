@@ -47,6 +47,18 @@ src/
                             (currently `return null` stubs; imported extensionless from App.jsx so a page can
                             become a folder `pages/Home/index.jsx` without touching App.jsx)
   styles/                   17 CSS files, contiguous slices of the original stylesheet (see below)
+  dashboards/               the staff tools, loaded only when someone opens them
+    shared/                 sign-in (firebase.js, Login), api.js, ui.jsx, context.js, urlState.js, area.jsx
+    admin/                  /admin, the website side: Admin.jsx (menu and routes)
+      pages/                Overview, Realtime, Sources, Visitors, Pages, Products, Journeys, Behaviour,
+                            Heatmaps, Scroll depth, Reports, Enquiries, Customers, Subscribers, Blog, Comments,
+                            Settings, Help
+      blog/                 the blog writer: NewPost, DocImport (Word/PDF), PhotoCrop, CaptionEditor, photos.js
+    warehouse/              /warehouse, the plant: Warehouse.jsx (menu and routes)
+      pages/                Today (PlantOverview), Orders, Delivery, Stock, Purchases, Expenses, Invoices,
+                            Payments, Online payments, Products and packs, Customers and suppliers (Parties),
+                            Price lists, PrintDoc (A4 invoice), Help (PlantHelp); shared.js holds their helpers
+    styles/                 dashboard.css, admin.css, analyst.css, print-doc.css
 ```
 
 ## Conventions

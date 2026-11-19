@@ -26,12 +26,12 @@ import Post from './pages/Blog/Post.jsx';
 
 // The website admin at /admin (visitors and the analyst reports, enquiries,
 // blog, comments, settings), loaded only when someone opens it, so the public
-// pages never carry its code. Its pages live in dashboard/, the blog composer
-// in admin/.
-const Dashboard = lazy(() => import('./dashboard/Dashboard.jsx'));
+// pages never carry its code. Its pages live in dashboards/admin/pages/, the
+// blog composer in dashboards/admin/blog/.
+const Admin = lazy(() => import('./dashboards/admin/Admin.jsx'));
 // The plant dashboard at /warehouse (orders, delivery, stock, purchases,
 // money), likewise only when opened.
-const Warehouse = lazy(() => import('./warehouse/Warehouse.jsx'));
+const Warehouse = lazy(() => import('./dashboards/warehouse/Warehouse.jsx'));
 
 // Everything except /story renders inside the shell: header, page, footer, cart drawer and effects (original `Wm`).
 function AppShell() {
@@ -95,7 +95,7 @@ export default function App() {
             path="/admin/*"
             element={
               <Suspense fallback={<div className="dash-center" />}>
-                <Dashboard />
+                <Admin />
               </Suspense>
             }
           />

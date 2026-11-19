@@ -1,0 +1,197 @@
+/* A GST invoice or credit note as an A4 page (dashboards/warehouse/pages/PrintDoc.jsx). */
+.pdoc-wrap {
+  min-height: 100vh;
+  padding: 20px 12px 40px;
+  background: #ecebe6;
+  color: #1a1a17;
+}
+.pdoc-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  max-width: 210mm;
+  margin: 0 auto 14px;
+}
+.pdoc {
+  position: relative;
+  box-sizing: border-box;
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 14mm 12mm;
+  background: #fff;
+  font: 10pt/1.4 'Segoe UI', Arial, sans-serif;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 12%);
+}
+.pdoc p {
+  margin: 0 0 2px;
+}
+.pdoc h1 {
+  margin: 0 0 2px;
+  font-size: 15pt;
+  color: #16301f;
+}
+.pdoc h2 {
+  margin: 0;
+  font-size: 14pt;
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pdoc h3 {
+  margin: 0 0 4px;
+  font-size: 9pt;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b6b6b;
+}
+.pdoc-brand {
+  color: #6b6b6b;
+}
+.pdoc-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #1d4d2b;
+}
+.pdoc-copy {
+  text-align: right;
+  font-size: 8.5pt;
+  color: #6b6b6b;
+}
+.pdoc-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #d9d9d9;
+}
+.pdoc-meta dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1px 10px;
+  margin: 0;
+}
+.pdoc-meta dt {
+  color: #6b6b6b;
+}
+.pdoc-meta dd {
+  margin: 0;
+}
+.pdoc-lines {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+.pdoc-lines th,
+.pdoc-lines td {
+  padding: 5px 6px;
+  border: 1px solid #cfcfcf;
+  text-align: left;
+  vertical-align: top;
+}
+.pdoc-lines th {
+  background: #eef3ec;
+  font-weight: 600;
+}
+.pdoc-lines .n,
+.pdoc-totals td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+.pdoc-foot {
+  display: grid;
+  grid-template-columns: 1fr 70mm;
+  gap: 16px;
+  align-items: start;
+}
+.pdoc-words {
+  margin-bottom: 6px !important;
+}
+.pdoc-note {
+  font-size: 9pt;
+  color: #444;
+}
+.pdoc-totals {
+  width: 100%;
+  border-collapse: collapse;
+}
+.pdoc-totals td {
+  padding: 3px 6px;
+  border-bottom: 1px solid #e5e5e5;
+}
+.pdoc-grand td {
+  padding-top: 6px;
+  border-top: 2px solid #1d4d2b;
+  border-bottom: 0;
+  font-size: 11.5pt;
+  font-weight: 700;
+}
+.pdoc-sign {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 28mm;
+}
+.pdoc-sign div {
+  text-align: right;
+}
+.pdoc-sign__line {
+  margin-top: 18mm !important;
+  padding-top: 4px;
+  border-top: 1px solid #1a1a17;
+}
+.pdoc-stamp {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-24deg);
+  padding: 6px 24px;
+  border: 5px solid rgb(180 30 30 / 45%);
+  border-radius: 8px;
+  font-size: 48pt;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgb(180 30 30 / 45%);
+  pointer-events: none;
+}
+@media (max-width: 720px) {
+  .pdoc {
+    padding: 16px;
+    min-height: 0;
+  }
+  .pdoc-head,
+  .pdoc-meta,
+  .pdoc-foot {
+    display: block;
+  }
+  .pdoc h2,
+  .pdoc-copy {
+    text-align: left;
+    margin-top: 8px;
+  }
+  .pdoc-lines {
+    display: block;
+    overflow-x: auto;
+  }
+}
+@page {
+  size: A4;
+  margin: 0;
+}
+@media print {
+  .pdoc-wrap {
+    padding: 0;
+    background: #fff;
+  }
+  .pdoc-bar {
+    display: none;
+  }
+  .pdoc {
+    box-shadow: none;
+    max-width: none;
+  }
+}
