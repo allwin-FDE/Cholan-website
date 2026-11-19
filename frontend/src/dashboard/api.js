@@ -75,6 +75,12 @@ export const api = {
     series: () => adminFetch('/sales/series'),
     setSeries: (body) => adminFetch('/sales/series', { method: 'POST', body }),
   },
+  // Online payments (Razorpay), GST helpers, Tally, reminders and reports.
+  accounts: {
+    online: () => adminFetch('/accounts/online'),
+    switchOnline: (on) => adminFetch('/accounts/online/switch', { method: 'POST', body: { on } }),
+    refund: (orderId, reason) => adminFetch(`/accounts/online/orders/${orderId}/refund`, { method: 'POST', body: { reason } }),
+  },
   // Business screens (business database): products, customers and suppliers, price lists.
   business: {
     items: () => adminFetch('/business/items'),

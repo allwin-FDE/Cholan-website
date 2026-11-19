@@ -10,6 +10,9 @@ export const PAYMENT_METHODS = ['cash', 'upi', 'bank', 'cheque', 'other'];
 // Which step may follow which. Going back one step corrects a mistake before
 // the bags have left; after dispatch the only way back is a return.
 export const NEXT_STEPS = {
+  // A website order waiting for its online payment confirms itself when paid
+  // (lib/online.js); a person can only cancel it.
+  awaiting_payment: ['cancelled'],
   new: ['confirmed', 'cancelled'],
   confirmed: ['packing', 'cancelled'],
   packing: ['packed', 'confirmed', 'cancelled'],

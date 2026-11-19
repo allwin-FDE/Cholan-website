@@ -13,6 +13,8 @@ export const emptyDetails = {
   pincode: '',
   landmark: '',
   payment: 'cod',
+  stateCode: '33',
+  email: '',
   notes: '',
 };
 
@@ -26,7 +28,7 @@ export const loadSavedDetails = () => {
 };
 
 // Payment option labels (original `Fm`).
-export const paymentLabels = { cod: 'Cash on delivery', upi: 'UPI / GPay on delivery' };
+export const paymentLabels = { cod: 'Cash on delivery', upi: 'UPI / GPay on delivery', online: 'Pay online now' };
 
 // e.g. CR-081026-4821 (original `Im`).
 export const makeOrderId = () => {

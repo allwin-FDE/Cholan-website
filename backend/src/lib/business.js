@@ -73,6 +73,11 @@ export function friendly(error) {
     if (c.includes('phone')) return say('A household with this mobile number already exists. Search for it instead.', { phone: 'Already used.' });
     if (c.includes('tally')) return say('Another party already uses this Tally ledger name.', { tallyLedgerName: 'Already used.' });
     if (c.includes('barcode')) return say('Another item already has this barcode.', { barcode: 'Already used.' });
+    if (c.includes('bills_once')) return say('This supplier bill is already entered.', { supplierBillNo: 'Already entered.' });
+    if (c.includes('batches_item_id_code')) return say('That batch code is already used for this item.', { batchCode: 'Already used.' });
+    if (c.includes('branches_code')) return say('Another branch already has this code.', { code: 'Already used.' });
+    if (c.includes('locations_branch_id_code')) return say('This branch already has a place with that code.', { code: 'Already used.' });
+    if (c.includes('expense_categories_name')) return say('That category already exists.', { name: 'Already exists.' });
     if (c.includes('one_default')) return say('Only one default address of each kind is allowed.');
     return say('That already exists.');
   }

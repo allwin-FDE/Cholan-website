@@ -7,6 +7,7 @@
 // to the database. Money is whole paise throughout.
 import { InputError, toPaise } from './business.js';
 import { NEXT_STEPS, amountInWords, canMove, computeTotals } from './warehouse.js';
+import { pickBatches } from './inward.js';
 
 export const ORDER_SOURCES = ['phone', 'walk-in', 'whatsapp', 'enquiry', 'website', 'visit', 'other'];
 export const RECEIPT_METHODS = ['cash', 'upi', 'bank', 'cheque', 'card', 'razorpay', 'other'];
@@ -39,12 +40,14 @@ const today = async (client) => (await one(client, 'SELECT core.today_ist()::tex
 const fyOf = async (client, date) => (await one(client, 'SELECT core.fy($1::date) AS fy', [date])).fy;
 
 // The selling branch and its main godown (Phase 2 runs one branch).
-export async function mainPlace(client) {
+// The selling branch and its main godown: the one asked for, or the first.
+export async function mainPlace(client, branchId = null) {
   const place = await one(
     client,
     `SELECT b.id AS branch_id, b.state_code, b.gst_registration_id, l.id AS location_id
      FROM org.branches b JOIN org.locations l ON l.branch_id = b.id AND l.kind = 'godown' AND l.active
-     WHERE b.active AND b.holds_stock ORDER BY b.id, l.id LIMIT 1`,
+     WHERE b.active AND b.holds_stock AND ($1::smallint IS NULL OR b.id = $1) ORDER BY b.id, l.id LIMIT 1`,
+    [branchId ? Number(branchId) : null],
   );
   if (!place) throw new InputError('No branch with a godown is set up yet.');
   return place;
@@ -64,8 +67,8 @@ async function available(client, locationId, itemId) {
   return b?.available ?? 0;
 }
 
-export async function listStock(client) {
-  const place = await mainPlace(client);
+export async function listStock(client, { locationId = null } = {}) {
+  const place = locationId ? { location_id: Number(locationId) } : await mainPlace(client);
   return all(
     client,
     `SELECT i.id AS item_id, i.sku_code, i.name, i.pack_label, i.kind, i.low_stock_level, p.name AS product_name,
@@ -92,7 +95,7 @@ export async function stockMoves(client, itemId) {
 // Opening count, goods received, a counted correction, bags found damaged, or
 // damaged bags thrown away. Admin and Owner only (the route checks).
 export async function adjustStock(client, body) {
-  const place = await mainPlace(client);
+  const place = body.locationId ? { location_id: Number(body.locationId) } : await mainPlace(client);
   const item = await one(client, 'SELECT id, name FROM catalog.items WHERE id = $1', [Number(body.itemId)]);
   if (!item) throw notFound('Item');
   const kind = body.kind;
@@ -183,7 +186,7 @@ async function shipTo(client, party, addressId) {
 // The order as it would be priced, with stock and credit, before saving it.
 export async function previewOrder(client, body, { canSetPrice }) {
   const party = await partyForOrder(client, Number(body.partyId));
-  const place = await mainPlace(client);
+  const place = await mainPlace(client, body.branchId);
   const date = await today(client);
   const lines = await priceLines(client, party.id, body.lines, date, { canSetPrice });
   const ship = await shipTo(client, party, body.addressId ? Number(body.addressId) : null);
@@ -213,7 +216,7 @@ export async function previewOrder(client, body, { canSetPrice }) {
 
 export async function createOrder(client, body, { canSetPrice }) {
   const party = await partyForOrder(client, Number(body.partyId));
-  const place = await mainPlace(client);
+  const place = await mainPlace(client, body.branchId);
   const date = await today(client);
   const lines = await priceLines(client, party.id, body.lines, date, { canSetPrice });
   const kinds = new Set(lines.filter((l) => l.includesGst != null).map((l) => l.includesGst));
@@ -335,14 +338,22 @@ export async function moveOrder(client, id, to, body, { isAdmin }) {
       await stockMove(client, { ...ref, itemId, type: 'reserve', reserved: qty });
     }
   }
-  if (to === 'cancelled' && ['confirmed', 'packing', 'packed'].includes(from)) {
+  if (to === 'cancelled' && ['awaiting_payment', 'confirmed', 'packing', 'packed'].includes(from)) {
     const live = await one(client, "SELECT number FROM sales.invoices WHERE order_id = $1 AND status = 'issued'", [id]);
     if (live) throw new InputError(`Cancel invoice ${live.number} first.`);
     for (const [itemId, qty] of byItem) await stockMove(client, { ...ref, itemId, type: 'release', reserved: -qty, reason });
   }
   if (to === 'dispatched') {
     if (!(await one(client, "SELECT 1 FROM sales.invoices WHERE order_id = $1 AND status = 'issued'", [id]))) await createInvoice(client, id, {});
-    for (const [itemId, qty] of byItem) await stockMove(client, { ...ref, itemId, type: 'dispatch', onHand: -qty, reserved: -qty });
+    for (const [itemId, qty] of byItem) {
+      for (const p of await pickBatches(client, place.location_id, itemId, qty)) {
+        await client.query(
+          `INSERT INTO inv.stock_moves (location_id, item_id, batch_id, type, on_hand_change, reserved_change, ref_type, ref_id, ref_number)
+           VALUES ($1, $2, $3, 'dispatch', $4, $4, 'order', $5, $6)`,
+          [place.location_id, itemId, p.batchId, -p.qty, id, order.number],
+        );
+      }
+    }
     await client.query(
       `INSERT INTO sales.dispatches (order_id, dispatched_on) VALUES ($1, core.today_ist())
        ON CONFLICT (order_id) DO UPDATE SET dispatched_on = coalesce(sales.dispatches.dispatched_on, EXCLUDED.dispatched_on)`,

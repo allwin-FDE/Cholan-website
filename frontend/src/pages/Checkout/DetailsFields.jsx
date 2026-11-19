@@ -2,9 +2,12 @@ import ChoiceRadio from '../../components/checkout/ChoiceRadio';
 import Field from '../../components/checkout/Field';
 import { site } from '../../config/site';
 import { paymentLabels } from './orderHelpers';
+import { GST_STATES } from '../../lib/shop';
 
-// The three form cards: your details, delivery, payment.
-export default function DetailsFields({ details, errors, bind }) {
+// The three form cards: your details, delivery, payment. `online` adds
+// "Pay online now" (Razorpay) for home delivery, when the shop takes it.
+export default function DetailsFields({ details, errors, bind, online = false }) {
+  const canPayOnline = online && details.method === 'delivery';
   return (
     <div className="co-form">
       <fieldset className="co-card">
@@ -112,7 +115,33 @@ export default function DetailsFields({ details, errors, bind }) {
             title={paymentLabels.upi}
             note="Scan and pay on arrival"
           />
+          {canPayOnline && (
+            <ChoiceRadio
+              name="payment"
+              value="online"
+              current={details.payment}
+              onChange={bind('payment')}
+              title={paymentLabels.online}
+              note="UPI, card or netbanking, secured by Razorpay"
+            />
+          )}
         </div>
+        {canPayOnline && details.payment === 'online' && (
+          <div className="co-row co-reveal">
+            <Field id="stateCode" label="State" error={errors.stateCode}>
+              <select id="co-stateCode" value={details.stateCode || '33'} onChange={bind('stateCode')}>
+                {GST_STATES.map(([code, label]) => (
+                  <option key={code} value={code}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field id="email" label="Email for the receipt" optional error={errors.email}>
+              <input id="co-email" type="email" value={details.email || ''} onChange={bind('email')} autoComplete="email" />
+            </Field>
+          </div>
+        )}
         <Field id="notes" label="Notes for us" optional>
           <textarea
             id="co-notes"

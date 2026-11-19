@@ -13,20 +13,29 @@ export default function OrderDone({ order }) {
           </svg>
         </div>
         <h1>Thank you, {order.name.split(' ')[0]}!</h1>
+        {order.paid ? (
+          <p className="lede">
+            We have received your payment for order <strong>{order.ref}</strong>. We'll pack your {order.count}{' '}
+            {order.count === 1 ? 'item' : 'items'} and call you about delivery.
+          </p>
+        ) : (
         <p className="lede">
           Your order of {order.count} {order.count === 1 ? 'item' : 'items'} has been sent to us on
           WhatsApp. We'll confirm availability and {order.method === 'pickup' ? 'your pickup time' : 'delivery'}{' '}
           shortly.
         </p>
+        )}
         <div className="co-done__total">
-          <span>Order total</span>
+          <span>{order.paid ? 'Paid' : 'Order total'}</span>
           <strong>{formatPrice(order.total)}</strong>
           {order.hasUnpriced && <small>+ items priced on request</small>}
         </div>
         <div className="co-done__actions">
-          <a href={order.url} target="_blank" rel="noreferrer" className="btn btn--primary">
-            WhatsApp didn't open? Send again
-          </a>
+          {!order.paid && (
+            <a href={order.url} target="_blank" rel="noreferrer" className="btn btn--primary">
+              WhatsApp didn't open? Send again
+            </a>
+          )}
           <Link to="/products" className="btn btn--ghost">
             Continue shopping
           </Link>

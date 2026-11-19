@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useDash } from '../../context.js';
 import { Badge, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, ago, useLoad, when } from '../../ui.jsx';
@@ -6,6 +7,7 @@ import { money, niceDate, phoneShow, stateName } from './shared.js';
 import NotConnected from './NotConnected.jsx';
 
 export const STATUS = {
+  awaiting_payment: ['Waiting for online payment', 'warn'],
   new: ['New', 'info'],
   confirmed: ['Confirmed', 'info'],
   packing: ['Packing', 'warn'],
@@ -15,7 +17,7 @@ export const STATUS = {
   cancelled: ['Cancelled', 'muted'],
   returned: ['Returned', 'muted'],
 };
-const TABS = { open: 'Open', new: 'New', confirmed: 'Confirmed', packed: 'Packed', dispatched: 'Dispatched', delivered: 'Delivered', cancelled: 'Cancelled', '': 'All' };
+const TABS = { open: 'Open', awaiting_payment: 'Awaiting payment', new: 'New', confirmed: 'Confirmed', packed: 'Packed', dispatched: 'Dispatched', delivered: 'Delivered', cancelled: 'Cancelled', '': 'All' };
 const SOURCES = { phone: 'Phone', whatsapp: 'WhatsApp', 'walk-in': 'Walk-in', visit: 'Sales visit', enquiry: 'Website enquiry', website: 'Website', other: 'Other' };
 const STEP_LABEL = { confirmed: 'Confirm', packing: 'Start packing', packed: 'Packed', dispatched: 'Dispatch', delivered: 'Delivered' };
 export const printUrl = (kind, id) => `/admin/print/${kind}/${id}`;
@@ -28,7 +30,9 @@ export default function Orders() {
   const [tab, setTab] = useState('open');
   const [q, setQ] = useState('');
   const [search, setSearch] = useState('');
-  const [open, setOpen] = useState(null); // order id or 'new'
+  const [params] = useSearchParams();
+  // An order opened from a link elsewhere (?open=12), e.g. Online payments.
+  const [open, setOpen] = useState(() => (/^\d+$/.test(params.get('open') || '') ? Number(params.get('open')) : null)); // order id or 'new'
   useEffect(() => {
     const t = setTimeout(() => setSearch(q), 300);
     return () => clearTimeout(t);

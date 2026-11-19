@@ -23,6 +23,7 @@ import Stock from './pages/business/Stock.jsx';
 import Invoices from './pages/business/Invoices.jsx';
 import Payments from './pages/business/Payments.jsx';
 import PrintDoc from './pages/business/PrintDoc.jsx';
+import OnlinePayments from './pages/business/OnlinePayments.jsx';
 import { Icon } from './ui.jsx';
 import { DashContext, can } from './context.js';
 import '../styles/dashboard.css';
@@ -42,6 +43,7 @@ const NAV = [
   { to: '/admin/business/stock', label: 'Stock', icon: 'layers', role: 'viewer', section: 'Business' },
   { to: '/admin/business/invoices', label: 'Invoices', icon: 'file', role: 'viewer', section: 'Business' },
   { to: '/admin/business/payments', label: 'Payments and dues', icon: 'rupee', role: 'viewer', section: 'Business' },
+  { to: '/admin/business/online', label: 'Online payments', icon: 'globe', role: 'viewer', section: 'Business' },
   { to: '/admin/business/products', label: 'Products and packs', icon: 'box', role: 'viewer', section: 'Business' },
   { to: '/admin/business/parties', label: 'Customers and suppliers', icon: 'users', role: 'viewer', section: 'Business' },
   { to: '/admin/business/prices', label: 'Price lists', icon: 'tag', role: 'viewer', section: 'Business' },
@@ -229,6 +231,7 @@ export default function Dashboard() {
             <Route path="business/stock" element={<Stock />} />
             <Route path="business/invoices" element={<Invoices />} />
             <Route path="business/payments" element={<Payments />} />
+            <Route path="business/online" element={<OnlinePayments />} />
             <Route path="business/products" element={<Products />} />
             <Route path="business/parties" element={<Parties />} />
             <Route path="business/prices" element={<PriceLists />} />

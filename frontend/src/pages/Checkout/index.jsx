@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '../../context/CartContext';
 import { site } from '../../config/site';
 import DetailsFields from './DetailsFields';
 import EmptyCart from './EmptyCart';
 import OrderDone from './OrderDone';
 import OrderSummary from './OrderSummary';
+import { loadCatalog, matchCart, payOnline } from '../../lib/shop';
 import {
   DETAILS_STORAGE_KEY,
   buildOrderMessage,
@@ -18,11 +19,50 @@ export default function Checkout() {
   const [details, setDetails] = useState(loadSavedDetails);
   const [errors, setErrors] = useState({});
   const [order, setOrder] = useState(null);
+  const [catalog, setCatalog] = useState({ online: false, items: [] });
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState('');
+
+  // Whether the shop takes online payment now, and the packs it can sell.
+  useEffect(() => {
+    loadCatalog().then(setCatalog);
+  }, []);
+  const online = catalog.online && !hasUnpriced;
 
   // onChange handler factory: updates a field and clears its error.
   const bind = (field) => (event) => {
     setDetails((current) => ({ ...current, [field]: event.target.value }));
     if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
+  };
+
+  const remember = () => {
+    try {
+      const { notes, ...remembered } = details;
+      localStorage.setItem(DETAILS_STORAGE_KEY, JSON.stringify(remembered));
+    } catch {}
+  };
+
+  // Paid online through Razorpay; the order is made and confirmed by the server.
+  const submitOnline = async () => {
+    const { lines, missing } = matchCart(items, catalog);
+    if (missing.length) {
+      setPayError(`These can't be paid for online right now: ${missing.join(', ')}. Choose cash or UPI on delivery instead.`);
+      return;
+    }
+    setPaying(true);
+    setPayError('');
+    try {
+      const paid = await payOnline({ details, lines });
+      remember();
+      setOrder({ ref: paid.orderNumber, total: paid.amountPaise / 100, count, hasUnpriced: false, method: details.method, name: details.name.trim(), paid: true });
+      clear();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      if (e.fields) setErrors((current) => ({ ...current, ...e.fields }));
+      setPayError(e.message);
+    } finally {
+      setPaying(false);
+    }
   };
 
   const submit = (event) => {
@@ -33,14 +73,15 @@ export default function Checkout() {
       document.getElementById(`co-${Object.keys(found)[0]}`)?.focus();
       return;
     }
+    if (online && details.method === 'delivery' && details.payment === 'online') {
+      submitOnline();
+      return;
+    }
     const ref = makeOrderId();
     const url = `https://wa.me/${site.phoneRaw}?text=${encodeURIComponent(
       buildOrderMessage(ref, items, subtotal, hasUnpriced, details),
     )}`;
-    try {
-      const { notes, ...remembered } = details;
-      localStorage.setItem(DETAILS_STORAGE_KEY, JSON.stringify(remembered));
-    } catch {}
+    remember();
     window.open(url, '_blank', 'noopener');
     setOrder({
       ref,
@@ -72,7 +113,7 @@ export default function Checkout() {
           </ol>
         </header>
         <form className="co-grid" onSubmit={submit} noValidate>
-          <DetailsFields details={details} errors={errors} bind={bind} />
+          <DetailsFields details={details} errors={errors} bind={bind} online={online} />
           <OrderSummary
             items={items}
             count={count}
@@ -80,6 +121,9 @@ export default function Checkout() {
             hasUnpriced={hasUnpriced}
             method={details.method}
             setQty={setQty}
+            payOnline={online && details.method === 'delivery' && details.payment === 'online'}
+            paying={paying}
+            payError={payError}
           />
         </form>
       </div>
