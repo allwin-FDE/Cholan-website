@@ -5,13 +5,18 @@ import { formatPrice } from '../../lib/format';
 import { getDefaultPack } from '../../lib/packs';
 import { hasProductImage } from '../../lib/products';
 import AddToCart from './AddToCart';
+import { useStock } from '../../context/StockContext';
 import { categoryName } from './productOrder';
 
 // Product tile used on Home, Products and ProductDetail "related" (original `xf`).
-// The sizes can be picked: the price and Add to cart follow the chosen one.
+// The sizes can be picked: the price and Add to cart (or Enquire, for a pack
+// with no stock) follow the chosen one.
 export default function ProductCard({ product }) {
   const [size, setSize] = useState(() => getDefaultPack(product).size);
   const pack = product.packs.find((p) => p.size === size) ?? getDefaultPack(product);
+  // A pack with no stock takes an enquiry instead of going in the cart.
+  const { inStock } = useStock();
+  const buyable = features.cart && inStock(product.id, pack.size) !== false;
   const href = `/products/${product.id}`;
 
   return (
@@ -59,7 +64,7 @@ export default function ProductCard({ product }) {
             <Link to={href} className="card__details">
               Details
             </Link>
-            {features.cart ? (
+            {buyable ? (
               <AddToCart product={product} pack={pack} />
             ) : (
               <Link to={`/contact?product=${product.id}`} className="card__enquire">

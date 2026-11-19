@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import ProductCard from '../components/product/ProductCard';
 import AddToCart from '../components/product/AddToCart';
+import { useStock } from '../context/StockContext';
 import { site } from '../config/site';
 import { features } from '../config/features';
 import { categories } from '../data/categories';
@@ -77,6 +78,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const product = getProduct(id);
   const [packIndex, setPackIndex] = useState(0);
+  const { inStock } = useStock();
 
   useEffect(() => {
     if (!product) return;
@@ -95,6 +97,8 @@ export default function ProductDetail() {
   if (!product) return <Navigate to="/products" replace />;
 
   const pack = product.packs[packIndex] ?? { size: null, price: null };
+  // A pack with no stock takes an enquiry instead of going in the cart.
+  const buyable = features.cart && Boolean(pack.size) && inStock(product.id, pack.size) !== false;
   const category = categories.find((c) => c.slug === product.category);
   const related = products
     .filter((p) => p.category === product.category && p.id !== product.id)
@@ -162,14 +166,14 @@ export default function ProductDetail() {
                 </div>
               )}
               <div className="pdp__actions">
-                {features.cart && pack.size && <AddToCart key={pack.size} product={product} pack={pack} className="pdp__atc" />}
-                {!features.cart && (
+                {buyable && <AddToCart key={pack.size} product={product} pack={pack} className="pdp__atc" />}
+                {!buyable && (
                   <Link to={`/contact?product=${product.id}`} className="btn btn--primary">
                     Enquire
                   </Link>
                 )}
                 <a href={`tel:${site.phoneRaw}`} className="btn btn--ghost">
-                  {features.cart ? 'Call to order' : 'Call us'}
+                  {buyable ? 'Call to order' : 'Call us'}
                 </a>
               </div>
               <ul className="pdp__assurance">
