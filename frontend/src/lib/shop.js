@@ -16,13 +16,19 @@ export const GST_STATES = [
 ];
 
 async function call(path, body) {
-  const response = await fetch(`${apiUrl}/api/shop${path}`, {
+  if (!hasBackend) throw Object.assign(new Error('Ordering on the website isn’t available right now.'), { status: 0 });
+  let response;
+  try {
+    response = await fetch(`${apiUrl}/api/shop${path}`, {
     method: body ? 'POST' : 'GET',
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
-  });
+    });
+  } catch {
+    throw Object.assign(new Error('Could not reach the shop. Check your connection and try again.'), { status: 0 });
+  }
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(data.error || 'Something went wrong. Please try again, or WhatsApp us.'), { fields: data.fields, code: data.code });
+  if (!response.ok) throw Object.assign(new Error(data.error || 'Something went wrong. Please try again, or WhatsApp us.'), { fields: data.fields, code: data.code, status: response.status });
   return data;
 }
 
@@ -66,17 +72,27 @@ function loadRazorpay() {
   return scriptPromise;
 }
 
+// The customer's details as the server takes them.
+const customer = (details) => ({
+  name: details.name,
+  phone: details.phone,
+  email: details.email || '',
+  notes: [details.landmark && `Landmark: ${details.landmark}`, details.notes].filter(Boolean).join(' · '),
+  address: { line1: details.address, city: details.city, pincode: details.pincode, stateCode: details.stateCode || '33' },
+});
+
+// An order paid on delivery (cash or UPI) or at pickup: saved straight into
+// the shop's Orders as New, for the staff to confirm. Resolves with
+// { orderNumber, totalPaise }.
+export async function placeOrder({ details, lines }) {
+  const placed = await call('/order', { ...customer(details), method: details.method, payment: details.payment, lines });
+  return { orderNumber: placed.orderNumber, totalPaise: placed.totalPaise };
+}
+
 // Makes the order and opens Razorpay. Resolves with { orderNumber, amountPaise }
 // once paid and confirmed; rejects if the customer closes the window or it fails.
 export async function payOnline({ details, lines }) {
-  const order = await call('/checkout', {
-    name: details.name,
-    phone: details.phone,
-    email: details.email || '',
-    notes: [details.landmark && `Landmark: ${details.landmark}`, details.notes].filter(Boolean).join(' · '),
-    address: { line1: details.address, city: details.city, pincode: details.pincode, stateCode: details.stateCode || '33' },
-    lines,
-  });
+  const order = await call('/checkout', { ...customer(details), lines });
   await loadRazorpay();
   const answer = await new Promise((resolve, reject) => {
     const rzp = new window.Razorpay({

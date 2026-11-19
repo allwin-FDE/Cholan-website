@@ -6,7 +6,7 @@ import DetailsFields from './DetailsFields';
 import EmptyCart from './EmptyCart';
 import OrderDone from './OrderDone';
 import OrderSummary from './OrderSummary';
-import { loadCatalog, matchCart, payOnline } from '../../lib/shop';
+import { loadCatalog, matchCart, payOnline, placeOrder } from '../../lib/shop';
 import { useStock } from '../../context/StockContext';
 import {
   DETAILS_STORAGE_KEY,
@@ -117,6 +117,40 @@ export default function Checkout() {
       submitOnline();
       return;
     }
+    submitLater();
+  };
+
+  // Paid on delivery or at pickup: the order is saved into the shop's Orders.
+  // If every pack is one the shop's system knows, it goes there; if the
+  // system can't be reached, it is sent on WhatsApp as before, so no order is
+  // lost.
+  const submitLater = async () => {
+    const { lines, missing } = matchCart(items, catalog);
+    if (lines.length && !missing.length) {
+      setPaying(true);
+      setPayError('');
+      try {
+        const placed = await placeOrder({ details, lines });
+        remember();
+        const url = `https://wa.me/${site.phoneRaw}?text=${encodeURIComponent(buildOrderMessage(placed.orderNumber, items, subtotal, hasUnpriced, details))}`;
+        setOrder({ ref: placed.orderNumber, url, total: placed.totalPaise / 100, count, hasUnpriced: false, method: details.method, name: details.name.trim(), saved: true });
+        clear();
+        return;
+      } catch (e) {
+        // A problem with the order itself (stock, a detail): show it.
+        if (e.status && e.status < 500) {
+          if (e.fields) setErrors((current) => ({ ...current, ...e.fields }));
+          setPayError(e.message);
+          return;
+        }
+      } finally {
+        setPaying(false);
+      }
+    }
+    sendOnWhatsApp();
+  };
+
+  const sendOnWhatsApp = () => {
     const ref = makeOrderId();
     const url = `https://wa.me/${site.phoneRaw}?text=${encodeURIComponent(
       buildOrderMessage(ref, items, subtotal, hasUnpriced, details),

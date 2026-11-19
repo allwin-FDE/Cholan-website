@@ -61,7 +61,7 @@ export default function OrderSummary({ items, count, subtotal, hasUnpriced, meth
           </div>
           <div>
             <dt>{method === 'pickup' ? 'Pickup' : 'Delivery'}</dt>
-            <dd className="co-muted">{method === 'pickup' ? 'Free' : payOnline ? 'We call you to arrange it' : 'Confirmed on WhatsApp'}</dd>
+            <dd className="co-muted">{method === 'pickup' ? 'Free' : 'We call you to arrange it'}</dd>
           </div>
           <div className="co-sums__total">
             <dt>Total</dt>
@@ -84,7 +84,7 @@ export default function OrderSummary({ items, count, subtotal, hasUnpriced, meth
           </p>
         )}
         <button type="submit" className="co-place" disabled={paying}>
-          {paying ? 'Opening payment…' : payOnline ? 'Pay securely · ' : 'Place order · '}
+          {paying ? (payOnline ? 'Opening payment…' : 'Placing your order…') : payOnline ? 'Pay securely · ' : 'Place order · '}
           {!paying && <AnimatedPrice value={subtotal} />}
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M5 12h14M13 6l6 6-6 6" />
@@ -93,7 +93,7 @@ export default function OrderSummary({ items, count, subtotal, hasUnpriced, meth
         <p className="co-fine">
           {payOnline
             ? 'You pay in Razorpay’s secure window (UPI, card or netbanking). Prices include GST.'
-            : 'Your order is sent to us on WhatsApp to confirm. No payment is taken online.'}
+            : 'Your order comes straight to us; we call you to confirm it. You pay on delivery or at pickup, nothing online.'}
         </p>
       </div>
     </aside>

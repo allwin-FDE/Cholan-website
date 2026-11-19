@@ -2,6 +2,7 @@
 //
 //   GET  /api/shop/catalog     packs, website prices, in stock or not (cached 5 min)
 //   POST /api/shop/checkout    makes the order and the Razorpay order to pay
+//   POST /api/shop/order       an order paid on delivery or at pickup (New, for staff to confirm)
 //   POST /api/shop/verify      the browser's signed answer from Razorpay Checkout
 //   POST /api/razorpay/webhook Razorpay's notifications (signed; each once)
 //   POST /api/jobs/expire-unpaid      run by Cloud Scheduler (ADMIN_TOKEN)
@@ -15,7 +16,7 @@ import { dbEnabled, withTx } from '../db/pool.js';
 import { friendly } from '../lib/business.js';
 import { createRateLimit } from '../lib/rateLimit.js';
 import { requireAdmin } from '../lib/requireAdmin.js';
-import { catalog, checkout, expireUnpaid, handleWebhook, onlineStatus, razorpayApi, razorpayKeys, reconcile, verifyCheckout, webhookSignatureOk } from '../lib/online.js';
+import { catalog, checkout, placeOrder, expireUnpaid, handleWebhook, onlineStatus, razorpayApi, razorpayKeys, reconcile, verifyCheckout, webhookSignatureOk } from '../lib/online.js';
 
 export const shop = Router();
 export const razorpayWebhook = Router();
@@ -49,6 +50,11 @@ shop.get('/catalog', (req, res, next) => {
 shop.post('/checkout', checkoutLimit, (req, res, next) => {
   if (!dbEnabled()) return offline(res);
   return answer(res, next, () => withTx('website', (c) => checkout(c, req.body || {}, { rp: razorpayApi() })));
+});
+
+shop.post('/order', checkoutLimit, (req, res, next) => {
+  if (!dbEnabled()) return offline(res);
+  return answer(res, next, () => withTx('website', (c) => placeOrder(c, req.body || {})));
 });
 
 shop.post('/verify', (req, res, next) => {

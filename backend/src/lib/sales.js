@@ -222,7 +222,8 @@ export async function createOrder(client, body, { canSetPrice }) {
   const kinds = new Set(lines.filter((l) => l.includesGst != null).map((l) => l.includesGst));
   if (kinds.size > 1) throw new InputError('This order mixes prices with and without GST. Use one price list for the whole order.');
   const includes = [...kinds][0] ?? party.includes_gst;
-  const ship = await shipTo(client, party, body.addressId ? Number(body.addressId) : null);
+  // A pickup from the shop has no delivery address.
+  const ship = body.pickup ? null : await shipTo(client, party, body.addressId ? Number(body.addressId) : null);
   const source = ORDER_SOURCES.includes(body.source) ? body.source : 'phone';
   const number = (await one(client, "SELECT core.next_number('order', 'all', 'all', 'CO-', 5::smallint) AS n")).n;
   const subtotal = lines.reduce((s, l) => s + l.unit * l.qty, 0);

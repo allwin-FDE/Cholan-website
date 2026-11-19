@@ -10,7 +10,7 @@ import { seed } from '../scripts/seed-reference.js';
 import '../src/db/pool.js';
 import { friendly } from '../src/lib/business.js';
 import { adjustStock, getOrder, moveOrder } from '../src/lib/sales.js';
-import { checkout, checkoutSignatureOk, expireUnpaid, handleWebhook, onlineStatus, reconcile, refundOrder, setOnline, verifyCheckout, webhookSignatureOk } from '../src/lib/online.js';
+import { checkout, placeOrder, checkoutSignatureOk, expireUnpaid, handleWebhook, onlineStatus, reconcile, refundOrder, setOnline, verifyCheckout, webhookSignatureOk } from '../src/lib/online.js';
 
 const ADMIN = process.env.DEV_DB_ADMIN_URL;
 const name = `cholan_online_${process.pid}`;
@@ -172,5 +172,32 @@ describe('online payments', { skip: !ADMIN && 'DEV_DB_ADMIN_URL is not set' }, (
   test('no more bags can be sold online than are free', async () => {
     const free = (await stockOf('CPR-5KG')).on_hand - (await stockOf('CPR-5KG')).reserved;
     await assert.rejects(site((c) => checkout(c, buyer({ lines: [{ itemId: sku['CPR-5KG'], qty: free + 1 }] }), { rp, keys })), /only \d+ of/);
+  });
+
+  test('pay-on-delivery and pickup orders are saved as New for the staff to confirm, without holding bags', async () => {
+    const code = Object.keys(sku).find((k) => k.endsWith('-26KG'));
+    await boss((c) => adjustStock(c, { itemId: sku[code], kind: 'opening', qty: 3 }));
+    const before = await stockOf(code);
+    const cod = await site((c) => placeOrder(c, buyer({ method: 'delivery', payment: 'upi', phone: '9000011111', lines: [{ itemId: sku[code], qty: 2 }] })));
+    let o = await site((c) => getOrder(c, cod.orderId));
+    assert.equal(o.status, 'new');
+    assert.equal(o.source, 'website');
+    assert.match(o.notes, /Pay on delivery: UPI/);
+    assert.equal(o.ship_to.city, 'Coimbatore');
+    assert.equal(cod.totalPaise > 0, true);
+    assert.deepEqual(await stockOf(code), before);
+
+    const pickup = await site((c) => placeOrder(c, { name: 'Ravi', phone: '9000022222', method: 'pickup', lines: [{ itemId: sku[code], qty: 1 }] }));
+    o = await site((c) => getOrder(c, pickup.orderId));
+    assert.equal(o.status, 'new');
+    assert.equal(o.ship_to, null);
+    assert.match(o.notes, /Pickup from the shop/);
+
+    await assert.rejects(site((c) => placeOrder(c, buyer({ method: 'delivery', lines: [{ itemId: sku[code], qty: 4 }] }))), /only 3 of/);
+    await assert.rejects(site((c) => placeOrder(c, { name: 'Ravi', phone: '12345', method: 'pickup', lines: [{ itemId: sku[code], qty: 1 }] })), /mobile number/);
+    await assert.rejects(site((c) => placeOrder(c, { name: 'R', phone: '9000033333', method: 'pickup', lines: [{ itemId: sku[code], qty: 1 }] })), (e) => Boolean(e.fields?.name));
+    // The staff confirm it as usual: then the bags are kept aside.
+    await boss((c) => moveOrder(c, cod.orderId, 'confirmed', {}, { isAdmin: true }));
+    assert.equal((await stockOf(code)).reserved, before.reserved + 2);
   });
 });

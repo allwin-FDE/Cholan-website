@@ -18,6 +18,12 @@ export default function OrderDone({ order }) {
             We have received your payment for order <strong>{order.ref}</strong>. We'll pack your {order.count}{' '}
             {order.count === 1 ? 'item' : 'items'} and call you about delivery.
           </p>
+        ) : order.saved ? (
+          <p className="lede">
+            We have received your order <strong>{order.ref}</strong> for {order.count} {order.count === 1 ? 'item' : 'items'}. We'll call you
+            shortly to confirm {order.method === 'pickup' ? 'your pickup time' : 'delivery'}, and you pay{' '}
+            {order.method === 'pickup' ? 'when you collect it' : 'on delivery'}.
+          </p>
         ) : (
         <p className="lede">
           Your order of {order.count} {order.count === 1 ? 'item' : 'items'} has been sent to us on
@@ -31,7 +37,12 @@ export default function OrderDone({ order }) {
           {order.hasUnpriced && <small>+ items priced on request</small>}
         </div>
         <div className="co-done__actions">
-          {!order.paid && (
+          {!order.paid && order.saved && (
+            <a href={order.url} target="_blank" rel="noreferrer" className="btn btn--ghost">
+              Also send it on WhatsApp
+            </a>
+          )}
+          {!order.paid && !order.saved && (
             <a href={order.url} target="_blank" rel="noreferrer" className="btn btn--primary">
               WhatsApp didn't open? Send again
             </a>

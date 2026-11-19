@@ -125,6 +125,50 @@ async function customerFor(client, body) {
   return { partyId: found.id, addressId: party.addresses.at(-1)?.id || null };
 }
 
+// The customer for a pickup from the shop: found by mobile number or made
+// new, with no address needed.
+async function pickupCustomer(client, body) {
+  const name = text(body.name, 80);
+  const phone = cleanPhone(body.phone);
+  const fields = {};
+  if (name.length < 2) fields.name = 'Enter your name.';
+  if (!phone) fields.phone = 'Enter your mobile number.';
+  if (Object.keys(fields).length) throw new InputError('Please check the highlighted details.', fields);
+  const found = await one(client, "SELECT id FROM party.parties WHERE phone = $1 AND kind = 'person' AND is_customer AND active", [phone]);
+  if (found) return { partyId: found.id, addressId: null };
+  const email = text(body.email, 120).toLowerCase();
+  const party = await saveParty(client, null, { kind: 'person', displayName: name, phone, email: email || undefined, isCustomer: true, customer: { segment: 'b2c' } });
+  return { partyId: party.id, addressId: null };
+}
+
+const PAY_LATER = { cod: 'Cash on delivery', upi: 'UPI / GPay on delivery' };
+
+// A website order paid on delivery (cash or UPI) or at pickup: saved as a
+// New order for the staff to confirm (credit and stock are checked then, and
+// the bags are kept aside). Works whether or not online payment is on.
+export async function placeOrder(client, body) {
+  const lines = (Array.isArray(body.lines) ? body.lines : []).filter((l) => l && l.itemId).slice(0, 30);
+  if (!lines.length) throw new InputError('Your cart is empty.');
+  const pickup = body.method === 'pickup';
+  const { partyId, addressId } = pickup ? await pickupCustomer(client, body) : await customerFor(client, body);
+  const how = pickup ? 'Pickup from the shop, pay at pickup' : `Pay on delivery: ${PAY_LATER[body.payment] || PAY_LATER.cod}`;
+  const order = {
+    partyId,
+    addressId,
+    pickup,
+    lines: lines.map((l) => ({ itemId: Number(l.itemId), qty: l.qty })),
+    source: 'website',
+    notes: [how, text(body.notes, 500)].filter(Boolean).join(' · '),
+  };
+  const preview = await previewOrder(client, order, { canSetPrice: false });
+  for (const l of preview.lines) {
+    if (l.available < l.qty) throw new InputError(`Sorry, only ${l.available} of ${l.name} ${l.available === 1 ? 'is' : 'are'} in stock right now.`);
+  }
+  const orderId = await createOrder(client, order, { canSetPrice: false });
+  const o = await one(client, 'SELECT number FROM sales.orders WHERE id = $1', [orderId]);
+  return { orderId, orderNumber: o.number, totalPaise: preview.totalPaise };
+}
+
 // Makes the website order, holds its bags and asks Razorpay for an order.
 export async function checkout(client, body, { rp, keys = razorpayKeys() }) {
   if (!(await onlineStatus(client, keys)).enabled) {
