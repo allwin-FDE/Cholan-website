@@ -1,4 +1,5 @@
 import { apiUrl, hasBackend } from './api.js';
+import { attribution } from './tracker.js';
 
 // Paying online with Razorpay Standard Checkout (backend routes/shop.js).
 // The server makes the order and the Razorpay order; the customer pays in
@@ -79,6 +80,8 @@ const customer = (details) => ({
   email: details.email || '',
   notes: [details.landmark && `Landmark: ${details.landmark}`, details.notes].filter(Boolean).join(' · '),
   address: { line1: details.address, city: details.city, pincode: details.pincode, stateCode: details.stateCode || '33' },
+  // Where they came from (an ad, a post, a search), for the Sources report.
+  attribution: attribution(),
 });
 
 // An order paid on delivery (cash or UPI) or at pickup: saved straight into

@@ -17,6 +17,7 @@
 import crypto from 'node:crypto';
 import { InputError, cleanPhone, getParty, saveAddress, saveParty } from './business.js';
 import { createOrder, createReceipt, mainPlace, moveOrder, previewOrder, reverseReceipt } from './sales.js';
+import { saveOrderSource } from './sources.js';
 
 const text = (value, max) => (typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').slice(0, max) : '');
 const one = async (client, sql, values) => (await client.query(sql, values)).rows[0];
@@ -165,6 +166,8 @@ export async function placeOrder(client, body) {
     if (l.available < l.qty) throw new InputError(`Sorry, only ${l.available} of ${l.name} ${l.available === 1 ? 'is' : 'are'} in stock right now.`);
   }
   const orderId = await createOrder(client, order, { canSetPrice: false });
+  // Where the customer came from (Google Ads, Instagram…), for the Sources report.
+  await saveOrderSource(client, orderId, body.attribution);
   const o = await one(client, 'SELECT number FROM sales.orders WHERE id = $1', [orderId]);
   return { orderId, orderNumber: o.number, totalPaise: preview.totalPaise };
 }
@@ -183,6 +186,7 @@ export async function checkout(client, body, { rp, keys = razorpayKeys() }) {
     if (l.available < l.qty) throw new InputError(`Sorry, only ${l.available} of ${l.name} ${l.available === 1 ? 'is' : 'are'} in stock right now.`);
   }
   const orderId = await createOrder(client, order, { canSetPrice: false });
+  await saveOrderSource(client, orderId, body.attribution);
   const o = await one(client, 'SELECT number, branch_id FROM sales.orders WHERE id = $1', [orderId]);
   const place = await mainPlace(client, o.branch_id);
   for (const l of preview.lines) {

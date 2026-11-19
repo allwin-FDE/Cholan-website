@@ -14,6 +14,7 @@ import { apiUrl, hasBackend } from './api.js';
 // and is brought into line with the cookie whenever the server answers.
 
 const VISITOR_KEY = 'cholan-vid';
+const CLICK_IDS = ['gclid', 'gbraid', 'wbraid', 'msclkid', 'li_fat_id', 'ttclid', 'fbclid'];
 const SESSION_KEY = 'cholan-session';
 const SESSION_IDLE_MS = 2 * 60_000;
 const FLUSH_MS = 5000;
@@ -37,8 +38,65 @@ const context = {
   utmSource: firstUrl?.searchParams.get('utm_source') || '',
   utmMedium: firstUrl?.searchParams.get('utm_medium') || '',
   utmCampaign: firstUrl?.searchParams.get('utm_campaign') || '',
+  // The kind of ad click id on the link (Google, Meta, LinkedIn… add one), never its value.
+  clickId: CLICK_IDS.find((k) => firstUrl?.searchParams.has(k)) || '',
   history: [],
 };
+
+// ---- Where the device came from, for the Sources report ----
+// The last visit that came from somewhere (an ad, a post, a search) and the
+// very first, kept on the device, so an order placed on a later visit that
+// came straight to the site still counts for the ad that brought them. The
+// server decides what counts (backend/src/lib/sources.js).
+const TOUCH_KEY = 'cholan-touch';
+const touchNow = {
+  landing: context.landing,
+  referrer: context.referrer,
+  utmSource: context.utmSource,
+  utmMedium: context.utmMedium,
+  utmCampaign: context.utmCampaign,
+  clickId: context.clickId,
+  at: Date.now(),
+};
+const OWN_HOST = /(^|\.)cholanrice\.in$|\.web\.app$|\.firebaseapp\.com$|^localhost$|^127\.0\.0\.1$/;
+const cameFromSomewhere = (t) => {
+  if (t.utmSource || t.clickId) return true;
+  try {
+    return Boolean(t.referrer) && !OWN_HOST.test(new URL(t.referrer).hostname);
+  } catch {
+    return false;
+  }
+};
+function readTouches() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TOUCH_KEY) || 'null');
+    return saved && typeof saved === 'object' ? saved : {};
+  } catch {
+    return {};
+  }
+}
+if (typeof window !== 'undefined' && !INTERNAL.test(context.landing)) {
+  const saved = readTouches();
+  const next = { first: saved.first || touchNow, last: cameFromSomewhere(touchNow) ? touchNow : saved.last };
+  try {
+    localStorage.setItem(TOUCH_KEY, JSON.stringify(next));
+  } catch {
+    // Storage blocked: the order counts for this visit's source only.
+  }
+}
+
+// Sent with a website order or an enquiry: this visit's source, the device's
+// last and first sources, and the visit's ids.
+export function attribution() {
+  const saved = readTouches();
+  return {
+    sid: ids?.sid,
+    vid: ids?.vid || read(localStorage, VISITOR_KEY) || undefined,
+    visit: touchNow,
+    last: saved.last,
+    first: saved.first,
+  };
+}
 
 let running = false;
 let queue = [];
@@ -112,6 +170,7 @@ function flush(closing = false) {
       utmSource: context.utmSource,
       utmMedium: context.utmMedium,
       utmCampaign: context.utmCampaign,
+      clickId: context.clickId,
       screen: `${screen.width}x${screen.height}`,
       lang: navigator.language,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -312,5 +371,7 @@ export function enquiryContext() {
     utmMedium: context.utmMedium || undefined,
     utmCampaign: context.utmCampaign || undefined,
     sessionId: running && ids ? ids.sid : undefined,
+    clickId: context.clickId || undefined,
+    attribution: attribution(),
   };
 }

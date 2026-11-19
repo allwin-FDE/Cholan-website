@@ -48,6 +48,16 @@ function toDocument(row) {
     utmMedium: meta.utmMedium ?? null,
     utmCampaign: meta.utmCampaign ?? null,
     sessionId: meta.sessionId ?? null,
+    clickId: meta.clickId ?? null,
+    // The channel it counts for in the Sources report (lib/sources.js).
+    channel: meta.channel ?? null,
+    channelSource: meta.channelSource ?? null,
+    channelMedium: meta.channelMedium ?? null,
+    channelCampaign: meta.channelCampaign ?? null,
+    channelFrom: meta.channelFrom ?? null,
+    firstChannel: meta.firstChannel ?? null,
+    firstSource: meta.firstSource ?? null,
+    firstCampaign: meta.firstCampaign ?? null,
     userAgent: row.user_agent,
     createdAt: row.created_at,
   };

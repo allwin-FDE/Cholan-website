@@ -1,5 +1,7 @@
 // Validation for an incoming enquiry. Mirrors the contact form's own rules:
 // name, phone and message are required, email is optional.
+import { CLICK_IDS, attributionOf } from './sources.js';
+
 const LIMITS = {
   name: 120,
   phone: 24,
@@ -83,5 +85,25 @@ function enquiryMeta(meta) {
     utmMedium: pick('utmMedium', 100),
     utmCampaign: pick('utmCampaign', 100),
     sessionId: pick('sessionId', 64),
+    clickId: CLICK_IDS.includes(input.clickId) ? input.clickId : null,
+    ...enquirySource(input),
+  };
+}
+
+// Where the enquirer came from (Google Ads, LinkedIn…), by the same rules as
+// visits and orders (lib/sources.js). The form sends this visit's source and
+// the device's earlier ones; an older form sends only this visit's.
+function enquirySource(input) {
+  const attribution = input.attribution && typeof input.attribution === 'object' ? input.attribution : { visit: input };
+  const a = attributionOf(attribution);
+  return {
+    channel: a.channel,
+    channelSource: a.source || null,
+    channelMedium: a.medium || null,
+    channelCampaign: a.campaign || null,
+    channelFrom: a.from,
+    firstChannel: a.firstChannel || null,
+    firstSource: a.firstSource || null,
+    firstCampaign: a.firstCampaign || null,
   };
 }

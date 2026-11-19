@@ -25,6 +25,7 @@ import { collection, firestoreEnabled } from '../lib/firestore.js';
 import { createRateLimit } from '../lib/rateLimit.js';
 import { config } from '../config.js';
 import { dayKey } from '../lib/insights.js';
+import { CLICK_IDS, sourceOf } from '../lib/sources.js';
 
 const router = Router();
 
@@ -83,37 +84,7 @@ export async function visitorNumber(vid) {
 const setVidCookie = (res, value, maxAgeSeconds) =>
   res.set('Set-Cookie', `${COOKIE}=${value}; Max-Age=${maxAgeSeconds}; Path=/; Secure; HttpOnly; SameSite=Lax`);
 
-// Where a visit came from, in the words the dashboard shows.
-function sourceOf(meta) {
-  if (meta.utmSource) return { source: meta.utmSource, medium: meta.utmMedium || 'campaign' };
-  let host = '';
-  try {
-    host = new URL(meta.referrer).hostname.replace(/^www\./, '');
-  } catch {
-    return { source: 'Direct', medium: 'none' };
-  }
-  if (!host || /cholanrice\.in$|web\.app$|firebaseapp\.com$|localhost/.test(host)) return { source: 'Direct', medium: 'none' };
-  const known = [
-    [/(^|\.)google\./, 'Google', 'search'],
-    [/(^|\.)bing\.com$/, 'Bing', 'search'],
-    [/duckduckgo\.com$/, 'DuckDuckGo', 'search'],
-    [/yahoo\.com$/, 'Yahoo', 'search'],
-    [/instagram\.com$/, 'Instagram', 'social'],
-    [/facebook\.com$|fb\.me$/, 'Facebook', 'social'],
-    [/whatsapp\.com$|wa\.me$/, 'WhatsApp', 'social'],
-    [/youtube\.com$|youtu\.be$/, 'YouTube', 'social'],
-    [/linkedin\.com$|lnkd\.in$/, 'LinkedIn', 'social'],
-    [/t\.co$|twitter\.com$|x\.com$/, 'X (Twitter)', 'social'],
-    [/chatgpt\.com$|openai\.com$/, 'ChatGPT', 'ai'],
-    [/perplexity\.ai$/, 'Perplexity', 'ai'],
-    [/gemini\.google\.com$/, 'Gemini', 'ai'],
-    [/justdial\.com$/, 'JustDial', 'directory'],
-    [/indiamart\.com$/, 'IndiaMART', 'directory'],
-  ];
-  for (const [pattern, name, medium] of known) if (pattern.test(host)) return { source: name, medium };
-  return { source: host, medium: 'referral' };
-}
-
+// The device, system and browser, from the browser's own description.
 function deviceOf(ua = '') {
   const device = /iPad|Tablet/i.test(ua) ? 'Tablet' : /Mobi|Android|iPhone/i.test(ua) ? 'Mobile' : 'Desktop';
   const os = /Windows/i.test(ua)
@@ -226,6 +197,8 @@ router.post('/', limit, express.text({ type: '*/*', limit: '64kb' }), async (req
       utmSource: str(m.utmSource, 100),
       utmMedium: str(m.utmMedium, 100),
       utmCampaign: str(m.utmCampaign, 100),
+      // Which ad click id the link carried (gclid, fbclid…): the kind, not the value.
+      clickId: CLICK_IDS.includes(m.clickId) ? m.clickId : undefined,
     };
     Object.assign(visit, meta, sourceOf(meta), deviceOf(ua), {
       start: Timestamp.fromDate(now),

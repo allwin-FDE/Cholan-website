@@ -22,6 +22,7 @@ import {
   realtime,
   forgetPeriods,
 } from '../lib/insights.js';
+import { sourceReport } from '../lib/sourceReport.js';
 import { cleanPost, cleanShortPost, postsCollection, uniqueSlug } from '../lib/posts.js';
 import { clearPostCache } from './posts.js';
 import { commentsCollection } from './comments.js';
@@ -151,6 +152,17 @@ router.get(
       for (const j of list) if (bySession.has(j.id)) j.contact = bySession.get(j.id);
     }
     res.json({ steps: JOURNEY_STEPS, journeys: list });
+  }),
+);
+
+// Where visitors, enquiries and website orders came from: Google Ads, Meta
+// Ads, LinkedIn, search, WhatsApp, Direct… Sales amounts for Editors and up.
+router.get(
+  '/analyst/sources',
+  requireRole('viewer'),
+  wrap(async (req, res) => {
+    const money = ROLES.indexOf(req.user.role) >= ROLES.indexOf('editor');
+    res.json(await sourceReport(await loadPeriod(period(req)), { money }));
   }),
 );
 

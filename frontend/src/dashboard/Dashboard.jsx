@@ -4,6 +4,7 @@ import { api } from './api.js';
 import { logout, watchUser } from './firebase.js';
 import Login from './Login.jsx';
 import Overview from './pages/Overview.jsx';
+import Sources from './pages/Sources.jsx';
 import Visitors from './pages/Visitors.jsx';
 import PagesReport from './pages/PagesReport.jsx';
 import Heatmaps from './pages/Heatmaps.jsx';
@@ -39,6 +40,7 @@ const NAV = [
   { group: 'Website' },
   { to: '/admin', label: 'Overview', icon: 'grid', end: true, role: 'viewer' },
   { to: '/admin/realtime', label: 'Realtime', icon: 'pulse', role: 'viewer' },
+  { to: '/admin/sources', label: 'Sources', icon: 'globe', role: 'viewer' },
   { to: '/admin/visitors', label: 'Visitors', icon: 'users', role: 'viewer' },
   { to: '/admin/pages', label: 'Pages', icon: 'file', role: 'viewer' },
   { to: '/admin/products', label: 'Products', icon: 'box', role: 'viewer' },
@@ -245,6 +247,7 @@ export default function Dashboard() {
           <Routes>
             <Route index element={<Overview />} />
             <Route path="realtime" element={<Realtime />} />
+            <Route path="sources" element={<Sources />} />
             <Route path="visitors" element={<Visitors />} />
             <Route path="pages" element={<PagesReport />} />
             <Route path="products" element={<Products />} />

@@ -138,6 +138,7 @@ export const api = {
   behaviour: (days) => adminFetch(`/analyst/behaviour?${q(days)}`),
   scroll: (days) => adminFetch(`/analyst/scroll?${q(days)}`),
   journeys: (days) => adminFetch(`/analyst/journeys?${q(days)}`),
+  sources: (days) => adminFetch(`/analyst/sources?${q(days)}`),
   realtime: () => adminFetch('/analyst/realtime'),
   deleteVisits: (ids) => adminFetch('/visits/delete', { method: 'POST', body: { ids } }),
   enquiries: () => adminFetch('/enquiries'),

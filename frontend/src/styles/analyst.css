@@ -660,3 +660,57 @@ a.an-nav__link:hover {
 .an-nav__group:first-child {
   margin-top: 2px;
 }
+
+/* ---- Sources (dashboard/pages/Sources.jsx) ---- */
+.src-list,
+.src-notes,
+.src-help ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.src-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--d-line-soft);
+}
+.src-list li:last-child {
+  border-bottom: 0;
+}
+.src-notes li,
+.src-help li {
+  margin-bottom: 8px;
+  color: var(--d-ink-2);
+  line-height: 1.5;
+}
+.src-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.src-link code {
+  flex: 1 1 260px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--d-line);
+  border-radius: 10px;
+  background: var(--d-bg);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.src-help {
+  margin-top: 14px;
+}
+.src-help summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.src-help code {
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+}

@@ -200,4 +200,29 @@ describe('online payments', { skip: !ADMIN && 'DEV_DB_ADMIN_URL is not set' }, (
     await boss((c) => moveOrder(c, cod.orderId, 'confirmed', {}, { isAdmin: true }));
     assert.equal((await stockOf(code)).reserved, before.reserved + 2);
   });
+
+  test('a website order keeps where the customer came from, and a bad source never stops it', async () => {
+    const code = Object.keys(sku).find((k) => k.endsWith('-26KG'));
+    await boss((c) => adjustStock(c, { itemId: sku[code], kind: 'opening', qty: 2 }));
+    const now = Date.now();
+    const attribution = {
+      sid: 'session-abc123',
+      vid: 'visitor-abc123',
+      visit: { landing: '/products/seeraga-samba', referrer: '' },
+      last: { utmSource: 'facebook', utmMedium: 'paid', utmCampaign: 'Pongal offer', clickId: 'fbclid', at: now - 86_400_000 },
+      first: { referrer: 'https://www.google.com/', at: now - 10 * 86_400_000 },
+    };
+    const placed = await site((c) => placeOrder(c, { name: 'Meena', phone: '9000044444', method: 'pickup', attribution, lines: [{ itemId: sku[code], qty: 1 }] }));
+    const row = (await app.query('SELECT * FROM sales.order_attribution WHERE order_id = $1', [placed.orderId])).rows[0];
+    assert.equal(row.channel, 'Meta Ads');
+    assert.equal(row.campaign, 'Pongal offer');
+    assert.equal(row.click_id, 'fbclid');
+    assert.equal(row.touch_from, 'an earlier visit');
+    assert.equal(row.first_channel, 'Google search');
+    assert.equal(row.session_id, 'session-abc123');
+
+    // Nothing sent (an old page), or rubbish: the order still goes in, as Direct.
+    const bare = await site((c) => placeOrder(c, { name: 'Meena', phone: '9000044444', method: 'pickup', attribution: 'x'.repeat(5000), lines: [{ itemId: sku[code], qty: 1 }] }));
+    assert.equal((await app.query('SELECT channel FROM sales.order_attribution WHERE order_id = $1', [bare.orderId])).rows[0].channel, 'Direct');
+  });
 });
