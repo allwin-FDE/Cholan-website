@@ -75,6 +75,33 @@ export const api = {
     series: () => adminFetch('/sales/series'),
     setSeries: (body) => adminFetch('/sales/series', { method: 'POST', body }),
   },
+  // Buying and spending (business database): purchase orders, goods received,
+  // supplier bills and payments, what is owed to suppliers, and expenses.
+  inward: {
+    branches: () => adminFetch('/inward/branches'),
+    purchaseOrders: (status = '') => adminFetch(`/inward/purchase-orders?${new URLSearchParams({ status })}`),
+    purchaseOrder: (id) => adminFetch(`/inward/purchase-orders/${id}`),
+    createPurchaseOrder: (body) => adminFetch('/inward/purchase-orders', { method: 'POST', body }),
+    setPurchaseOrderStatus: (id, to, reason) => adminFetch(`/inward/purchase-orders/${id}/status`, { method: 'POST', body: { to, reason } }),
+    goodsReceived: () => adminFetch('/inward/goods-received'),
+    goodsReceivedNote: (id) => adminFetch(`/inward/goods-received/${id}`),
+    createGoodsReceived: (body) => adminFetch('/inward/goods-received', { method: 'POST', body }),
+    bills: (q = '', partyId = '') => adminFetch(`/inward/bills?${new URLSearchParams({ q, partyId })}`),
+    bill: (id) => adminFetch(`/inward/bills/${id}`),
+    createBill: (body) => adminFetch('/inward/bills', { method: 'POST', body }),
+    cancelBill: (id, reason) => adminFetch(`/inward/bills/${id}/cancel`, { method: 'POST', body: { reason } }),
+    payments: (partyId = '') => adminFetch(`/inward/supplier-payments?${new URLSearchParams({ partyId })}`),
+    pay: (body) => adminFetch('/inward/supplier-payments', { method: 'POST', body }),
+    reversePayment: (id, reason) => adminFetch(`/inward/supplier-payments/${id}/reverse`, { method: 'POST', body: { reason } }),
+    payables: () => adminFetch('/inward/payables'),
+    supplierAccount: (partyId) => adminFetch(`/inward/suppliers/${partyId}/account`),
+    expenseCategories: () => adminFetch('/inward/expense-categories'),
+    saveExpenseCategory: (id, body) => adminFetch(`/inward/expense-categories${id ? `/${id}` : ''}`, { method: id ? 'PUT' : 'POST', body }),
+    expenses: (from = '', to = '', categoryId = '') => adminFetch(`/inward/expenses?${new URLSearchParams({ from, to, categoryId })}`),
+    createExpense: (body) => adminFetch('/inward/expenses', { method: 'POST', body }),
+    cancelExpense: (id, reason) => adminFetch(`/inward/expenses/${id}/cancel`, { method: 'POST', body: { reason } }),
+    expensePhoto: (id, blob) => adminFetch(`/inward/expenses/${id}/photo`, { method: 'POST', raw: blob, contentType: blob.type }),
+  },
   // Online payments (Razorpay), GST helpers, Tally, reminders and reports.
   accounts: {
     online: () => adminFetch('/accounts/online'),
@@ -136,6 +163,22 @@ export const api = {
   deleteMedia: (name) => adminFetch(`/media/${name}`, { method: 'DELETE' }),
   upload: (blob) => adminFetch('/media', { method: 'POST', raw: blob, contentType: blob.type }),
 };
+
+// Opens the private photo of an expense bill in a new tab. It needs the
+// person's login, so it is fetched here rather than linked directly.
+export async function openExpensePhoto(id) {
+  const tab = window.open('', '_blank');
+  try {
+    const response = await fetch(`${apiUrl}/api/admin/inward/expenses/${id}/photo`, { headers: { Authorization: `Bearer ${await token()}` } });
+    if (!response.ok) throw new AdminError((await response.json().catch(() => ({}))).error || 'Could not open the photo.');
+    const url = URL.createObjectURL(await response.blob());
+    if (tab) tab.location.href = url;
+    else window.location.href = url;
+  } catch (error) {
+    tab?.close();
+    throw error;
+  }
+}
 
 // Shrinks a photo before upload: at most 1800px wide, as WebP. A phone photo
 // of several MB becomes a few hundred KB, and pages stay quick to load.

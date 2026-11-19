@@ -442,7 +442,7 @@ export async function setPurchaseOrderStatus(client, id, body) {
 export async function listPurchaseOrders(client, { status = '' } = {}) {
   return all(
     client,
-    `SELECT o.id, o.number, o.status, o.order_date, o.expected_on, p.display_name AS supplier, b.name AS branch,
+    `SELECT o.id, o.number, o.status, o.order_date, o.expected_on, o.party_id, p.display_name AS supplier, b.name AS branch,
             (SELECT sum(qty * rate_paise) FROM purch.order_lines WHERE order_id = o.id)::bigint AS value_paise,
             (SELECT sum(qty) FROM purch.order_lines WHERE order_id = o.id)::int AS qty,
             (SELECT sum(qty_received) FROM purch.order_lines WHERE order_id = o.id)::int AS qty_received
@@ -526,7 +526,7 @@ export async function createGoodsReceived(client, body) {
 export async function listGoodsReceived(client) {
   return all(
     client,
-    `SELECT r.id, r.number, r.received_on, r.vehicle_no, r.weighbridge_ticket, r.moisture_pct, r.gross_kg, r.tare_kg,
+    `SELECT r.id, r.number, r.received_on, r.party_id, r.vehicle_no, r.weighbridge_ticket, r.moisture_pct, r.gross_kg, r.tare_kg,
             p.display_name AS supplier, l.name AS location, o.number AS order_number,
             (SELECT sum(qty_received) FROM purch.receipt_lines WHERE receipt_id = r.id)::int AS qty_received,
             (SELECT sum(qty_accepted) FROM purch.receipt_lines WHERE receipt_id = r.id)::int AS qty_accepted,

@@ -2091,6 +2091,20 @@
   flex: 1 1 220px;
   min-width: 0;
 }
+.biz-line--wrap {
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--d-line);
+}
+.biz-line--wrap:last-child {
+  border-bottom: 0;
+}
+.biz-line .biz-wide {
+  flex: 1 1 100%;
+}
+details.biz-section > summary {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
 .biz-line__name {
   flex: 1 1 200px;
 }

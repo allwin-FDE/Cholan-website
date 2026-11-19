@@ -90,6 +90,27 @@ const SECTIONS = [
       'To correct a live blog, open it from the list and click “Save changes”. To take it down, choose Save draft, or Delete to remove it for good.',
     ],
   },
+  {
+    title: 'Buying stock and paying suppliers',
+    steps: [
+      'Add the supplier once, under Customers and suppliers (tick Supplier, and give their usual payment terms in days).',
+      'Optional: under Purchases, “Purchase order” records what you ordered (Admin and Owner).',
+      'When the goods arrive, click “Goods received”. Choose the supplier and, if there is one, the purchase order, which fills in what is still to come. Type how many arrived and how many you accepted; give a reason for any rejected. The accepted bags go into stock at once, as a batch.',
+      'When their bill comes, open the goods received and click “Enter the bill for this”: the items and the order’s rates are filled in. Check them against the paper bill, type the bill number, and the total printed on the bill so mistakes are caught.',
+      'To pay, click “Pay a supplier”. It pays their oldest bill first, or choose the bills. UPI, bank and cheque payments need the reference number.',
+      '“Owed to suppliers” shows what you owe each one, by age. Click a supplier to see their unpaid bills and payments. A wrong bill or payment is cancelled or reversed with a reason (Admin and Owner); nothing is deleted.',
+    ],
+  },
+  {
+    title: 'Recording expenses',
+    steps: [
+      'Expenses are money spent that is not stock: rent, wages, diesel, electricity, repairs.',
+      'Click “Add expense”, choose what it was for, type the amount before GST and the GST rate, and add a photo of the bill (on a phone it opens the camera). A photo can also be added later from the list.',
+      'The bill photos are private: only people signed in to the admin can open them.',
+      'Choose the dates at the top to see the total spent, by category. Download gives the list as a spreadsheet for the accountant.',
+      'Admin and Owner can add categories, and set the Tally ledger each one goes to.',
+    ],
+  },
 ];
 
 export default function Help() {

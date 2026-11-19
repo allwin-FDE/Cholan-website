@@ -122,14 +122,15 @@ export default function Orders() {
   );
 }
 
-export function CustomerPicker({ value, onPick }) {
+export function CustomerPicker({ value, onPick, type = 'customer' }) {
+  const who = type === 'supplier' ? 'supplier' : 'customer';
   const [q, setQ] = useState('');
   const [found, setFound] = useState([]);
   useEffect(() => {
     if (value || q.trim().length < 2) return setFound([]);
-    const t = setTimeout(() => api.business.parties('customer', q).then((d) => setFound(d.parties.filter((p) => p.active).slice(0, 8))).catch(() => {}), 250);
+    const t = setTimeout(() => api.business.parties(type, q).then((d) => setFound(d.parties.filter((p) => p.active).slice(0, 8))).catch(() => {}), 250);
     return () => clearTimeout(t);
-  }, [q, value]);
+  }, [q, value, type]);
   if (value) {
     return (
       <div className="biz-picked">
@@ -147,7 +148,7 @@ export function CustomerPicker({ value, onPick }) {
     <div className="biz-picker">
       <label className="dash-search">
         <Icon name="search" />
-        <input autoFocus placeholder="Type the customer's name, mobile or GSTIN" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input autoFocus placeholder={`Type the ${who}'s name, mobile or GSTIN`} value={q} onChange={(e) => setQ(e.target.value)} />
       </label>
       {found.length > 0 && (
         <ul className="biz-list biz-pick-list">
@@ -160,7 +161,7 @@ export function CustomerPicker({ value, onPick }) {
           ))}
         </ul>
       )}
-      {q.trim().length >= 2 && !found.length && <p className="dash-muted dash-small">No customer found. Add them first under Customers and suppliers.</p>}
+      {q.trim().length >= 2 && !found.length && <p className="dash-muted dash-small">No {who} found. Add them first under Customers and suppliers.</p>}
     </div>
   );
 }
