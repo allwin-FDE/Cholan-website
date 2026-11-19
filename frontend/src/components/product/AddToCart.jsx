@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useCart } from '../../context/CartContext';
+import { useStock } from '../../context/StockContext';
 import { getDefaultPack } from '../../lib/packs';
 import { flyToCart, floatPlusOne } from './flyToCart';
 
@@ -14,6 +15,24 @@ export default function AddToCart({ product, pack = getDefaultPack(product), cla
   const cart = useCart();
   const ref = useRef(null);
   const qty = cart.qtyOf(product.id, pack.size);
+  const out = useStock().inStock(product.id, pack.size) === false;
+
+  // No bags of this pack: nothing can be added. One already in the cart can be taken out.
+  if (out) {
+    return (
+      <div ref={ref} className={`atc atc--out ${className}`}>
+        {qty > 0 ? (
+          <button type="button" className="atc__add atc__add--out" onClick={() => cart.setQty(product.id, pack.size, 0)}>
+            Out of stock · Remove
+          </button>
+        ) : (
+          <button type="button" className="atc__add atc__add--out" disabled>
+            Out of stock
+          </button>
+        )}
+      </div>
+    );
+  }
 
   const add = (event) => {
     const source = ref.current

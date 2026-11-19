@@ -566,3 +566,36 @@
     animation: none;
   }
 }
+
+/* Out of stock (context/StockContext.jsx): nothing can be added. */
+.atc--out .atc__add,
+.products-grid .atc--out .atc__add,
+.showcase .atc--out .atc__add {
+  background: #ece6d6;
+  color: #7a6f57;
+  border-color: #e0d7c1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.atc--out .atc__add:not(:disabled) {
+  cursor: pointer;
+  color: #9a3a22;
+}
+.atc--out .atc__add svg {
+  display: none;
+}
+.cart__out {
+  display: block;
+  margin-top: 2px;
+  color: #b3412a;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.cart__note--out {
+  color: #b3412a;
+  font-weight: 600;
+}
+.cart__order.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

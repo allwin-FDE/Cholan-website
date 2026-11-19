@@ -6,6 +6,7 @@ import EmptyCart from './EmptyCart';
 import OrderDone from './OrderDone';
 import OrderSummary from './OrderSummary';
 import { loadCatalog, matchCart, payOnline } from '../../lib/shop';
+import { useStock } from '../../context/StockContext';
 import {
   DETAILS_STORAGE_KEY,
   buildOrderMessage,
@@ -28,6 +29,8 @@ export default function Checkout() {
     loadCatalog().then(setCatalog);
   }, []);
   const online = catalog.online && !hasUnpriced;
+  const { inStock } = useStock();
+  const outOfStock = items.filter((item) => inStock(item.id, item.size) === false);
 
   // onChange handler factory: updates a field and clears its error.
   const bind = (field) => (event) => {
@@ -67,6 +70,10 @@ export default function Checkout() {
 
   const submit = (event) => {
     event.preventDefault();
+    if (outOfStock.length) {
+      setPayError(`Out of stock: ${outOfStock.map((i) => `${i.product.name} (${i.size})`).join(', ')}. Please remove ${outOfStock.length === 1 ? 'it' : 'them'} to place the order.`);
+      return;
+    }
     const found = validateDetails(details);
     setErrors(found);
     if (Object.keys(found).length) {
@@ -124,6 +131,7 @@ export default function Checkout() {
             payOnline={online && details.method === 'delivery' && details.payment === 'online'}
             paying={paying}
             payError={payError}
+            outOfStock={outOfStock.map((i) => `${i.product.name} (${i.size})`)}
           />
         </form>
       </div>

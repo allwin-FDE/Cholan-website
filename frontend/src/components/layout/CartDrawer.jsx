@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext.jsx';
+import { useStock } from '../../context/StockContext.jsx';
 import { formatPrice } from '../../lib/format.js';
 import { hasProductImage } from '../../lib/products.js';
 
 // Slide-in cart drawer (original `Jd`). Only mounted when features.cart is on.
 export default function CartDrawer() {
   const { items, count, subtotal, hasUnpriced, setQty, clear, open, setOpen } = useCart();
+  const { inStock } = useStock();
+  const anyOut = items.some((item) => inStock(item.id, item.size) === false);
   const panelRef = useRef(null);
   const close = () => setOpen(false);
 
@@ -75,6 +78,7 @@ export default function CartDrawer() {
                       {item.size ? `${item.size} · ` : ''}
                       {formatPrice(item.price)}
                     </span>
+                    {inStock(item.id, item.size) === false && <span className="cart__out">Out of stock · please remove</span>}
                     <div className="cart__qty">
                       <button
                         type="button"
@@ -121,7 +125,8 @@ export default function CartDrawer() {
                   Some items are priced on request — we'll confirm on WhatsApp.
                 </p>
               )}
-              <Link to="/checkout" className="cart__order" onClick={close}>
+              {anyOut && <p className="cart__note cart__note--out">Remove the items that are out of stock to check out.</p>}
+              <Link to="/checkout" className={`cart__order${anyOut ? ' is-disabled' : ''}`} onClick={(e) => (anyOut ? e.preventDefault() : close())} aria-disabled={anyOut || undefined}>
                 Checkout · {formatPrice(subtotal)}
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M5 12h14M13 6l6 6-6 6" />

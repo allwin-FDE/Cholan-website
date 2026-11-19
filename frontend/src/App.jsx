@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { features } from './config/features.js';
 import { CartProvider } from './context/CartContext.jsx';
+import { StockProvider } from './context/StockContext.jsx';
 import ScrollToTop from './components/layout/ScrollToTop.jsx';
 import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
@@ -84,6 +85,7 @@ export default function App() {
       <ScrollToTop />
       <Analytics />
       <CartProvider>
+      <StockProvider>
         <Routes>
           <Route path="/story" element={<Story />} />
           <Route
@@ -105,6 +107,7 @@ export default function App() {
           />
           <Route path="*" element={<AppShell />} />
         </Routes>
+      </StockProvider>
       </CartProvider>
     </BrowserRouter>
   );

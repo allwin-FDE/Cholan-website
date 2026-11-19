@@ -2,7 +2,7 @@ import AnimatedPrice from '../../components/checkout/AnimatedPrice';
 import { formatPrice } from '../../lib/format';
 import { hasProductImage } from '../../lib/products';
 
-export default function OrderSummary({ items, count, subtotal, hasUnpriced, method, setQty, payOnline = false, paying = false, payError = '' }) {
+export default function OrderSummary({ items, count, subtotal, hasUnpriced, method, setQty, payOnline = false, paying = false, payError = '', outOfStock = [] }) {
   return (
     <aside className="co-summary">
       <div className="co-card co-card--summary">
@@ -72,6 +72,11 @@ export default function OrderSummary({ items, count, subtotal, hasUnpriced, meth
         </dl>
         {hasUnpriced && (
           <p className="co-note">+ items priced on request — we'll add them when we confirm.</p>
+        )}
+        {outOfStock.length > 0 && !payError && (
+          <p className="co-note co-note--error" role="alert">
+            Out of stock: {outOfStock.join(', ')}. Please remove {outOfStock.length === 1 ? 'it' : 'them'} to place the order.
+          </p>
         )}
         {payError && (
           <p className="co-note co-note--error" role="alert">
