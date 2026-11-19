@@ -675,6 +675,27 @@ export async function listOrders(client, { status = '', q = '' } = {}) {
   );
 }
 
+// The delivery board: orders packed and waiting to go, on the road, and
+// delivered in the last 7 days, with the vehicle, driver and LR details.
+export async function listDeliveries(client) {
+  return all(
+    client,
+    `SELECT o.id, o.number, o.status, o.order_date, o.ship_to, p.display_name AS customer, p.phone,
+            d.dispatched_on, d.vehicle_no, d.driver_name, d.driver_phone, d.transporter, d.lr_no, d.eway_bill_no,
+            (SELECT sum(qty) FROM sales.order_lines WHERE order_id = o.id)::int AS bags,
+            i.number AS invoice_number, coalesce(i.total_paise, o.subtotal_paise) AS total_paise, ib.balance_paise,
+            (SELECT max(e.at) FROM sales.order_events e WHERE e.order_id = o.id AND e.to_status = 'delivered') AS delivered_at,
+            (core.today_ist() - d.dispatched_on) AS days_on_road
+     FROM sales.orders o JOIN party.parties p ON p.id = o.party_id
+     LEFT JOIN sales.dispatches d ON d.order_id = o.id
+     LEFT JOIN sales.invoices i ON i.order_id = o.id AND i.status = 'issued'
+     LEFT JOIN sales.invoice_balance ib ON ib.invoice_id = i.id
+     WHERE o.status IN ('packed', 'dispatched') OR (o.status = 'delivered' AND o.updated_at > now() - interval '7 days')
+     ORDER BY CASE o.status WHEN 'packed' THEN 0 WHEN 'dispatched' THEN 1 ELSE 2 END, o.id
+     LIMIT 300`,
+  );
+}
+
 export async function getOrder(client, id) {
   const order = await one(
     client,

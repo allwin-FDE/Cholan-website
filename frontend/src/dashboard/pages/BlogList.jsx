@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
+import { useUrl, useUrlSearch } from '../urlState.js';
 import { Badge, Empty, ErrorNote, Icon, Loading, PageHead, Stat, ago, dateOnly, num, useLoad } from '../ui.jsx';
 
 export const POST_STATUS = {
@@ -20,8 +21,10 @@ export default function BlogList() {
   const navigate = useNavigate();
   const saved = useLocation().state?.saved;
   const { data, loading, error, reload } = useLoad(() => api.posts(), []);
-  const [status, setStatus] = useState('');
-  const [q, setQ] = useState('');
+  const { get, patch } = useUrl();
+  const status = get('status');
+  const setStatus = (key) => patch({ status: key });
+  const [q, setQ] = useUrlSearch();
   // A photo blog opens in the composer; an older text article in its editor.
   const open = (p) => (p.format === 'post' ? `/admin/blog/edit/${p.id}` : `/admin/blog/${p.id}`);
 

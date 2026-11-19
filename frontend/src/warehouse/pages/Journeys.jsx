@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../dashboard/api.js';
+import { useUrl, useUrlSearch } from '../../dashboard/urlState.js';
 import { periodName, useDash } from '../../dashboard/context.js';
 import { Empty, ErrorNote, Icon, Loading, PageHead, downloadCsv, duration, num, pageName, useLoad, when } from '../../dashboard/ui.jsx';
 
@@ -22,9 +23,13 @@ const label = (j) => (j.visitorNo ? `V-${j.visitorNo}` : `#${(j.vid || j.id).sli
 export default function Journeys() {
   const { days, allowed, base } = useDash();
   const { data, loading, error, reload, setData } = useLoad(() => api.journeys(days), [days]);
-  const [status, setStatus] = useState('');
-  const [group, setGroup] = useState('');
-  const [q, setQ] = useState('');
+  // The address holds the filters: ?status=…&group=…&q=….
+  const { get, patch } = useUrl();
+  const status = get('status');
+  const setStatus = (value) => patch({ status: value }, { replace: true });
+  const group = get('group');
+  const setGroup = (value) => patch({ group: value }, { replace: true });
+  const [q, setQ] = useUrlSearch();
   const [picked, setPicked] = useState(() => new Set());
   const [busy, setBusy] = useState(false);
 

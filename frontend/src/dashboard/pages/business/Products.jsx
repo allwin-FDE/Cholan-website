@@ -4,14 +4,18 @@ import { useDash } from '../../context.js';
 import { Badge, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, useLoad } from '../../ui.jsx';
 import { money, toRupeesInput } from './shared.js';
 import NotConnected from './NotConnected.jsx';
+import { useUrl, useUrlSearch } from '../../urlState.js';
 
 // Every pack Cholan sells, with its SKU, HSN, GST rate and website price.
 // Admin and Owner can correct the tax details, MRP, barcode and low-stock level.
 export default function Products() {
   const { allowed } = useDash();
   const { data, loading, error, reload, setData } = useLoad(() => api.business.items(), []);
-  const [q, setQ] = useState('');
-  const [open, setOpen] = useState(null);
+  // The address holds the view: ?q=…&item=12.
+  const { id, patch } = useUrl();
+  const [q, setQ] = useUrlSearch();
+  const open = (data?.items || []).find((i) => i.id === id('item')) || null;
+  const setOpen = (item) => patch({ item: item?.id });
 
   const items = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -85,7 +89,6 @@ export default function Products() {
           onClose={() => setOpen(null)}
           onSaved={(item) => {
             setData({ ...data, items: data.items.map((i) => (i.id === item.id ? item : i)) });
-            setOpen(item);
           }}
         />
       )}

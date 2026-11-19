@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { api } from '../../api.js';
 import { useDash } from '../../context.js';
 import { Badge, Card, Empty, ErrorNote, Icon, Loading, PageHead, useLoad } from '../../ui.jsx';
 import { money, niceDate } from './shared.js';
 import { printUrl } from './Orders.jsx';
 import NotConnected from './NotConnected.jsx';
+import { useUrl, useUrlSearch } from '../../urlState.js';
 
 const TYPES = { tax_invoice: 'Tax invoice', bill_of_supply: 'Bill of supply', invoice_cum_bos: 'Tax invoice cum bill of supply' };
 const SERIES = { invoice: 'GST invoices', credit_note: 'Credit notes', receipt: 'Payment receipts', order: 'Orders' };
@@ -13,12 +14,7 @@ const SERIES = { invoice: 'GST invoices', credit_note: 'Credit notes', receipt: 
 // and never edited; numbering can be set to carry on from the paper bill book.
 export default function Invoices() {
   const { allowed } = useDash();
-  const [q, setQ] = useState('');
-  const [search, setSearch] = useState('');
-  useEffect(() => {
-    const t = setTimeout(() => setSearch(q), 300);
-    return () => clearTimeout(t);
-  }, [q]);
+  const [q, setQ, search] = useUrlSearch();
   const { data, loading, error, reload } = useLoad(() => api.sales.invoices(search), [search]);
 
   if (error?.code === 'no-database') return <NotConnected title="Invoices" />;

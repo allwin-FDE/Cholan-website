@@ -4,6 +4,7 @@ import { useDash } from '../../context.js';
 import { Badge, BarList, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, Stat, downloadCsv, useLoad } from '../../ui.jsx';
 import { money, niceDate, todayIst } from './shared.js';
 import NotConnected from './NotConnected.jsx';
+import { useUrl } from '../../urlState.js';
 
 // Money spent that is not stock: rent, wages, diesel, electricity, repairs.
 // Staff enter expenses (with a photo of the bill); Admin and Owner cancel them
@@ -14,12 +15,17 @@ const monthStart = () => `${todayIst().slice(0, 8)}01`;
 
 export default function Expenses() {
   const { allowed } = useDash();
-  const [range, setRange] = useState({ from: monthStart(), to: todayIst(), categoryId: '' });
-  const [adding, setAdding] = useState(false);
-  const [managing, setManaging] = useState(false);
+  // The address holds the view: ?from=…&to=…&category=3 (this month if
+  // none), ?new=1 for the form and ?categories=1 for the category list.
+  const { get, patch } = useUrl();
+  const range = { from: get('from', monthStart()), to: get('to', todayIst()), categoryId: get('category') };
+  const adding = Boolean(get('new'));
+  const managing = Boolean(get('categories'));
+  const setAdding = (on) => patch({ new: on ? 1 : '' });
+  const setManaging = (on) => patch({ categories: on ? 1 : '' });
   const cats = useLoad(() => api.inward.expenseCategories(), []);
   const list = useLoad(() => api.inward.expenses(range.from, range.to, range.categoryId), [range.from, range.to, range.categoryId]);
-  const set = (k) => (e) => setRange({ ...range, [k]: e.target.value });
+  const set = (k) => (e) => patch({ [k === 'categoryId' ? 'category' : k]: e.target.value }, { replace: true });
 
   const rows = list.data?.expenses || [];
   const active = rows.filter((e) => e.status === 'active');
@@ -143,7 +149,7 @@ export default function Expenses() {
           categories={categories.filter((c) => c.active)}
           onClose={() => setAdding(false)}
           onSaved={() => {
-            setAdding(false);
+            patch({ new: '' }, { replace: true });
             list.reload();
           }}
         />

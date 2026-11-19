@@ -21,6 +21,7 @@ import {
   getOrder,
   listInvoices,
   listOrders,
+  listDeliveries,
   listReceipts,
   listSeries,
   listStock,
@@ -43,6 +44,7 @@ const orderId = (req) => need(idOf(req.params.id), 'Order');
 router.get('/orders', ...handle('viewer', async (c, req) => ({ orders: await listOrders(c, { status: String(req.query.status || ''), q: String(req.query.q || '') }) })));
 router.post('/orders/preview', ...handle('editor', (c, req) => previewOrder(c, body(req), { canSetPrice: isAdmin(req) })));
 router.post('/orders', ...handle('editor', async (c, req) => getOrder(c, await createOrder(c, body(req), { canSetPrice: isAdmin(req) }))));
+router.get('/deliveries', ...handle('viewer', async (c) => ({ deliveries: await listDeliveries(c) })));
 router.get('/orders/:id', ...handle('viewer', (c, req) => getOrder(c, orderId(req))));
 router.put(
   '/orders/:id',

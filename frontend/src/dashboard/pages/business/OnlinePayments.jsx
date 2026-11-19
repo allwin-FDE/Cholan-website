@@ -112,7 +112,7 @@ export default function OnlinePayments() {
                     return (
                       <tr key={o.rp_order_id}>
                         <td>
-                          <Link className="dash-link" to={`/admin/business/orders?open=${o.order_id}`}>
+                          <Link className="dash-link" to={`/warehouse/orders?status=all&order=${o.order_id}`}>
                             {o.number}
                           </Link>
                           <span className="dash-muted dash-block dash-small" title={when(o.created_at)}>

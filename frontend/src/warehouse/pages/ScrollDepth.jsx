@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { api } from '../../dashboard/api.js';
+import { useUrlSearch } from '../../dashboard/urlState.js';
 import { periodName, useDash } from '../../dashboard/context.js';
 import { Card, Empty, ErrorNote, Icon, Loading, PageHead, Stat, downloadCsv, num, pageName, useLoad } from '../../dashboard/ui.jsx';
 
@@ -8,7 +9,7 @@ import { Card, Empty, ErrorNote, Icon, Loading, PageHead, Stat, downloadCsv, num
 export default function ScrollDepth() {
   const { days } = useDash();
   const { data, loading, error, reload } = useLoad(() => api.scroll(days), [days]);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useUrlSearch();
   const pages = useMemo(() => (data?.pages || []).filter((p) => p.measured > 0), [data]);
   const shown = pages.filter((p) => !q || `${p.path} ${p.title}`.toLowerCase().includes(q.toLowerCase()));
   const avg = pages.length ? Math.round(pages.reduce((s, p) => s + p.avg * p.measured, 0) / pages.reduce((s, p) => s + p.measured, 0)) : 0;

@@ -2146,3 +2146,33 @@ details.biz-section > summary {
   padding: 6px 0;
   border-bottom: 1px solid var(--d-line-soft);
 }
+
+/* The plant's Today page: tiles that open the page where the work is. */
+.plant-tile {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.plant-tile:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(20, 50, 30, 0.08);
+}
+.plant-tile > * {
+  height: 100%;
+}
+.plant-tile--warn .dash-stat__value,
+.plant-tile--warn strong {
+  color: #8a5a00;
+}
+.plant-tile--bad .dash-stat__value,
+.plant-tile--bad strong {
+  color: var(--d-bad);
+}
+.plant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}

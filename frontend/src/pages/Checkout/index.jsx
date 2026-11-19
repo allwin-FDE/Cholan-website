@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { site } from '../../config/site';
 import DetailsFields from './DetailsFields';
@@ -15,11 +16,43 @@ import {
   validateDetails,
 } from './orderHelpers';
 
+// The order just placed, kept for this tab so its confirmation page
+// (/checkout/confirmed?order=…) still shows after a refresh.
+const DONE_KEY = 'cholan-last-order';
+const readDone = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(DONE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+};
+
+// /checkout/confirmed?order=CO-00012: the thank-you page for the order just placed.
+export function OrderConfirmed() {
+  const [params] = useSearchParams();
+  const order = readDone();
+  if (!order || (params.get('order') && params.get('order') !== order.ref)) return <Navigate to="/products" replace />;
+  return (
+    <>
+      <title>{`Order ${order.ref} placed | Cholan`}</title>
+      <meta name="robots" content="noindex" />
+      <OrderDone order={order} />
+    </>
+  );
+}
+
 export default function Checkout() {
   const { items, count, subtotal, hasUnpriced, setQty, clear } = useCart();
   const [details, setDetails] = useState(loadSavedDetails);
   const [errors, setErrors] = useState({});
-  const [order, setOrder] = useState(null);
+  const navigate = useNavigate();
+  // A placed order gets its own address: /checkout/confirmed?order=…
+  const setOrder = (done) => {
+    try {
+      sessionStorage.setItem(DONE_KEY, JSON.stringify(done));
+    } catch {}
+    navigate(`/checkout/confirmed?order=${encodeURIComponent(done.ref)}`);
+  };
   const [catalog, setCatalog] = useState({ online: false, items: [] });
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState('');
@@ -103,7 +136,6 @@ export default function Checkout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (order) return <OrderDone order={order} />;
   if (items.length === 0) return <EmptyCart />;
 
   return (

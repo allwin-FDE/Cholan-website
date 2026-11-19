@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { api } from '../api.js';
+import { useUrlSearch } from '../urlState.js';
 import { useDash } from '../context.js';
 import { Card, Empty, ErrorNote, Icon, Loading, PageHead, Stat, ago, downloadCsv, num, pageName, useLoad, when } from '../ui.jsx';
 
@@ -18,7 +19,7 @@ const howFound = (s) => {
 export default function Subscribers() {
   const { days } = useDash();
   const { data, loading, error, reload, setData } = useLoad(() => api.subscribers(), []);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useUrlSearch();
 
   const all = data?.subscribers || [];
   const since = Date.now() - days * 86_400_000;

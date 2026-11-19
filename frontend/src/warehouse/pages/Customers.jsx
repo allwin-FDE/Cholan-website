@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../dashboard/api.js';
+import { useUrl, useUrlSearch } from '../../dashboard/urlState.js';
 import { periodBounds, periodName, useDash } from '../../dashboard/context.js';
 import { Empty, ErrorNote, Icon, Loading, PageHead, Stat, dateOnly, downloadCsv, num, useLoad, when } from '../../dashboard/ui.jsx';
 
@@ -14,9 +15,13 @@ const TONE = { new: 'info', contacted: 'warn', quoted: 'warn', won: 'good', lost
 export default function Customers() {
   const { days, base } = useDash();
   const { data, loading, error, reload } = useLoad(() => api.enquiries(), []);
-  const [q, setQ] = useState('');
-  const [status, setStatus] = useState('');
-  const [open, setOpen] = useState(null);
+  // The address holds the view: ?q=…&status=…&person=KEY.
+  const { get, patch } = useUrl();
+  const [q, setQ] = useUrlSearch();
+  const status = get('status');
+  const setStatus = (value) => patch({ status: value }, { replace: true });
+  const open = get('person') || null;
+  const setOpen = (key) => patch({ person: key });
 
   const people = useMemo(() => {
     const map = new Map();

@@ -5,6 +5,7 @@ import { Badge, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, Stat, u
 import { CREDIT_STATUS, money, niceDate, phoneShow, todayIst } from './shared.js';
 import { CustomerPicker } from './Orders.jsx';
 import NotConnected from './NotConnected.jsx';
+import { useUrl } from '../../urlState.js';
 
 const METHODS = { cash: 'Cash', upi: 'UPI', bank: 'Bank transfer', cheque: 'Cheque', card: 'Card', razorpay: 'Razorpay', other: 'Other' };
 
@@ -15,8 +16,11 @@ export default function Payments() {
   const { allowed } = useDash();
   const dues = useLoad(() => api.sales.dues(), []);
   const receipts = useLoad(() => api.sales.receipts(), []);
-  const [recording, setRecording] = useState(null); // null | {} | { party }
-  const [account, setAccount] = useState(null);
+  // The address holds the view: ?customer=12 opens their account, ?new=1
+  // the payment form (for that customer, if one is open).
+  const { get, id, patch } = useUrl();
+  const recording = Boolean(get('new'));
+  const customerId = id('customer');
   const refresh = () => {
     dues.reload();
     receipts.reload();
@@ -33,7 +37,7 @@ export default function Payments() {
         range={false}
         actions={
           allowed('editor') && (
-            <button type="button" className="dash-btn" onClick={() => setRecording({})}>
+            <button type="button" className="dash-btn" onClick={() => patch({ new: 1, customer: '' })}>
               <Icon name="plus" /> Record payment
             </button>
           )
@@ -66,7 +70,7 @@ export default function Payments() {
                   </thead>
                   <tbody>
                     {rows.map((r) => (
-                      <tr key={r.party_id} className="dash-row-link" onClick={() => setAccount(r)}>
+                      <tr key={r.party_id} className="dash-row-link" onClick={() => patch({ customer: r.party_id })}>
                         <td>
                           <strong>{r.customer}</strong>
                           {r.overdue_invoices > 0 && <Badge tone="bad">{r.oldest_overdue_days} days late</Badge>}
@@ -166,23 +170,25 @@ export default function Payments() {
 
       {recording && (
         <RecordPayment
-          start={recording.party}
-          onClose={() => setRecording(null)}
+          startId={customerId}
+          onClose={() => patch({ new: '' })}
           onSaved={() => {
-            setRecording(null);
-            setAccount(null);
+            patch({ new: '', customer: '' }, { replace: true });
             refresh();
           }}
         />
       )}
-      {account && !recording && <AccountDrawer row={account} onClose={() => setAccount(null)} onPay={() => setRecording({ party: { id: account.party_id, display_name: account.customer, phone: account.phone } })} />}
+      {customerId && !recording && <AccountDrawer partyId={customerId} row={rows.find((r) => r.party_id === customerId)} onClose={() => patch({ customer: '' })} onPay={() => patch({ new: 1 })} />}
     </div>
   );
 }
 
-function AccountDrawer({ row, onClose, onPay }) {
+function AccountDrawer({ partyId, row: listed, onClose, onPay }) {
   const { allowed } = useDash();
-  const acct = useLoad(() => api.sales.account(row.party_id), [row.party_id]);
+  const acct = useLoad(() => api.sales.account(partyId), [partyId]);
+  // Opened from a link: the customer may owe nothing, so look them up.
+  const party = useLoad(() => (listed ? Promise.resolve(null) : api.business.party(partyId)), [partyId, Boolean(listed)]);
+  const row = listed || { party_id: partyId, customer: party.data?.display_name || 'Customer', phone: party.data?.phone };
   return (
     <Drawer open onClose={onClose} title={row.customer} wide>
       {acct.loading && !acct.data && <Loading />}
@@ -248,8 +254,11 @@ function AccountDrawer({ row, onClose, onPay }) {
   );
 }
 
-function RecordPayment({ start, onClose, onSaved }) {
-  const [party, setParty] = useState(start || null);
+function RecordPayment({ startId, onClose, onSaved }) {
+  const [party, setParty] = useState(null);
+  useEffect(() => {
+    if (startId) api.business.party(startId).then((p) => setParty((cur) => cur || p)).catch(() => {});
+  }, [startId]);
   const [form, setForm] = useState({ amount: '', method: 'upi', reference: '', date: todayIst(), notes: '' });
   const [mode, setMode] = useState('oldest');
   const [open, setOpen] = useState([]);

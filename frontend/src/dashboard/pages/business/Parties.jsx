@@ -4,6 +4,7 @@ import { useDash } from '../../context.js';
 import { Badge, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, useLoad } from '../../ui.jsx';
 import { CREDIT_STATUS, SEGMENTS, STATES, SUPPLIER_TYPES, money, niceDate, phoneShow, stateName, toRupeesInput, todayIst } from './shared.js';
 import NotConnected from './NotConnected.jsx';
+import { useUrl, useUrlSearch } from '../../urlState.js';
 
 const TABS = { customer: 'Customers', supplier: 'Suppliers', all: 'All' };
 
@@ -13,14 +14,13 @@ const TABS = { customer: 'Customers', supplier: 'Suppliers', all: 'All' };
 export default function Parties() {
   const { allowed } = useDash();
   const canEdit = allowed('admin');
-  const [type, setType] = useState('customer');
-  const [q, setQ] = useState('');
-  const [search, setSearch] = useState('');
-  const [open, setOpen] = useState(null); // a party id, or 'new'
-  useEffect(() => {
-    const t = setTimeout(() => setSearch(q), 300);
-    return () => clearTimeout(t);
-  }, [q]);
+  // The address holds the view: ?type=supplier&q=…&party=12 (or &new=1).
+  const { get, id, patch } = useUrl();
+  const type = ['customer', 'supplier', 'all'].includes(get('type')) ? get('type') : 'customer';
+  const setType = (key) => patch({ type: key === 'customer' ? '' : key });
+  const [q, setQ, search] = useUrlSearch();
+  const open = get('new') ? 'new' : id('party');
+  const setOpen = (value) => patch({ new: value === 'new' ? 1 : '', party: value === 'new' ? '' : value });
   const { data, loading, error, reload } = useLoad(() => api.business.parties(type, search), [type, search]);
   const meta = useLoad(() => api.business.priceLists(), []);
 
@@ -115,7 +115,7 @@ export default function Parties() {
           items={meta.data?.items || []}
           onClose={() => setOpen(null)}
           onSaved={(party) => {
-            setOpen(party.id);
+            patch({ new: '', party: party.id }, { replace: true });
             reload();
           }}
         />

@@ -646,3 +646,17 @@ a.an-nav__link:hover {
     gap: 4px;
   }
 }
+
+/* Group headings in the menu (Website, People, Content, Admin; Daily work, Money, Setup). */
+.an-nav__group {
+  display: block;
+  margin: 14px 12px 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--d-ink-3, #8a8a7a);
+}
+.an-nav__group:first-child {
+  margin-top: 2px;
+}

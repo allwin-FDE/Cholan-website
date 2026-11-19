@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { api } from '../api.js';
+import { useUrl } from '../urlState.js';
 import { Badge, Card, Empty, ErrorNote, Icon, Loading, PageHead, ago, useLoad, when } from '../ui.jsx';
 
 const STATUS = {
@@ -12,7 +13,9 @@ const STATUS = {
 // website until it is approved here.
 export default function Comments() {
   const { data, loading, error, reload, setData } = useLoad(() => api.comments(), []);
-  const [tab, setTab] = useState('pending');
+  const { get, patch } = useUrl();
+  const tab = get('show', 'pending');
+  const setTab = (key) => patch({ show: key === 'pending' ? '' : key });
   const all = useMemo(() => data?.comments || [], [data]);
   const list = all.filter((c) => c.status === tab);
   const countOf = (s) => all.filter((c) => c.status === s).length;

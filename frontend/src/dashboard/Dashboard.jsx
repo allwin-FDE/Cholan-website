@@ -15,56 +15,85 @@ import BlogEditor from './pages/BlogEditor.jsx';
 import NewPost from '../admin/NewPost.jsx';
 import Settings from './pages/Settings.jsx';
 import Help from './pages/Help.jsx';
-import Products from './pages/business/Products.jsx';
-import Parties from './pages/business/Parties.jsx';
-import PriceLists from './pages/business/PriceLists.jsx';
-import Orders from './pages/business/Orders.jsx';
-import Stock from './pages/business/Stock.jsx';
-import Invoices from './pages/business/Invoices.jsx';
-import Payments from './pages/business/Payments.jsx';
-import PrintDoc from './pages/business/PrintDoc.jsx';
-import OnlinePayments from './pages/business/OnlinePayments.jsx';
-import Purchases from './pages/business/Purchases.jsx';
-import Expenses from './pages/business/Expenses.jsx';
+import Products from '../warehouse/pages/Products.jsx';
+import Journeys from '../warehouse/pages/Journeys.jsx';
+import Behaviour from '../warehouse/pages/Behaviour.jsx';
+import ScrollDepth from '../warehouse/pages/ScrollDepth.jsx';
+import Realtime from '../warehouse/pages/Realtime.jsx';
+import Customers from '../warehouse/pages/Customers.jsx';
+import Reports from '../warehouse/pages/Reports.jsx';
 import { Icon } from './ui.jsx';
 import { DashContext, can } from './context.js';
+import { AreaElsewhere, opensArea } from './area.jsx';
 import '../styles/dashboard.css';
+import '../styles/analyst.css';
 import '../styles/admin.css';
 
+// /admin: the website and IT side. How the website is doing (visitors,
+// pages, products people look at, journeys, behaviour, heatmaps, scroll
+// depth, who is on it now, reports), the people who reach out (enquiries,
+// customers who enquired, subscribers), the blog and comments, and Settings:
+// who has access. Orders, stock, purchases and money are in /warehouse, the
+// plant's dashboard.
 const NAV = [
+  { group: 'Website' },
   { to: '/admin', label: 'Overview', icon: 'grid', end: true, role: 'viewer' },
+  { to: '/admin/realtime', label: 'Realtime', icon: 'pulse', role: 'viewer' },
   { to: '/admin/visitors', label: 'Visitors', icon: 'users', role: 'viewer' },
   { to: '/admin/pages', label: 'Pages', icon: 'file', role: 'viewer' },
-  { to: '/admin/heatmaps', label: 'Heatmaps', icon: 'flame', role: 'viewer' },
+  { to: '/admin/products', label: 'Products', icon: 'box', role: 'viewer' },
+  { to: '/admin/journeys', label: 'Journeys', icon: 'route', role: 'viewer' },
+  { to: '/admin/behaviour', label: 'Behaviour', icon: 'bolt', role: 'viewer' },
+  { to: '/admin/heatmaps', label: 'Heatmaps', icon: 'target', role: 'viewer' },
+  { to: '/admin/scroll-depth', label: 'Scroll depth', icon: 'down', role: 'viewer' },
+  { to: '/admin/reports', label: 'Reports', icon: 'download', role: 'viewer' },
+  { group: 'People', role: 'editor' },
   { to: '/admin/enquiries', label: 'Enquiries', icon: 'inbox', role: 'editor' },
+  { to: '/admin/customers', label: 'Customers', icon: 'user', role: 'editor' },
   { to: '/admin/subscribers', label: 'Subscribers', icon: 'mail', role: 'editor' },
+  { group: 'Content', role: 'editor' },
   { to: '/admin/blog', label: 'Blog', icon: 'pen', role: 'editor' },
   { to: '/admin/comments', label: 'Comments', icon: 'chat', role: 'editor' },
-  // The business database: everyone with access can look; Admin and Owner can change.
-  { to: '/admin/business/orders', label: 'Orders', icon: 'cart', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/stock', label: 'Stock', icon: 'layers', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/invoices', label: 'Invoices', icon: 'file', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/payments', label: 'Payments and dues', icon: 'rupee', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/online', label: 'Online payments', icon: 'globe', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/purchases', label: 'Purchases', icon: 'truck', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/expenses', label: 'Expenses', icon: 'receipt', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/products', label: 'Products and packs', icon: 'box', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/parties', label: 'Customers and suppliers', icon: 'users', role: 'viewer', section: 'Business' },
-  { to: '/admin/business/prices', label: 'Price lists', icon: 'tag', role: 'viewer', section: 'Business' },
-  { to: '/admin/settings', label: 'Settings', icon: 'gear', role: 'admin', section: 'Admin' },
+  { group: 'Admin' },
+  { to: '/admin/settings', label: 'Settings', icon: 'gear', role: 'admin' },
   { to: '/admin/help', label: 'Help', icon: 'help', role: 'viewer' },
 ];
 
-const DAYS_KEY = 'cholan-dashboard-days';
+// The business screens moved to /warehouse: old links and bookmarks follow.
+const MOVED = {
+  orders: 'orders',
+  stock: 'stock',
+  invoices: 'invoices',
+  payments: 'payments',
+  online: 'online-payments',
+  purchases: 'purchases',
+  expenses: 'expenses',
+  products: 'products',
+  parties: 'parties',
+  prices: 'prices',
+};
+function ToWarehouse() {
+  const { pathname, search } = useLocation();
+  const print = /^\/admin\/print\/(.+)$/.exec(pathname);
+  if (print) return <Navigate to={`/warehouse/print/${print[1]}${search}`} replace />;
+  const page = /^\/admin\/business\/([a-z]+)/.exec(pathname)?.[1];
+  return <Navigate to={`/warehouse${MOVED[page] ? `/${MOVED[page]}` : ''}${search}`} replace />;
+}
 
-// /admin — the shop's own admin: visitors, heatmaps, enquiries, the blog,
-// comments and who has access. Sign-in is with Google or an emailed link
-// (Login.jsx); the backend decides what each person may see from the access
-// list in Settings. Blogs are written and published here, by the admins
-// themselves, in the composer (admin/NewPost.jsx).
+const DAYS_KEY = 'cholan-dashboard-days';
+function readDays() {
+  try {
+    const saved = localStorage.getItem(DAYS_KEY) || '';
+    if (/^\d+$/.test(saved)) return Number(saved);
+    return /^\d{4}-\d{2}-\d{2}_\d{4}-\d{2}-\d{2}$/.test(saved) ? saved : 30;
+  } catch {
+    return 30;
+  }
+}
+
 export default function Dashboard() {
   const [state, setState] = useState({ status: 'loading' }); // loading | signed-out | no-access | ready | error
-  const [days, setDaysState] = useState(() => Number(localStorage.getItem(DAYS_KEY)) || 30);
+  const [days, setDaysState] = useState(readDays);
   const [menuOpen, setMenuOpen] = useState(false);
   const [waiting, setWaiting] = useState({ comments: 0 });
   const { pathname } = useLocation();
@@ -72,7 +101,11 @@ export default function Dashboard() {
 
   const setDays = (value) => {
     setDaysState(value);
-    localStorage.setItem(DAYS_KEY, String(value));
+    try {
+      localStorage.setItem(DAYS_KEY, String(value));
+    } catch {
+      // Private mode: the period holds for this visit only.
+    }
   };
 
   useEffect(() => {
@@ -85,8 +118,7 @@ export default function Dashboard() {
       watchUser(async (user) => {
         if (!user) return setState({ status: 'signed-out' });
         try {
-          const me = await api.me();
-          setState({ status: 'ready', user: me });
+          setState({ status: 'ready', user: await api.me() });
         } catch (error) {
           if (error.code === 'no-access') setState({ status: 'no-access', email: user.email, message: error.message });
           else setState({ status: 'error', message: error.message });
@@ -98,7 +130,7 @@ export default function Dashboard() {
   useEffect(() => setMenuOpen(false), [pathname]);
 
   // How many comments are waiting, shown on the Comments menu item.
-  const canReview = state.status === 'ready' && can(state.user.role, 'editor');
+  const canReview = state.status === 'ready' && can(state.user.role, 'editor') && opensArea(state.user, 'website');
   useEffect(() => {
     if (!canReview) return undefined;
     const refresh = () => api.reviewCount().then(setWaiting).catch(() => {});
@@ -112,6 +144,9 @@ export default function Dashboard() {
     navigate('/admin');
   };
 
+  // Business addresses moved to /warehouse; send them on before signing in.
+  if (/^\/admin\/(business|print)(\/|$)/.test(pathname)) return <ToWarehouse />;
+
   if (state.status === 'loading') {
     return (
       <div className="dash-center">
@@ -119,29 +154,13 @@ export default function Dashboard() {
       </div>
     );
   }
-  if (state.status !== 'ready') {
-    return <Login state={state} onSignOut={signOut} />;
-  }
+  if (state.status !== 'ready') return <Login state={state} onSignOut={signOut} />;
+  if (!opensArea(state.user, 'website')) return <AreaElsewhere user={state.user} here="website" onSignOut={signOut} />;
 
   const { role, email } = state.user;
   const allowed = (needed) => can(role, needed);
   const guard = (needed, element) => (allowed(needed) ? element : <NoRole needed={needed} role={role} />);
-
-  const context = { user: state.user, role, days, setDays, allowed };
-
-  // An invoice or credit note to print takes the whole page.
-  const printing = /^\/admin\/print\/(invoice|credit-note)\/\d+\/?$/.exec(pathname);
-  if (printing) {
-    return (
-      <DashContext.Provider value={context}>
-        <meta name="robots" content="noindex, nofollow" />
-        <Routes>
-          <Route path="print/invoice/:id" element={<PrintDoc kind="invoice" />} />
-          <Route path="print/credit-note/:id" element={<PrintDoc kind="credit-note" />} />
-        </Routes>
-      </DashContext.Provider>
-    );
-  }
+  const context = { user: state.user, role, days, setDays, allowed, base: '/admin', customRange: true };
 
   // Writing a blog takes the whole screen, like a phone's composer.
   if (/^\/admin\/blog\/(new|edit\/[^/]+)\/?$/.test(pathname)) {
@@ -159,88 +178,88 @@ export default function Dashboard() {
     );
   }
 
+  const shown = NAV.filter((item) => allowed(item.role || 'viewer')).filter((item, i, list) => !item.group || (list[i + 1] && !list[i + 1].group));
   return (
     <DashContext.Provider value={context}>
       <title>Admin · Cholan</title>
       <meta name="robots" content="noindex, nofollow" />
-      <div className={`dash${menuOpen ? ' dash--menu' : ''}`}>
-        <aside className="dash-side">
-          <div className="dash-brand">
-            <img src="/images/cholan-logo.png" alt="Cholan" />
-            <span>Admin</span>
+      <div className={`dash an${menuOpen ? ' dash--menu' : ''}`}>
+        <aside className="dash-side an-side">
+          <div className="an-brand">
+            <span className="an-brand__mark">CR</span>
+            <span className="an-brand__name">Admin</span>
           </div>
-          <nav className="dash-nav" aria-label="Admin">
-            {NAV.filter((item) => allowed(item.role)).map((item, i, shown) => [
-              item.section && item.section !== shown[i - 1]?.section && (
-                <span key={`${item.section}-head`} className="dash-nav__group">
-                  {item.section}
+          <nav className="an-nav" aria-label="Admin">
+            {shown.map((item) =>
+              item.group ? (
+                <span key={item.group} className="an-nav__group">
+                  {item.group}
                 </span>
+              ) : (
+                <NavLink key={item.to} to={item.to} end={item.end} className="an-nav__link">
+                  <Icon name={item.icon} />
+                  {item.label}
+                  {item.to === '/admin/comments' && waiting.comments > 0 && (
+                    <span className="dash-nav__count" aria-label={`${waiting.comments} waiting for approval`}>
+                      {waiting.comments}
+                    </span>
+                  )}
+                </NavLink>
               ),
-              <NavLink key={item.to} to={item.to} end={item.end} className="dash-nav__link">
-                <Icon name={item.icon} />
-                {item.label}
-                {item.to === '/admin/comments' && waiting.comments > 0 && (
-                  <span className="dash-nav__count" aria-label={`${waiting.comments} waiting for approval`}>
-                    {waiting.comments}
-                  </span>
-                )}
-              </NavLink>,
-            ])}
+            )}
           </nav>
-          <div className="dash-side__foot">
-            {allowed('admin') && (
-              <a href="/warehouse" className="dash-nav__link">
-                <Icon name="external" />
-                Warehouse
+          <div className="an-side__foot">
+            {opensArea(state.user, 'plant') && (
+              <a href="/warehouse" className="an-nav__link">
+                <Icon name="truck" />
+                Plant dashboard
               </a>
             )}
-            <a href="/" target="_blank" rel="noreferrer" className="dash-nav__link">
+            <a href="/" target="_blank" rel="noreferrer" className="an-nav__link">
               <Icon name="external" />
               Open website
             </a>
-            <div className="dash-me">
-              <span className="dash-me__avatar">{email[0].toUpperCase()}</span>
-              <span className="dash-me__text">
-                <span className="dash-me__email" title={email}>
+            <div className="an-me">
+              <span className="an-me__avatar">{email[0].toUpperCase()}</span>
+              <span className="an-me__text">
+                <span className="an-me__email" title={email}>
                   {email}
                 </span>
-                <span className="dash-me__role">{role}</span>
+                <span className="an-me__role">{role}</span>
               </span>
-              <button type="button" className="dash-icon-btn" onClick={signOut} title="Sign out" aria-label="Sign out">
-                <Icon name="logout" />
-              </button>
             </div>
           </div>
         </aside>
         <div className="dash-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
-        <div className="dash-main">
-          <header className="dash-mobilebar">
+        <div className="dash-main an-main">
+          <header className="dash-mobilebar an-mobilebar">
             <button type="button" className="dash-icon-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu">
               <Icon name="menu" />
             </button>
-            <img src="/images/cholan-logo.png" alt="Cholan" />
+            <span className="an-brand__name">Admin</span>
             <span />
           </header>
+          <button type="button" className="an-signout" onClick={signOut}>
+            Sign out
+          </button>
           <Routes>
             <Route index element={<Overview />} />
+            <Route path="realtime" element={<Realtime />} />
             <Route path="visitors" element={<Visitors />} />
             <Route path="pages" element={<PagesReport />} />
+            <Route path="products" element={<Products />} />
+            <Route path="journeys" element={<Journeys />} />
+            <Route path="behaviour" element={<Behaviour />} />
             <Route path="heatmaps" element={<Heatmaps />} />
+            <Route path="heatmap" element={<Navigate to="/admin/heatmaps" replace />} />
+            <Route path="scroll-depth" element={<ScrollDepth />} />
+            <Route path="reports" element={<Reports />} />
             <Route path="enquiries" element={guard('editor', <Enquiries />)} />
+            <Route path="customers" element={guard('editor', <Customers />)} />
             <Route path="subscribers" element={guard('editor', <Subscribers />)} />
             <Route path="blog" element={guard('editor', <BlogList />)} />
             <Route path="blog/:id" element={guard('editor', <BlogEditor />)} />
             <Route path="comments" element={guard('editor', <Comments />)} />
-            <Route path="business/orders" element={<Orders />} />
-            <Route path="business/stock" element={<Stock />} />
-            <Route path="business/invoices" element={<Invoices />} />
-            <Route path="business/payments" element={<Payments />} />
-            <Route path="business/online" element={<OnlinePayments />} />
-            <Route path="business/purchases" element={<Purchases />} />
-            <Route path="business/expenses" element={<Expenses />} />
-            <Route path="business/products" element={<Products />} />
-            <Route path="business/parties" element={<Parties />} />
-            <Route path="business/prices" element={<PriceLists />} />
             <Route path="settings" element={guard('admin', <Settings />)} />
             <Route path="help" element={<Help />} />
             <Route path="login" element={<Navigate to="/admin" replace />} />

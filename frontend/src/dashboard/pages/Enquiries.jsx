@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { useUrl, useUrlSearch } from '../urlState.js';
 import { periodBounds, periodName, useDash } from '../context.js';
 import { getProduct } from '../../lib/products.js';
 import {
@@ -56,8 +57,19 @@ const waLink = (phone) => {
 export default function Enquiries() {
   const { days, allowed, base = '/admin' } = useDash();
   const { data, loading, error, reload, setData } = useLoad(() => api.enquiries(), []);
-  const [filters, setFilters] = useState({ status: '', page: '', type: '', q: '' });
-  const [openId, setOpenId] = useState(null);
+  // The address holds the view: ?status=…&page=…&type=…&q=… and the open
+  // enquiry (?enquiry=ID).
+  const { get, patch } = useUrl();
+  const [qText, setQText] = useUrlSearch();
+  const filters = { status: get('status'), page: get('page'), type: get('type'), q: qText };
+  const setFilters = (next) => {
+    if ((next.q ?? '') !== qText) setQText(next.q ?? '');
+    const changes = Object.fromEntries(['status', 'page', 'type'].filter((k) => (next[k] || '') !== filters[k]).map((k) => [k, next[k]]));
+    if (next.q === '' && qText) changes.q = '';
+    if (Object.keys(changes).length) patch(changes);
+  };
+  const openId = get('enquiry') || null;
+  const setOpenId = (value) => patch({ enquiry: value }, { replace: !value });
 
   const inPeriod = useMemo(() => {
     const { from: since, to: until } = periodBounds(days);

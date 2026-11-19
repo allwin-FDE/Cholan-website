@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { useUrl } from '../urlState.js';
 import { periodName, useDash } from '../context.js';
 import { Card, Empty, ErrorNote, Icon, Loading, PageHead, downloadCsv, duration, num, pageName, useLoad } from '../ui.jsx';
 
@@ -15,7 +16,9 @@ const COLUMNS = [
 
 export default function PagesReport() {
   const { days } = useDash();
-  const [sort, setSort] = useState('views');
+  const { get, patch } = useUrl();
+  const sort = get('sort', 'views');
+  const setSort = (key) => patch({ sort: key === 'views' ? '' : key }, { replace: true });
   const { data, loading, error, reload } = useLoad(() => api.pages(days), [days]);
   const pages = useMemo(() => [...(data?.pages || [])].sort((a, b) => b[sort] - a[sort]), [data, sort]);
 

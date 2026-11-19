@@ -222,6 +222,7 @@ export function NewGoodsReceived({ start, onClose, onSaved }) {
     api.inward
       .purchaseOrder(form.orderId)
       .then((po) => {
+        setParty((p) => p || { id: po.party_id, display_name: po.supplier });
         const left = po.lines.filter((l) => l.qty > l.qty_received).map((l) => ({ ...blankIn(), itemId: String(l.item_id), orderLineId: l.id, qtyReceived: String(l.qty - l.qty_received) }));
         if (left.length) setLines(left);
       })
@@ -377,6 +378,7 @@ export function NewBill({ start, onClose, onSaved }) {
     api.inward
       .goodsReceivedNote(form.goodsReceivedId)
       .then((g) => {
+        setParty((p) => p || { id: g.party_id, display_name: g.supplier });
         const got = g.lines
           .filter((l) => l.qty_accepted > 0)
           .map((l) => ({ ...blankBill(), itemId: String(l.item_id), qty: String(l.qty_accepted), unit: l.uom || '', rate: rupeesIn(l.order_rate_paise), gstRate: pct(l.gst_rate_bp), hsn: l.hsn || '' }));
@@ -485,8 +487,11 @@ export function NewBill({ start, onClose, onSaved }) {
 }
 
 // ---- Paying a supplier ----
-export function PaySupplier({ start, onClose, onSaved }) {
-  const [party, setParty] = useState(start || null);
+export function PaySupplier({ startId, onClose, onSaved }) {
+  const [party, setParty] = useState(null);
+  useEffect(() => {
+    if (startId) api.business.party(startId).then((p) => setParty((cur) => cur || p)).catch(() => {});
+  }, [startId]);
   const [form, setForm] = useState({ amount: '', method: 'bank', reference: '', date: todayIst(), notes: '' });
   const [mode, setMode] = useState('oldest');
   const [open, setOpen] = useState([]);

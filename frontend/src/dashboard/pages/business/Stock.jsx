@@ -3,6 +3,7 @@ import { api } from '../../api.js';
 import { useDash } from '../../context.js';
 import { Badge, Card, Drawer, ErrorNote, Loading, PageHead, ago, useLoad, when } from '../../ui.jsx';
 import NotConnected from './NotConnected.jsx';
+import { useUrl } from '../../urlState.js';
 
 const KINDS = {
   opening: ['Opening count', 'Bags counted when the system starts.'],
@@ -29,10 +30,13 @@ const MOVE = {
 export default function Stock() {
   const { allowed } = useDash();
   const { data, loading, error, reload, setData } = useLoad(() => api.sales.stock(), []);
-  const [open, setOpen] = useState(null);
+  // The address holds the open pack: ?item=12.
+  const { id, patch } = useUrl();
+  const setOpen = (row) => patch({ item: row?.item_id });
 
   if (error?.code === 'no-database') return <NotConnected title="Stock" />;
   const stock = data?.stock || [];
+  const open = stock.find((s) => s.item_id === id('item')) || null;
   const low = stock.filter((s) => s.low).length;
   const empty = stock.length > 0 && stock.every((s) => s.on_hand === 0 && s.damaged === 0);
   return (
@@ -87,7 +91,6 @@ export default function Stock() {
           onClose={() => setOpen(null)}
           onChanged={(stockNow) => {
             setData({ stock: stockNow });
-            setOpen(stockNow.find((s) => s.item_id === open.item_id));
           }}
         />
       )}

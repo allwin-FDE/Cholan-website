@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useDash } from '../../context.js';
 import { Badge, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, ago, useLoad, when } from '../../ui.jsx';
 import { money, niceDate, phoneShow, stateName } from './shared.js';
 import NotConnected from './NotConnected.jsx';
+import { useUrl, useUrlSearch } from '../../urlState.js';
 
 export const STATUS = {
   awaiting_payment: ['Waiting for online payment', 'warn'],
@@ -20,23 +20,22 @@ export const STATUS = {
 const TABS = { open: 'Open', awaiting_payment: 'Awaiting payment', new: 'New', confirmed: 'Confirmed', packed: 'Packed', dispatched: 'Dispatched', delivered: 'Delivered', cancelled: 'Cancelled', '': 'All' };
 const SOURCES = { phone: 'Phone', whatsapp: 'WhatsApp', 'walk-in': 'Walk-in', visit: 'Sales visit', enquiry: 'Website enquiry', website: 'Website', other: 'Other' };
 const STEP_LABEL = { confirmed: 'Confirm', packing: 'Start packing', packed: 'Packed', dispatched: 'Dispatch', delivered: 'Delivered' };
-export const printUrl = (kind, id) => `/admin/print/${kind}/${id}`;
+export const printUrl = (kind, id) => `/warehouse/print/${kind}/${id}`;
 
 // Orders taken by phone, WhatsApp, walk-in or a sales visit. Each moves through
 // its steps; confirming checks credit and reserves bags, dispatching invoices
 // it (if not already) and takes the bags out of stock.
 export default function Orders() {
   const { allowed } = useDash();
-  const [tab, setTab] = useState('open');
-  const [q, setQ] = useState('');
-  const [search, setSearch] = useState('');
-  const [params] = useSearchParams();
-  // An order opened from a link elsewhere (?open=12), e.g. Online payments.
-  const [open, setOpen] = useState(() => (/^\d+$/.test(params.get('open') || '') ? Number(params.get('open')) : null)); // order id or 'new'
-  useEffect(() => {
-    const t = setTimeout(() => setSearch(q), 300);
-    return () => clearTimeout(t);
-  }, [q]);
+  // The address holds the view: ?status=confirmed&q=…&order=12 (or &new=1).
+  // ?open=12 is the older form of ?order=12, still used by some links.
+  const { get, id, patch } = useUrl();
+  const status = get('status', 'open');
+  const tab = status === 'all' ? '' : status;
+  const setTab = (key) => patch({ status: key === '' ? 'all' : key === 'open' ? '' : key });
+  const [q, setQ, search] = useUrlSearch();
+  const open = get('new') ? 'new' : id('order') ?? id('open');
+  const setOpen = (value) => patch({ new: value === 'new' ? 1 : '', order: value === 'new' ? '' : value, open: '', step: '' });
   const { data, loading, error, reload } = useLoad(() => api.sales.orders(tab, search), [tab, search]);
 
   if (error?.code === 'no-database') return <NotConnected title="Orders" />;
@@ -112,7 +111,7 @@ export default function Orders() {
         <NewOrder
           onClose={() => setOpen(null)}
           onCreated={(order) => {
-            setOpen(order.id);
+            patch({ new: '', order: order.id }, { replace: true });
             reload();
           }}
         />
@@ -344,7 +343,10 @@ function OrderDrawer({ id, onClose, onChanged }) {
   const [problem, setProblem] = useState(null);
   const [busy, setBusy] = useState(false);
   const [override, setOverride] = useState(null); // { reason }
-  const [panel, setPanel] = useState(null); // 'dispatch' | 'return'
+  // The open form (?step=dispatch or ?step=return) is in the address too.
+  const { get, patch } = useUrl();
+  const panel = ['dispatch', 'return'].includes(get('step')) ? get('step') : null;
+  const setPanel = (step) => patch({ step }, { replace: !step });
 
   useEffect(() => {
     api.sales.order(id).then(setOrder).catch(setProblem);

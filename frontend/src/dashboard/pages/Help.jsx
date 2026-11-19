@@ -15,15 +15,16 @@ const SECTIONS = [
     title: 'Giving someone access (admins)',
     steps: [
       'Open Settings.',
-      'Type their email, choose Viewer, Editor or Admin, and click “Give access”.',
-      'Tell them to go to www.cholanrice.in/admin and click “Continue with Google” with that account.',
+      'Type their email, choose Viewer, Editor or Admin, and choose where they may go: Website (this admin, /admin), Plant (the plant dashboard, /warehouse) or Both. Click “Give access”.',
+      'Plant staff get Plant: they see orders, delivery, stock, purchases and money at www.cholanrice.in/warehouse, and cannot open this admin. Website people get Website. Owners always have both.',
+      'Tell them to go to the right address and click “Continue with Google” with that account.',
       'To change what they can do, pick a different level next to their name. To take access away, click Remove — it works immediately.',
     ],
   },
   {
     title: 'Reading the Overview',
     steps: [
-      'Choose the period at the top right: Today, 7 days, 30 days, 90 days or 12 months.',
+      'Choose the period at the top: the last 7, 30 or 90 days, or Custom with any From and To dates.',
       'Visitors are different people; visits are separate trips to the site (one person can visit many times).',
       '“Where visitors come from” shows Google, Instagram, WhatsApp, other websites, or Direct (typed in or a saved link).',
       '“Actions taken” counts the taps that matter: calls, WhatsApp, enquiries, directions and chat.',
@@ -90,33 +91,12 @@ const SECTIONS = [
       'To correct a live blog, open it from the list and click “Save changes”. To take it down, choose Save draft, or Delete to remove it for good.',
     ],
   },
-  {
-    title: 'Buying stock and paying suppliers',
-    steps: [
-      'Add the supplier once, under Customers and suppliers (tick Supplier, and give their usual payment terms in days).',
-      'Optional: under Purchases, “Purchase order” records what you ordered (Admin and Owner).',
-      'When the goods arrive, click “Goods received”. Choose the supplier and, if there is one, the purchase order, which fills in what is still to come. Type how many arrived and how many you accepted; give a reason for any rejected. The accepted bags go into stock at once, as a batch.',
-      'When their bill comes, open the goods received and click “Enter the bill for this”: the items and the order’s rates are filled in. Check them against the paper bill, type the bill number, and the total printed on the bill so mistakes are caught.',
-      'To pay, click “Pay a supplier”. It pays their oldest bill first, or choose the bills. UPI, bank and cheque payments need the reference number.',
-      '“Owed to suppliers” shows what you owe each one, by age. Click a supplier to see their unpaid bills and payments. A wrong bill or payment is cancelled or reversed with a reason (Admin and Owner); nothing is deleted.',
-    ],
-  },
-  {
-    title: 'Recording expenses',
-    steps: [
-      'Expenses are money spent that is not stock: rent, wages, diesel, electricity, repairs.',
-      'Click “Add expense”, choose what it was for, type the amount before GST and the GST rate, and add a photo of the bill (on a phone it opens the camera). A photo can also be added later from the list.',
-      'The bill photos are private: only people signed in to the admin can open them.',
-      'Choose the dates at the top to see the total spent, by category. Download gives the list as a spreadsheet for the accountant.',
-      'Admin and Owner can add categories, and set the Tally ledger each one goes to.',
-    ],
-  },
 ];
 
 export default function Help() {
   return (
     <div className="dash-page">
-      <PageHead title="Help" intro="How to use each part of the admin." range={false} />
+      <PageHead title="Help" intro="How to use each part of the website admin. Orders, stock, purchases and money are in the plant dashboard (/warehouse), with its own help." range={false} />
       <nav className="dash-help-toc" aria-label="Topics">
         {SECTIONS.map((s, i) => (
           <a key={s.title} href={`#help-${i}`}>

@@ -52,6 +52,7 @@ export const api = {
   sales: {
     orders: (status, q) => adminFetch(`/sales/orders?${new URLSearchParams({ status, q })}`),
     order: (id) => adminFetch(`/sales/orders/${id}`),
+    deliveries: () => adminFetch('/sales/deliveries'),
     preview: (body) => adminFetch('/sales/orders/preview', { method: 'POST', body }),
     createOrder: (body) => adminFetch('/sales/orders', { method: 'POST', body }),
     editOrder: (id, body) => adminFetch(`/sales/orders/${id}`, { method: 'PUT', body }),
@@ -145,7 +146,7 @@ export const api = {
   subscribers: () => adminFetch('/subscribers'),
   removeSubscriber: (email) => adminFetch(`/subscribers/${encodeURIComponent(email)}`, { method: 'DELETE' }),
   access: () => adminFetch('/access'),
-  setAccess: (email, role, note) => adminFetch(`/access/${encodeURIComponent(email)}`, { method: 'PUT', body: { role, note } }),
+  setAccess: (email, role, note, area) => adminFetch(`/access/${encodeURIComponent(email)}`, { method: 'PUT', body: { role, note, area } }),
   removeAccess: (email) => adminFetch(`/access/${encodeURIComponent(email)}`, { method: 'DELETE' }),
   posts: () => adminFetch('/posts'),
   post: (id) => adminFetch(`/posts/${encodeURIComponent(id)}`),

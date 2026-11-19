@@ -5,6 +5,7 @@ import { Badge, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, Stat, u
 import { money, niceDate, phoneShow } from './shared.js';
 import { NewBill, NewGoodsReceived, NewPurchaseOrder, PaySupplier, PAY_METHODS } from './PurchaseForms.jsx';
 import NotConnected from './NotConnected.jsx';
+import { useUrl, useUrlSearch } from '../../urlState.js';
 
 // Buying: what is owed to suppliers, their bills, goods received (stock comes
 // in as a batch), purchase orders, and payments made. Staff record goods
@@ -19,6 +20,8 @@ const PO_STATUS = {
   closed: ['Closed', 'muted'],
   cancelled: ['Cancelled', 'muted'],
 };
+const OPEN_KEYS = ['supplier', 'bill', 'grn', 'po'];
+const CLOSED = Object.fromEntries([...OPEN_KEYS, 'new', 'for'].map((k) => [k, '']));
 const qtyShow = (n) => (n == null ? '' : Number(n).toLocaleString('en-IN'));
 const askReason = (question) => {
   const reason = window.prompt(question);
@@ -35,16 +38,23 @@ const run = async (work, after) => {
 
 export default function Purchases() {
   const { allowed } = useDash();
-  const [tab, setTab] = useState('owed');
-  const [form, setForm] = useState(null); // { kind: 'po' | 'grn' | 'bill' | 'pay', start }
-  const [open, setOpen] = useState(null); // { kind: 'supplier' | 'bill' | 'grn' | 'po', id, row }
+  // The address holds the view: ?tab=bills, an open record (?bill=12,
+  // ?grn=3, ?po=4, ?supplier=5) and an open form (?new=grn|bill|pay|po, with
+  // &for= the order, goods received or supplier it starts from).
+  const { get, id, patch } = useUrl();
+  const tab = TABS[get('tab')] ? get('tab') : 'owed';
+  const setTab = (key) => patch({ tab: key === 'owed' ? '' : key });
+  const openKind = OPEN_KEYS.find((k) => id(k));
+  const open = openKind ? { kind: openKind, id: id(openKind) } : null;
+  const setOpen = (o) => patch({ ...CLOSED, ...(o ? { [o.kind]: o.id } : {}) });
+  const formKind = ['po', 'grn', 'bill', 'pay'].includes(get('new')) ? get('new') : null;
+  const form = formKind ? { kind: formKind, for: id('for') } : null;
+  const setForm = (f) => patch({ ...CLOSED, ...(f ? { new: f.kind, for: f.for } : {}) });
   const [stamp, setStamp] = useState(0);
   const payables = useLoad(() => api.inward.payables(), [stamp]);
   const refresh = () => setStamp((s) => s + 1);
   const saved = (nextTab) => () => {
-    setForm(null);
-    setOpen(null);
-    if (nextTab) setTab(nextTab);
+    patch({ ...CLOSED, tab: nextTab === 'owed' ? '' : nextTab }, { replace: true });
     refresh();
   };
 
@@ -105,15 +115,15 @@ export default function Purchases() {
         {tab === 'paid' && <Paid stamp={stamp} onChanged={refresh} />}
       </Card>
 
-      {open?.kind === 'supplier' && <SupplierDrawer row={open.row} onClose={() => setOpen(null)} onPay={(party) => setForm({ kind: 'pay', start: party })} />}
+      {open?.kind === 'supplier' && <SupplierDrawer partyId={open.id} row={rows.find((r) => r.party_id === open.id)} onClose={() => setOpen(null)} onPay={(partyId) => setForm({ kind: 'pay', for: partyId })} />}
       {open?.kind === 'bill' && <BillDrawer id={open.id} onClose={() => setOpen(null)} onChanged={refresh} />}
-      {open?.kind === 'grn' && <GoodsDrawer id={open.id} onClose={() => setOpen(null)} onBill={(start) => setForm({ kind: 'bill', start })} />}
-      {open?.kind === 'po' && <OrderDrawer id={open.id} onClose={() => setOpen(null)} onChanged={refresh} onReceive={(start) => setForm({ kind: 'grn', start })} />}
+      {open?.kind === 'grn' && <GoodsDrawer id={open.id} onClose={() => setOpen(null)} onBill={(grnId) => setForm({ kind: 'bill', for: grnId })} />}
+      {open?.kind === 'po' && <OrderDrawer id={open.id} onClose={() => setOpen(null)} onChanged={refresh} onReceive={(poId) => setForm({ kind: 'grn', for: poId })} />}
 
       {form?.kind === 'po' && <NewPurchaseOrder onClose={() => setForm(null)} onSaved={saved('orders')} />}
-      {form?.kind === 'grn' && <NewGoodsReceived start={form.start} onClose={() => setForm(null)} onSaved={saved('received')} />}
-      {form?.kind === 'bill' && <NewBill start={form.start} onClose={() => setForm(null)} onSaved={saved('bills')} />}
-      {form?.kind === 'pay' && <PaySupplier start={form.start} onClose={() => setForm(null)} onSaved={saved('paid')} />}
+      {form?.kind === 'grn' && <NewGoodsReceived start={form.for ? { orderId: form.for } : null} onClose={() => setForm(null)} onSaved={saved('received')} />}
+      {form?.kind === 'bill' && <NewBill start={form.for ? { goodsReceivedId: form.for } : null} onClose={() => setForm(null)} onSaved={saved('bills')} />}
+      {form?.kind === 'pay' && <PaySupplier startId={form.for} onClose={() => setForm(null)} onSaved={saved('paid')} />}
     </div>
   );
 }
@@ -143,7 +153,7 @@ function Owed({ state, rows, onOpen }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.party_id} className="dash-row-link" onClick={() => onOpen({ kind: 'supplier', row: r })}>
+            <tr key={r.party_id} className="dash-row-link" onClick={() => onOpen({ kind: 'supplier', id: r.party_id })}>
               <td>
                 <strong>{r.supplier}</strong>
                 {r.advance_paise > 0 && <span className="dash-muted dash-block dash-small">Advance paid {money(r.advance_paise)}</span>}
@@ -165,8 +175,8 @@ function Owed({ state, rows, onOpen }) {
 }
 
 function Bills({ onOpen, stamp }) {
-  const [q, setQ] = useState('');
-  const bills = useLoad(() => api.inward.bills(q), [q, stamp]);
+  const [q, setQ, search] = useUrlSearch();
+  const bills = useLoad(() => api.inward.bills(search), [search, stamp]);
   return (
     <>
       <label className="dash-search" style={{ marginBottom: 12 }}>
@@ -209,7 +219,7 @@ function Bills({ onOpen, stamp }) {
             </table>
           </div>
         ) : (
-          <Empty icon="file" title={q ? 'No bill matches' : 'No supplier bills yet'}>
+          <Empty icon="file" title={search ? 'No bill matches' : 'No supplier bills yet'}>
             Use “Enter a bill” when a supplier's bill arrives.
           </Empty>
         ))}
@@ -266,7 +276,9 @@ function Received({ onOpen, stamp }) {
 }
 
 function Orders({ onOpen, stamp }) {
-  const [status, setStatus] = useState('open');
+  const { get, patch } = useUrl();
+  const status = get('show') === 'all' ? '' : 'open';
+  const setStatus = (key) => patch({ show: key ? '' : 'all' });
   const list = useLoad(() => api.inward.purchaseOrders(status), [status, stamp]);
   return (
     <>
@@ -386,9 +398,12 @@ function Paid({ stamp, onChanged }) {
   );
 }
 
-function SupplierDrawer({ row, onClose, onPay }) {
+function SupplierDrawer({ partyId, row: listed, onClose, onPay }) {
   const { allowed } = useDash();
-  const acct = useLoad(() => api.inward.supplierAccount(row.party_id), [row.party_id]);
+  const acct = useLoad(() => api.inward.supplierAccount(partyId), [partyId]);
+  // Opened from a link: the supplier may not be in the owed list, so look them up.
+  const party = useLoad(() => (listed ? Promise.resolve(null) : api.business.party(partyId)), [partyId, Boolean(listed)]);
+  const row = listed || { party_id: partyId, supplier: party.data?.display_name || 'Supplier', phone: party.data?.phone, terms_days: party.data?.supplier_terms_days };
   return (
     <Drawer open onClose={onClose} title={row.supplier} wide>
       {acct.loading && !acct.data && <Loading />}
@@ -408,7 +423,7 @@ function SupplierDrawer({ row, onClose, onPay }) {
             </div>
           </dl>
           {allowed('editor') && (
-            <button type="button" className="dash-btn" onClick={() => onPay({ id: row.party_id, display_name: row.supplier, phone: row.phone })}>
+            <button type="button" className="dash-btn" onClick={() => onPay(row.party_id)}>
               <Icon name="rupee" /> Pay this supplier
             </button>
           )}
@@ -632,7 +647,7 @@ function GoodsDrawer({ id, onClose, onBill }) {
             </div>
           </dl>
           {!g.bill_number && allowed('editor') && (
-            <button type="button" className="dash-btn" onClick={() => onBill({ party: { id: g.party_id, display_name: g.supplier }, goodsReceivedId: g.id })}>
+            <button type="button" className="dash-btn" onClick={() => onBill(g.id)}>
               <Icon name="file" /> Enter the bill for this
             </button>
           )}
@@ -715,7 +730,7 @@ function OrderDrawer({ id, onClose, onChanged, onReceive }) {
           </dl>
           <div className="dash-row biz-actions">
             {isOpen && allowed('editor') && (
-              <button type="button" className="dash-btn" onClick={() => onReceive({ party: { id: o.party_id, display_name: o.supplier }, orderId: o.id })}>
+              <button type="button" className="dash-btn" onClick={() => onReceive(o.id)}>
                 <Icon name="plus" /> Record goods received
               </button>
             )}

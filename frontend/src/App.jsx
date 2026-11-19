@@ -18,17 +18,19 @@ import ProductDetail from './pages/ProductDetail';
 import About from './pages/About';
 import Blog from './pages/Blog';
 import Contact from './pages/Contact';
-import Checkout from './pages/Checkout';
+import Checkout, { OrderConfirmed } from './pages/Checkout';
 import Policy from './pages/Policy';
 import NotFound from './pages/NotFound';
 import Guide from './pages/Guide';
 import Post from './pages/Blog/Post.jsx';
 
-// The shop's own admin (reports, enquiries, blog, comments, settings),
-// loaded only when someone opens /admin, so the public pages never carry its
-// code. Its pages live in dashboard/, the blog composer in admin/.
+// The website admin at /admin (visitors and the analyst reports, enquiries,
+// blog, comments, settings), loaded only when someone opens it, so the public
+// pages never carry its code. Its pages live in dashboard/, the blog composer
+// in admin/.
 const Dashboard = lazy(() => import('./dashboard/Dashboard.jsx'));
-// The website analyst at /warehouse, likewise only when opened.
+// The plant dashboard at /warehouse (orders, delivery, stock, purchases,
+// money), likewise only when opened.
 const Warehouse = lazy(() => import('./warehouse/Warehouse.jsx'));
 
 // Everything except /story renders inside the shell: header, page, footer, cart drawer and effects (original `Wm`).
@@ -57,6 +59,7 @@ function AppShell() {
             path="/checkout"
             element={features.cart ? <Checkout /> : <Navigate to="/products" replace />}
           />
+          <Route path="/checkout/confirmed" element={<OrderConfirmed />} />
           <Route path="/policies/:slug" element={<Policy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

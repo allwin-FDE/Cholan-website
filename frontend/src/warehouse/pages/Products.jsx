@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { api } from '../../dashboard/api.js';
+import { useUrl } from '../../dashboard/urlState.js';
 import { periodName, useDash } from '../../dashboard/context.js';
 import { BarList, Card, Empty, ErrorNote, Icon, Loading, PageHead, Stat, downloadCsv, duration, num, useLoad } from '../../dashboard/ui.jsx';
 
@@ -22,7 +23,15 @@ const COLUMNS = [
 export default function Products() {
   const { days } = useDash();
   const { data, loading, error, reload } = useLoad(() => api.products(days), [days]);
-  const [sort, setSort] = useState({ key: 'views', dir: -1 });
+  // The address holds the sort: ?sort=-views (minus = highest first).
+  const { get, patch } = useUrl();
+  const sortRaw = get('sort', '-views');
+  const sort = { key: sortRaw.replace(/^-/, ''), dir: sortRaw.startsWith('-') ? -1 : 1 };
+  const setSort = (next) => {
+    const s = typeof next === 'function' ? next(sort) : next;
+    const raw = `${s.dir < 0 ? '-' : ''}${s.key}`;
+    patch({ sort: raw === '-views' ? '' : raw }, { replace: true });
+  };
   const products = useMemo(() => data?.products || [], [data]);
   const rows = useMemo(
     () =>

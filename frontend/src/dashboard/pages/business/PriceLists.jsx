@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { api } from '../../api.js';
 import { useDash } from '../../context.js';
 import { Badge, Card, Drawer, ErrorNote, Loading, PageHead, useLoad } from '../../ui.jsx';
 import { money, niceDate, todayIst } from './shared.js';
+import { useUrl } from '../../urlState.js';
 import NotConnected from './NotConnected.jsx';
 
 // One price list per kind of customer. A new price starts on a date and the
@@ -12,14 +13,15 @@ export default function PriceLists() {
   const { allowed } = useDash();
   const canEdit = allowed('admin');
   const meta = useLoad(() => api.business.priceLists(), []);
-  const [listId, setListId] = useState(null);
-  const [openItem, setOpenItem] = useState(null);
-  useEffect(() => {
-    if (!listId && meta.data?.lists?.length) setListId(meta.data.lists[0].id);
-  }, [meta.data, listId]);
+  // The address holds the view: ?list=2&item=12 (the first list if none).
+  const { id, patch } = useUrl();
+  const listId = id('list') ?? meta.data?.lists?.[0]?.id ?? null;
+  const setListId = (value) => patch({ list: value, item: '' });
   const detail = useLoad(() => (listId ? api.business.priceList(listId) : Promise.resolve(null)), [listId]);
 
   const items = useMemo(() => (meta.data?.items || []).filter((i) => i.kind === 'finished'), [meta.data]);
+  const openItem = items.find((i) => i.id === id('item')) || null;
+  const setOpenItem = (item) => patch({ item: item?.id });
   const byItem = useMemo(() => {
     const map = new Map();
     for (const p of detail.data?.prices || []) map.set(p.item_id, [...(map.get(p.item_id) || []), p]);

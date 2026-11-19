@@ -5,7 +5,7 @@ import { Router } from 'express';
 import express from 'express';
 import { Storage } from '@google-cloud/storage';
 import { config } from '../config.js';
-import { ROLES, WAREHOUSE_ROLES, requireRole, accessCollection } from '../lib/auth.js';
+import { AREAS, ROLES, WAREHOUSE_ROLES, requireRole, accessCollection } from '../lib/auth.js';
 import { collection, firestore } from '../lib/firestore.js';
 import {
   loadPeriod,
@@ -251,9 +251,10 @@ router.get(
     const snap = await accessCollection().get();
     res.json({
       roles: ROLES.filter((r) => r !== 'owner'),
+      areas: AREAS,
       owners: config.ownerEmails,
       people: snap.docs
-        .map((doc) => ({ email: doc.id, ...doc.data() }))
+        .map((doc) => ({ email: doc.id, ...doc.data(), area: AREAS.includes(doc.data().area) ? doc.data().area : 'both' }))
         .filter((person) => !WAREHOUSE_ROLES.includes(person.role))
         .sort((a, b) => a.email.localeCompare(b.email)),
     });
@@ -271,8 +272,15 @@ router.put(
     if (config.ownerEmails.includes(email)) return res.status(400).json({ error: 'That address is an owner and always has full access.' });
     const ref = accessCollection().doc(email);
     const existing = await ref.get();
+    // Website (/admin), plant (/warehouse) or both; unchanged if not sent.
+    const area = req.body.area === undefined ? (AREAS.includes(existing.data()?.area) ? existing.data().area : 'both') : String(req.body.area);
+    if (!AREAS.includes(area)) return res.status(400).json({ error: 'Choose website, plant or both.' });
+    if (email === req.user.email && area !== req.user.area) {
+      return res.status(400).json({ error: 'You cannot change your own area. Ask another admin or an owner.' });
+    }
     const entry = {
       role,
+      area,
       note: typeof req.body.note === 'string' ? req.body.note.slice(0, 120) : existing.data()?.note || '',
       updatedAt: new Date().toISOString(),
       updatedBy: req.user.email,
