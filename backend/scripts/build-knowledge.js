@@ -67,9 +67,11 @@ add(
       ? 'Prices are listed on each product page, for each pack size, in rupees. Prices can change; the current rate is confirmed when you order.'
       : 'Prices are not published on the website yet: every product shows "Price on request". For the current price, ask through the enquiry form on the Contact page, WhatsApp or a phone call.',
     features.cart
-      ? 'Products can be added to the cart and ordered through checkout on the website.'
+      ? 'To order on the website, choose a pack size on the product page, press Add to cart, then go to Checkout. At checkout you can pay online straight away (UPI, card or netbanking, secured by Razorpay) or choose cash or UPI on delivery; with cash or UPI on delivery the order is sent to us on WhatsApp to confirm. Home delivery or pickup from the mill in Sanganoor, Coimbatore. You can also order on WhatsApp, by phone, or with an enquiry on the Contact page.'
       : 'There is no online cart or checkout at the moment. To order, send an enquiry on the Contact page, message on WhatsApp or call.',
-    `Each product page has an Enquire button that opens the Contact page with that product filled in.`,
+    features.cart
+      ? 'Each product page has Add to cart and a Call to order button.'
+      : `Each product page has an Enquire button that opens the Contact page with that product filled in.`,
     `Phone and WhatsApp: ${site.phone}. Email: ${site.email}.`,
     'Bulk and wholesale orders (26 kg bags, monthly supply) are quoted on request — see the bulk supply section.',
   ].join('\n'),
