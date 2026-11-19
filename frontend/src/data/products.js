@@ -73,8 +73,7 @@ export const products = [
     category: 'rice',
     tagline: 'தூயமல்லி · Ponni raw rice (pachai arisi)',
     description: 'Ponni raw rice (pachai arisi) in the Thooyamalli pack, from the 1 kg pack up to the 26 kg sack.',
-    // TEMPORARY for the online payment test (2026-11-19): the 1 kg pack shows ₹1. Put back to 100 after the test.
-    packs: makePacks(['1 kg', 1], ['5 kg', 500], ['26 kg', 2400]),
+    packs: makePacks(['1 kg', 100], ['5 kg', 500], ['26 kg', 2400]),
     image: '/images/products/thooyamalli-ponni-raw-rice.webp',
   },
   {
