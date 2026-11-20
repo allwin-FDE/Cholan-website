@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { SideToggle, useSideHidden } from '../shared/sidebar.jsx';
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../shared/api.js';
 import { logout, watchUser } from '../shared/firebase.js';
@@ -40,6 +41,7 @@ export default function WhatsApp() {
   const [status, setStatus] = useState(null);
   const [unread, setUnread] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sideHidden, toggleSide] = useSideHidden();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -101,7 +103,7 @@ export default function WhatsApp() {
       <WaContext.Provider value={{ status, reloadStatus }}>
         <title>WhatsApp · Cholan</title>
         <meta name="robots" content="noindex, nofollow" />
-        <div className={`dash wa${menuOpen ? ' dash--menu' : ''}`}>
+        <div className={`dash wa${menuOpen ? ' dash--menu' : ''}${sideHidden ? ' dash--hidden' : ''}`}>
           <aside className="dash-side">
             <div className="dash-brand">
               <span className="wa-logo" aria-hidden="true">
@@ -151,6 +153,7 @@ export default function WhatsApp() {
               </div>
             </div>
           </aside>
+          <SideToggle hidden={sideHidden} onToggle={toggleSide} />
           <div className="dash-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
           <div className="dash-main">
             <header className="dash-mobilebar">

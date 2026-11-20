@@ -697,3 +697,39 @@
   background: var(--d-green);
   color: #fff;
 }
+
+/* The ready-made template gallery. */
+.wa-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+.wa-lib {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--d-line);
+  border-radius: 14px;
+  background: var(--d-card);
+}
+.wa-lib__head strong {
+  display: block;
+  word-break: break-all;
+}
+.wa-lib p {
+  margin: 0;
+}
+.wa-lib__preview {
+  flex: 1;
+}
+.wa-lib__preview .wa-phone {
+  max-width: 100%;
+  border-width: 5px;
+  border-radius: 18px;
+  box-shadow: none;
+}
+.wa-lib__preview .wa-phone__chat {
+  min-height: 0;
+}

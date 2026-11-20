@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SideToggle, useSideHidden } from '../shared/sidebar.jsx';
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../shared/api.js';
 import { logout, watchUser } from '../shared/firebase.js';
@@ -97,6 +98,7 @@ export default function Admin() {
   const [state, setState] = useState({ status: 'loading' }); // loading | signed-out | no-access | ready | error
   const [days, setDaysState] = useState(readDays);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sideHidden, toggleSide] = useSideHidden();
   const [waiting, setWaiting] = useState({ comments: 0 });
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -185,7 +187,7 @@ export default function Admin() {
     <DashContext.Provider value={context}>
       <title>Admin · Cholan</title>
       <meta name="robots" content="noindex, nofollow" />
-      <div className={`dash an${menuOpen ? ' dash--menu' : ''}`}>
+      <div className={`dash an${menuOpen ? ' dash--menu' : ''}${sideHidden ? ' dash--hidden' : ''}`}>
         <aside className="dash-side an-side">
           <div className="an-brand">
             <span className="an-brand__mark">CR</span>
@@ -232,6 +234,7 @@ export default function Admin() {
             </div>
           </div>
         </aside>
+          <SideToggle hidden={sideHidden} onToggle={toggleSide} />
         <div className="dash-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
         <div className="dash-main an-main">
           <header className="dash-mobilebar an-mobilebar">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SideToggle, useSideHidden } from '../shared/sidebar.jsx';
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../shared/api.js';
 import { logout, watchUser } from '../shared/firebase.js';
@@ -57,6 +58,7 @@ const TO_ADMIN = { visitors: 'visitors', pages: 'pages', journeys: 'journeys', b
 export default function Warehouse() {
   const [state, setState] = useState({ status: 'loading' });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sideHidden, toggleSide] = useSideHidden();
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
 
@@ -120,7 +122,7 @@ export default function Warehouse() {
     <DashContext.Provider value={context}>
       <title>Plant · Cholan</title>
       <meta name="robots" content="noindex, nofollow" />
-      <div className={`dash${menuOpen ? ' dash--menu' : ''}`}>
+      <div className={`dash${menuOpen ? ' dash--menu' : ''}${sideHidden ? ' dash--hidden' : ''}`}>
         <aside className="dash-side">
           <div className="dash-brand">
             <img src="/images/cholan-logo.png" alt="Cholan" />
@@ -161,6 +163,7 @@ export default function Warehouse() {
             </div>
           </div>
         </aside>
+          <SideToggle hidden={sideHidden} onToggle={toggleSide} />
         <div className="dash-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
         <div className="dash-main">
           <header className="dash-mobilebar">

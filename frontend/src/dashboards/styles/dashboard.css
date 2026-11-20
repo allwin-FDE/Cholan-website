@@ -2186,3 +2186,91 @@ details.biz-section > summary {
 .dash-apps .dash-check {
   font-size: 0.86rem;
 }
+
+/* The menu can slide away (the arrow on its edge) and come back; the choice
+   is remembered. Phones keep their own menu button instead. */
+.dash {
+  --side-w: 248px;
+  transition: grid-template-columns 0.25s ease;
+}
+.dash.an {
+  --side-w: 236px;
+}
+.dash.dash--hidden,
+.dash.an.dash--hidden {
+  grid-template-columns: 0 minmax(0, 1fr);
+  background: var(--d-bg);
+}
+.dash--hidden > .dash-side {
+  visibility: hidden;
+  padding-left: 0;
+  padding-right: 0;
+  overflow: hidden;
+}
+.dash--hidden > .dash-main {
+  padding-left: 30px;
+}
+.dash-sidetoggle {
+  position: fixed;
+  z-index: 120;
+  top: 22px;
+  left: calc(var(--side-w) - 14px);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--d-line);
+  border-radius: 50%;
+  background: var(--d-card, #fff);
+  color: var(--d-ink);
+  box-shadow: 0 2px 8px rgba(15, 31, 22, 0.15);
+  cursor: pointer;
+  transition: left 0.25s ease, transform 0.15s ease;
+}
+.dash-sidetoggle:hover {
+  transform: scale(1.08);
+}
+.dash-sidetoggle:focus-visible {
+  outline: 2px solid var(--d-green);
+  outline-offset: 2px;
+}
+.dash-sidetoggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.25s ease;
+}
+.dash--hidden .dash-sidetoggle {
+  left: 10px;
+}
+.dash--hidden .dash-sidetoggle svg {
+  transform: rotate(180deg);
+}
+@media (max-width: 900px) {
+  .dash-sidetoggle {
+    display: none;
+  }
+  .dash.dash--hidden,
+  .dash.an.dash--hidden {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dash--hidden > .dash-side {
+    visibility: visible;
+    padding: 20px 14px;
+  }
+  .dash--hidden > .dash-main {
+    padding-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash,
+  .dash-sidetoggle,
+  .dash-sidetoggle svg {
+    transition: none;
+  }
+}

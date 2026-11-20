@@ -4,6 +4,7 @@ import { Badge, Card, Drawer, Empty, ErrorNote, Icon, Loading, PageHead, ago, us
 import { useUrl, useUrlSearch } from '../../shared/urlState.js';
 import { wa } from '../api.js';
 import { CATEGORY, PhonePreview, TemplateStatus, componentsFromForm, useWa, variablesIn } from '../shared.jsx';
+import { LIBRARY } from '../library.js';
 
 // Message templates: every message a business starts on WhatsApp must use
 // one, approved by Meta. Made here (with a live preview), sent to Meta, and
@@ -65,6 +66,9 @@ export default function Templates() {
                 <Icon name="refresh" /> {syncing ? 'Syncing…' : 'Sync from Meta'}
               </button>
             )}
+            <button type="button" className="dash-btn dash-btn--ghost" onClick={() => patch({ library: 1, template: '' })}>
+              <Icon name="layers" /> Ready-made templates
+            </button>
             {allowed('editor') && (
               <button type="button" className="dash-btn" onClick={() => patch({ new: 1, template: '' })}>
                 <Icon name="plus" /> New template
@@ -130,12 +134,20 @@ export default function Templates() {
       </Card>
       {get('new') && (
         <Builder
-          start={get('copy') ? copyForm((list.data?.templates || []).find((t) => t.id === get('copy'))) : null}
-          onClose={() => patch({ new: '', copy: '' })}
+          start={get('copy') ? copyForm((list.data?.templates || []).find((t) => t.id === get('copy'))) : get('starter') !== '' && LIBRARY[Number(get('starter'))] ? structuredClone(LIBRARY[Number(get('starter'))].form) : null}
+          onClose={() => patch({ new: '', copy: '', starter: '' })}
           onSaved={(t) => {
             list.reload();
-            patch({ new: '', copy: '', template: t.id }, { replace: true });
+            patch({ new: '', copy: '', starter: '', template: t.id }, { replace: true });
           }}
+        />
+      )}
+      {get('library') && !get('new') && (
+        <Library
+          made={new Set((list.data?.templates || []).filter((t) => t.status !== 'DELETED').map((t) => t.name))}
+          onUse={(i) => patch({ library: '', new: 1, starter: i })}
+          onClose={() => patch({ library: '' })}
+          onSent={list.reload}
         />
       )}
       {open && !get('new') && <TemplateDrawer t={open} onClose={() => patch({ template: '' })} onChanged={list.reload} onCopy={() => patch({ new: 1, copy: open.id, template: '' })} />}
@@ -482,6 +494,89 @@ function Builder({ start, onClose, onSaved }) {
           </p>
         </div>
       </form>
+    </Drawer>
+  );
+}
+
+// The ready-made templates: open one in the builder to check and send it, or
+// send them all to Meta at once (those not made yet; the photo one needs a
+// sample photo, so it is opened instead).
+function Library({ made, onUse, onClose, onSent }) {
+  const { allowed } = useDash();
+  const { status } = useWa();
+  const [kind, setKind] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const shown = LIBRARY.map((item, i) => ({ ...item, i })).filter((x) => !kind || x.form.category === kind);
+  const ready = LIBRARY.filter((x) => !made.has(x.form.name) && x.form.header.type !== 'image');
+  const sendAll = async () => {
+    if (!window.confirm(`Send ${ready.length} templates to Meta for approval? You can delete any you don’t want later.`)) return;
+    setBusy(true);
+    const done = [];
+    const failed = [];
+    for (const item of ready) {
+      try {
+        await wa.createTemplate(item.form);
+        done.push(item.form.name);
+      } catch (e) {
+        failed.push(`${item.form.name}: ${e.message}`);
+      }
+    }
+    setBusy(false);
+    setResult({ done, failed });
+    onSent();
+  };
+  return (
+    <Drawer open onClose={onClose} title="Ready-made templates" wide>
+      <p className="dash-muted dash-small">
+        Written for Cholan Rice and checked against Meta’s rules. Open one to change the words, then send it to Meta. Utility templates are for orders and payments; Marketing ones (offers) go only to people who agreed.
+      </p>
+      <div className="dash-row biz-actions">
+        <div className="dash-seg" role="group" aria-label="Kind">
+          {[['', 'All'], ['UTILITY', 'Orders and payments'], ['MARKETING', 'Offers'], ['AUTHENTICATION', 'Codes']].map(([k, l]) => (
+            <button key={k || 'all'} type="button" className={kind === k ? 'is-on' : ''} onClick={() => setKind(k)}>
+              {l}
+            </button>
+          ))}
+        </div>
+        {allowed('editor') && ready.length > 0 && (
+          <button type="button" className="dash-btn" onClick={sendAll} disabled={busy || !status?.connection?.ready} title={status?.connection?.ready ? '' : 'Connect WhatsApp first'}>
+            {busy ? 'Sending…' : `Send all ${ready.length} to Meta`}
+          </button>
+        )}
+      </div>
+      {result && (
+        <div className={`dash-flash dash-flash--${result.failed.length ? 'bad' : 'good'}`}>
+          {result.done.length} sent to Meta for approval.{result.failed.length ? ` Not sent: ${result.failed.join('; ')}` : ''}
+        </div>
+      )}
+      <div className="wa-library">
+        {shown.map(({ form, use, i }) => (
+          <article key={form.name} className="wa-lib">
+            <div className="wa-lib__head">
+              <strong>{form.name}</strong>
+              <span className="dash-small dash-muted">
+                {CATEGORY[form.category]} · {status?.languages?.[form.language] || form.language}
+              </span>
+            </div>
+            <p className="dash-small">{use}</p>
+            <div className="wa-lib__preview">
+              <PhonePreview components={componentsFromForm(form)} values={{ header: form.header.example, body: form.body.examples }} />
+            </div>
+            <div className="dash-row">
+              {made.has(form.name) ? (
+                <Badge tone="good">Already made</Badge>
+              ) : (
+                allowed('editor') && (
+                  <button type="button" className="dash-btn dash-btn--sm" onClick={() => onUse(i)}>
+                    Use this
+                  </button>
+                )
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
     </Drawer>
   );
 }
