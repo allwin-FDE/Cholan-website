@@ -7,6 +7,7 @@
 // changes and document numbering.
 import { Router } from 'express';
 import { handle, idOf, isAdmin, need, needDb } from './handle.js';
+import { orderEvent } from '../lib/whatsapp/events.js';
 import {
   adjustStock,
   allocateReceipt,
@@ -56,8 +57,12 @@ router.put(
 router.post(
   '/orders/:id/move',
   ...handle('editor', async (c, req) => {
-    await moveOrder(c, orderId(req), String(body(req).to || ''), body(req), { isAdmin: isAdmin(req) });
-    return getOrder(c, orderId(req));
+    const to = String(body(req).to || '');
+    await moveOrder(c, orderId(req), to, body(req), { isAdmin: isAdmin(req) });
+    const order = await getOrder(c, orderId(req));
+    // Confirmed, dispatched or delivered: the customer's WhatsApp message, if one is set up.
+    if (['confirmed', 'dispatched', 'delivered'].includes(to)) req.afterCommit = () => orderEvent(`order_${to}`, order);
+    return order;
   }),
 );
 router.post(

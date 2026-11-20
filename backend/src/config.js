@@ -77,6 +77,23 @@ export const config = {
     source: process.env.SALESDADDY_SOURCE || 'website',
   },
 
+  // WhatsApp Cloud API (Meta), for the /whatsapp dashboard. The access token
+  // and app secret are secrets (Secret Manager on Cloud Run); the IDs are
+  // from Meta's WhatsApp Manager and the app's dashboard. The verify token is
+  // any long random string, typed into the webhook settings at Meta too.
+  // WHATSAPP_FAKE=1 answers every Graph call locally (for testing), so
+  // nothing reaches Meta.
+  whatsapp: {
+    token: process.env.WHATSAPP_TOKEN || '',
+    appSecret: process.env.WHATSAPP_APP_SECRET || '',
+    verifyToken: process.env.WHATSAPP_VERIFY_TOKEN || '',
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
+    wabaId: process.env.WHATSAPP_WABA_ID || '',
+    appId: process.env.WHATSAPP_APP_ID || '',
+    graphVersion: process.env.WHATSAPP_GRAPH_VERSION || 'v23.0',
+    fake: process.env.WHATSAPP_FAKE === '1',
+  },
+
   // Per-IP submit limit, to keep the form from being used as a spam relay.
   rateLimit: {
     windowMs: num(process.env.RATE_LIMIT_WINDOW_MS, 60_000),

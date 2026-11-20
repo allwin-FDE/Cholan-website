@@ -8,11 +8,13 @@
 //   admin   — and Settings: who has access
 //   owner   — an admin from OWNER_EMAILS, who cannot be removed
 //
-// Areas, on top of the role: "website" opens /admin (the website, visitors,
+// Apps, on top of the role: "website" opens /admin (the website, visitors,
 // enquiries, blog, Settings), "plant" opens /warehouse (orders, delivery,
 // stock, purchases, money: the /api/admin/sales, business, inward and
-// accounts routes), "both" opens both. Owners, and anyone added before areas
-// existed, have both.
+// accounts routes), "whatsapp" opens /whatsapp (campaigns, templates,
+// contacts, inbox: /api/admin/whatsapp). A person has any mix of them.
+// Owners have all; anyone added before apps existed keeps website and plant
+// (an old area of "website" or "plant" keeps just that one).
 //
 // Warehouse workers (warehouse-staff, warehouse-manager) sit outside this
 // ladder: they rank below every role here, so requireRole refuses them on every
@@ -25,17 +27,26 @@ import { collection } from './firestore.js';
 export const ROLES = ['viewer', 'editor', 'admin', 'owner'];
 const rank = (role) => ROLES.indexOf(role);
 
-export const AREAS = ['website', 'plant', 'both'];
+export const APPS = ['website', 'plant', 'whatsapp'];
 const PLANT_API = /^\/api\/admin\/(sales|business|inward|accounts)(\/|\?|$)/;
+const WHATSAPP_API = /^\/api\/admin\/whatsapp(\/|\?|$)/;
 const ANY_API = /^\/api\/admin\/me(\/|\?|$)/;
-// Which area a request needs: plant for the business routes, none for /me
-// (each app asks who you are), website for everything else.
+// Which app a request needs: plant for the business routes, whatsapp for the
+// WhatsApp routes, none for /me (each app asks who you are), website for
+// everything else.
 export function areaNeeded(url) {
   if (ANY_API.test(url)) return null;
+  if (WHATSAPP_API.test(url)) return 'whatsapp';
   return PLANT_API.test(url) ? 'plant' : 'website';
 }
-export const opensArea = (area, needed) => !needed || area === 'both' || area === needed;
-const AREA_NAME = { website: 'the website admin (/admin)', plant: 'the plant dashboard (/warehouse)' };
+export const opensArea = (apps, needed) => !needed || (Array.isArray(apps) && apps.includes(needed));
+// The apps on an access entry, reading the older single "area" too.
+export function appsOf(data = {}) {
+  if (Array.isArray(data.apps)) return APPS.filter((a) => data.apps.includes(a));
+  if (data.area === 'website' || data.area === 'plant') return [data.area];
+  return ['website', 'plant'];
+}
+const AREA_NAME = { website: 'the website admin (/admin)', plant: 'the plant dashboard (/warehouse)', whatsapp: 'the WhatsApp dashboard (/whatsapp)' };
 
 export const WAREHOUSE_ROLES = ['warehouse-staff', 'warehouse-manager'];
 const WAREHOUSE_LEVEL = { 'warehouse-staff': 'staff', 'warehouse-manager': 'manager', admin: 'admin', owner: 'admin' };
@@ -48,15 +59,14 @@ export function auth() {
 
 const access = () => collection('dashboardAccess');
 
-// The person's role and area, or null if their email is not on the list.
+// The person's role and apps, or null if their email is not on the list.
 export async function accessFor(email) {
   if (!email) return null;
   const key = email.toLowerCase();
-  if (config.ownerEmails.includes(key)) return { role: 'owner', area: 'both' };
+  if (config.ownerEmails.includes(key)) return { role: 'owner', apps: [...APPS] };
   const doc = await access().doc(key).get();
   if (!doc.exists) return null;
-  const { role, area } = doc.data();
-  return { role, area: AREAS.includes(area) ? area : 'both' };
+  return { role: doc.data().role, apps: appsOf(doc.data()) };
 }
 
 // The person's role, or null if their email is not on the list.
@@ -65,7 +75,7 @@ export async function roleFor(email) {
 }
 
 // Express middleware: signed in, on the list, at least `minRole`, and allowed
-// into the area the route belongs to. Sets req.user = { email, role, area }.
+// into the app the route belongs to. Sets req.user = { email, role, apps }.
 export function requireRole(minRole = 'viewer') {
   return async (req, res, next) => {
     const header = req.get('authorization') || '';
@@ -102,13 +112,13 @@ export function requireRole(minRole = 'viewer') {
         return res.status(403).json({ error: 'The admin now uses Google sign-in only. Sign out, then choose “Continue with Google”.' });
       }
       const needed = areaNeeded(req.originalUrl);
-      if (!opensArea(entry.area, needed)) {
+      if (!opensArea(entry.apps, needed)) {
         return res.status(403).json({ error: `${decoded.email} has no access to ${AREA_NAME[needed]}. Ask an admin to change it in Settings.`, code: 'no-area' });
       }
       if (rank(role) < rank(minRole)) {
         return res.status(403).json({ error: `This needs ${minRole} access; you have ${role} access.` });
       }
-      req.user = { email: decoded.email.toLowerCase(), role, area: entry.area };
+      req.user = { email: decoded.email.toLowerCase(), role, apps: entry.apps };
       return next();
     } catch (error) {
       return next(error);

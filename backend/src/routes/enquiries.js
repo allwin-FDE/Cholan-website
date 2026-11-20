@@ -7,6 +7,7 @@ import { rateLimit } from '../lib/rateLimit.js';
 import { requireAdmin } from '../lib/requireAdmin.js';
 import { syncPending } from '../lib/sync.js';
 import { insertEnquiry, recentEnquiries, syncCounts } from '../store/db.js';
+import { enquiryEvent } from '../lib/whatsapp/events.js';
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.post('/', rateLimit, async (req, res) => {
   // visitor arrives. Capped, so a slow target delays the visitor by a few
   // seconds at most; a failed push is the worker's problem, not theirs.
   await Promise.race([
-    syncPending().catch((error) => console.error('[enquiries] sync failed:', error)),
+    Promise.all([syncPending().catch((error) => console.error('[enquiries] sync failed:', error)), enquiryEvent(enquiry)]),
     new Promise((resolve) => setTimeout(resolve, 6000)),
   ]);
   return res.status(201).json({ id: enquiry.id, receivedAt: enquiry.createdAt });

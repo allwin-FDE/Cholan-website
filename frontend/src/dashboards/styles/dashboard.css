@@ -2176,3 +2176,13 @@ details.biz-section > summary {
   gap: 16px;
   align-items: start;
 }
+
+/* Settings: the apps a person may open, as tick boxes. */
+.dash-apps {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.dash-apps .dash-check {
+  font-size: 0.86rem;
+}

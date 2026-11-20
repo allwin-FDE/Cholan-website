@@ -9,17 +9,31 @@ const ROLES = {
   editor: { label: 'Editor', can: 'Does the daily work. Website: enquiries (with phone numbers) and the blog. Plant: orders, packing, dispatch and delivery, goods received, supplier bills, payments and expenses.' },
   admin: { label: 'Admin', can: 'Everything, including approving credit, cancelling and reversing, stock adjustments, prices, and this Settings page.' },
 };
-// Where each person may go: the website admin, the plant dashboard, or both.
+// Which apps each person may open; any mix.
 const AREAS = {
-  plant: { label: 'Plant', where: 'cholanrice.in/warehouse', can: 'Plant dashboard only (/warehouse): orders, delivery, stock, purchases, expenses and money. For the production plant and office staff.' },
-  website: { label: 'Website', where: 'cholanrice.in/admin', can: 'Website admin only (/admin): visitors, enquiries, the blog and comments.' },
-  both: { label: 'Both', where: 'cholanrice.in/admin and cholanrice.in/warehouse', can: 'Both the website admin and the plant dashboard.' },
+  website: { label: 'Website', where: 'cholanrice.in/admin', can: 'The website admin (/admin): visitors, enquiries, the blog, comments and this Settings page.' },
+  plant: { label: 'Plant', where: 'cholanrice.in/warehouse', can: 'The plant dashboard (/warehouse): orders, delivery, stock, purchases, expenses and money. For the production plant and office staff.' },
+  whatsapp: { label: 'WhatsApp', where: 'cholanrice.in/whatsapp', can: 'The WhatsApp dashboard (/whatsapp): templates, contacts, campaigns, the inbox and automations.' },
 };
+const ORDER = Object.keys(AREAS);
+
+// Tick boxes for the apps.
+function AppsPicker({ value = [], onChange, disabled, name }) {
+  return (
+    <span className="dash-apps" role="group" aria-label={`Apps for ${name}`}>
+      {ORDER.map((a) => (
+        <label key={a} className="dash-check">
+          <input type="checkbox" checked={value.includes(a)} disabled={disabled} onChange={(e) => onChange(e.target.checked ? ORDER.filter((x) => x === a || value.includes(x)) : value.filter((x) => x !== a))} /> {AREAS[a].label}
+        </label>
+      ))}
+    </span>
+  );
+}
 
 export default function Settings() {
   const { user } = useDash();
   const { data, loading, error, reload, setData } = useLoad(() => api.access(), []);
-  const [form, setForm] = useState({ email: '', role: 'viewer', note: '', area: 'plant' });
+  const [form, setForm] = useState({ email: '', role: 'viewer', note: '', apps: ['plant'] });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -28,13 +42,13 @@ export default function Settings() {
     setBusy(true);
     setMessage(null);
     try {
-      const entry = await api.setAccess(form.email.trim().toLowerCase(), form.role, form.note, form.area);
+      const entry = await api.setAccess(form.email.trim().toLowerCase(), form.role, form.note, form.apps);
       setData({ ...data, people: [...data.people.filter((p) => p.email !== entry.email), entry].sort((a, b) => a.email.localeCompare(b.email)) });
       setMessage({
         tone: 'good',
-        text: `${entry.email} can now sign in at ${AREAS[entry.area]?.where || 'cholanrice.in/admin'} with Google. Let them know.`,
+        text: `${entry.email} can now sign in with Google at ${(entry.apps || []).map((a) => AREAS[a].where).join(' and ')}. Let them know.`,
       });
-      setForm({ email: '', role: 'viewer', note: '', area: form.area });
+      setForm({ email: '', role: 'viewer', note: '', apps: form.apps });
     } catch (e) {
       setMessage({ tone: 'bad', text: e.message });
     } finally {
@@ -42,9 +56,10 @@ export default function Settings() {
     }
   };
 
-  const changeRole = async (person, role, area = person.area) => {
+  const changeRole = async (person, role, apps = person.apps) => {
+    if (!apps?.length) return setMessage({ tone: 'bad', text: 'Leave at least one app ticked, or remove the person.' });
     try {
-      const entry = await api.setAccess(person.email, role, undefined, area);
+      const entry = await api.setAccess(person.email, role, undefined, apps);
       setData({ ...data, people: data.people.map((p) => (p.email === person.email ? { ...p, ...entry } : p)) });
     } catch (e) {
       setMessage({ tone: 'bad', text: e.message });
@@ -84,16 +99,10 @@ export default function Settings() {
                   ))}
                 </select>
               </label>
-              <label className="dash-field">
-                <span className="dash-field__label">Where</span>
-                <select value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })}>
-                  {Object.entries(AREAS).map(([key, a]) => (
-                    <option key={key} value={key}>
-                      {a.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="dash-field">
+                <span className="dash-field__label">Apps</span>
+                <AppsPicker value={form.apps} onChange={(apps) => setForm({ ...form, apps })} name="the new person" />
+              </div>
               <label className="dash-field">
                 <span className="dash-field__label">Note (optional)</span>
                 <input placeholder="e.g. Sales team, marketing agency" value={form.note} maxLength={120} onChange={(e) => setForm({ ...form, note: e.target.value })} />
@@ -103,7 +112,12 @@ export default function Settings() {
               </button>
             </form>
             <p className="dash-muted dash-small">
-              <strong>{AREAS[form.area].label}:</strong> {AREAS[form.area].can} <strong>{ROLES[form.role].label}:</strong> {ROLES[form.role].can}
+              {form.apps.map((a) => (
+                <span key={a}>
+                  <strong>{AREAS[a].label}:</strong> {AREAS[a].can}{' '}
+                </span>
+              ))}
+              <strong>{ROLES[form.role].label}:</strong> {ROLES[form.role].can}
             </p>
             {message && <div className={`dash-flash dash-flash--${message.tone}`}>{message.text}</div>}
           </Card>
@@ -115,7 +129,7 @@ export default function Settings() {
                   <tr>
                     <th>Email</th>
                     <th>Access</th>
-                    <th>Where</th>
+                    <th>Apps</th>
                     <th>Added</th>
                     <th />
                   </tr>
@@ -130,7 +144,7 @@ export default function Settings() {
                       <td>
                         <Badge tone="good">Owner</Badge>
                       </td>
-                      <td className="dash-muted dash-small">Both</td>
+                      <td className="dash-muted dash-small">All apps</td>
                       <td className="dash-muted">Built in</td>
                       <td className="dash-muted dash-small">Always has full access</td>
                     </tr>
@@ -158,13 +172,7 @@ export default function Settings() {
                       </td>
                       <td>
                         {ROLES[p.role] && (
-                          <select value={p.area || 'both'} onChange={(e) => changeRole(p, p.role, e.target.value)} aria-label={`Where ${p.email} can go`} disabled={p.email === user.email}>
-                            {Object.entries(AREAS).map(([key, a]) => (
-                              <option key={key} value={key}>
-                                {a.label}
-                              </option>
-                            ))}
-                          </select>
+                          <AppsPicker value={p.apps || []} onChange={(apps) => changeRole(p, p.role, apps)} disabled={p.email === user.email} name={p.email} />
                         )}
                       </td>
                       <td className="dash-muted dash-small">
@@ -196,7 +204,7 @@ export default function Settings() {
               ))}
               {Object.entries(AREAS).map(([key, a]) => (
                 <div key={key}>
-                  <strong>Where: {a.label}</strong>
+                  <strong>App: {a.label}</strong>
                   <p>{a.can}</p>
                 </div>
               ))}

@@ -32,6 +32,8 @@ const Admin = lazy(() => import('./dashboards/admin/Admin.jsx'));
 // The plant dashboard at /warehouse (orders, delivery, stock, purchases,
 // money), likewise only when opened.
 const Warehouse = lazy(() => import('./dashboards/warehouse/Warehouse.jsx'));
+// The WhatsApp campaign dashboard at /whatsapp, likewise only when opened.
+const WhatsApp = lazy(() => import('./dashboards/whatsapp/WhatsApp.jsx'));
 
 // Everything except /story renders inside the shell: header, page, footer, cart drawer and effects (original `Wm`).
 function AppShell() {
@@ -105,6 +107,14 @@ export default function App() {
             element={
               <Suspense fallback={<div className="dash-center" />}>
                 <Warehouse />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/whatsapp/*"
+            element={
+              <Suspense fallback={<div className="dash-center" />}>
+                <WhatsApp />
               </Suspense>
             }
           />

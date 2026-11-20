@@ -1,5 +1,7 @@
 // One request = one database transaction as the signed-in person, with a
-// role check first. A refusal comes back as a plain message for the screen
+// role check first. Work that must wait until the change is saved (a
+// WhatsApp message about it) goes in req.afterCommit and runs before the
+// answer. A refusal comes back as a plain message for the screen
 // (and field hints); anything else goes to the server's error handler.
 import { requireRole } from '../lib/auth.js';
 import { dbEnabled, withTx } from '../db/pool.js';
@@ -13,6 +15,7 @@ export const handle = (minRole, fn) => [
   async (req, res, next) => {
     try {
       const result = await withTx(req.user.email, (client) => fn(client, req));
+      if (req.afterCommit) await req.afterCommit().catch((error) => console.error('[after commit]', error.message));
       res.json(result ?? { ok: true });
     } catch (error) {
       const e = friendly(error);

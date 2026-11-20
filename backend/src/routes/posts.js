@@ -51,7 +51,7 @@ router.get(
   '/media/*',
   wrap(async (req, res) => {
     const name = req.params[0];
-    if (!/^(dev_)?blog\/[\w.-]+$/.test(name)) return res.status(404).end();
+    if (!/^(dev_)?(blog|whatsapp)\/[\w.-]+$/.test(name)) return res.status(404).end();
     const file = bucket.file(name);
     const [exists] = await file.exists();
     if (!exists) return res.status(404).end();

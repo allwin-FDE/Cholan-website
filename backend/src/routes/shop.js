@@ -13,6 +13,8 @@
 import { Router } from 'express';
 import express from 'express';
 import { dbEnabled, withTx } from '../db/pool.js';
+import { getOrder } from '../lib/sales.js';
+import { orderEvent } from '../lib/whatsapp/events.js';
 import { friendly } from '../lib/business.js';
 import { createRateLimit } from '../lib/rateLimit.js';
 import { requireAdmin } from '../lib/requireAdmin.js';
@@ -54,13 +56,35 @@ shop.post('/checkout', checkoutLimit, (req, res, next) => {
 
 shop.post('/order', checkoutLimit, (req, res, next) => {
   if (!dbEnabled()) return offline(res);
-  return answer(res, next, () => withTx('website', (c) => placeOrder(c, req.body || {})));
+  return answer(res, next, async () => {
+    const placed = await withTx('website', (c) => placeOrder(c, req.body || {}));
+    await websiteOrderEvent(placed.orderId);
+    return placed;
+  });
 });
 
 shop.post('/verify', (req, res, next) => {
   if (!dbEnabled()) return offline(res);
-  return answer(res, next, () => withTx('website', (c) => verifyCheckout(c, req.body || {})));
+  return answer(res, next, async () => {
+    const done = await withTx('website', (c) => verifyCheckout(c, req.body || {}));
+    if (done.result === 'confirmed') await websiteOrderEvent(null, done.orderNumber);
+    return done;
+  });
 });
+
+// The customer's WhatsApp message for a new website order, if one is set up
+// in /whatsapp → Automations. Never fails the order.
+async function websiteOrderEvent(orderId, orderNumber) {
+  try {
+    const order = await withTx('website', async (c) => {
+      const id = orderId || (await c.query('SELECT id FROM sales.orders WHERE number = $1', [orderNumber])).rows[0]?.id;
+      return id ? getOrder(c, Number(id)) : null;
+    });
+    if (order) await orderEvent('website_order', order);
+  } catch (error) {
+    console.error('[whatsapp] website order message:', error.message);
+  }
+}
 
 // Razorpay signs the exact bytes it sends, so the body is read raw.
 razorpayWebhook.post('/', express.raw({ type: '*/*', limit: '1mb' }), async (req, res) => {
@@ -75,6 +99,9 @@ razorpayWebhook.post('/', express.raw({ type: '*/*', limit: '1mb' }), async (req
   const eventId = req.get('x-razorpay-event-id') || `${payload.event}:${payload.payload?.payment?.entity?.id || payload.created_at}`;
   try {
     const result = await withTx('razorpay', (c) => handleWebhook(c, { eventId, payload }));
+    // Paid with the browser closed: the order's WhatsApp message goes from here.
+    const number = payload.payload?.payment?.entity?.notes?.order_number;
+    if (result === 'confirmed' && number) await websiteOrderEvent(null, number);
     return res.json({ ok: true, result });
   } catch (error) {
     // Razorpay retries for 24 hours when this is not a 2xx, so a short outage loses nothing.
