@@ -187,8 +187,12 @@
 }
 .ab-promise__mark {
   white-space: nowrap;
-  color: #0000;
-  -webkit-text-stroke: 1.5px #b07d1d47;
+  /* Outline only the outside of each letter: the stroke is painted first and the card-coloured fill
+     covers its inner half, so the lines where the font's pieces overlap (inside ழ, ன், சோ) don't show.
+     The stroke is twice the visible width for that reason. */
+  color: var(--ab-card);
+  -webkit-text-stroke: 3px #b07d1d47;
+  paint-order: stroke fill;
   pointer-events: none;
   -webkit-user-select: none;
   user-select: none;
@@ -541,7 +545,7 @@
     padding: 28px 14px 16px;
   }
   .ab-promise__mark {
-    -webkit-text-stroke-width: 1.2px;
+    -webkit-text-stroke-width: 2.4px;
     margin: 4px 0 0.32em;
     font-size: 15vw;
   }
