@@ -15,6 +15,9 @@ import Campaigns from './pages/Campaigns.jsx';
 import Templates from './pages/Templates.jsx';
 import Contacts from './pages/Contacts.jsx';
 import Automations from './pages/Automations.jsx';
+import BulkMessage from './pages/BulkMessage.jsx';
+import Bot from './pages/Bot.jsx';
+import Reports from './pages/Reports.jsx';
 import Connection from './pages/Connection.jsx';
 import Help from './pages/Help.jsx';
 import '../styles/dashboard.css';
@@ -29,11 +32,14 @@ import '../styles/whatsapp-theme.css';
 const NAV = [
   { to: '/whatsapp', label: 'Overview', icon: 'grid', end: true },
   { to: '/whatsapp/inbox', label: 'Inbox', icon: 'chat' },
-  { to: '/whatsapp/campaigns', label: 'Campaigns', icon: 'bolt' },
-  { to: '/whatsapp/templates', label: 'Templates', icon: 'file' },
   { to: '/whatsapp/contacts', label: 'Contacts', icon: 'users' },
+  { to: '/whatsapp/templates', label: 'Templates', icon: 'file' },
+  { to: '/whatsapp/bulk', label: 'Bulk message', icon: 'mail' },
+  { to: '/whatsapp/campaigns', label: 'Broadcasts', icon: 'bolt' },
   { to: '/whatsapp/automations', label: 'Automations', icon: 'route' },
-  { to: '/whatsapp/connection', label: 'Connection', icon: 'gear' },
+  { to: '/whatsapp/bot', label: 'Bot', icon: 'pulse' },
+  { to: '/whatsapp/reports', label: 'Reports', icon: 'download' },
+  { to: '/whatsapp/connection', label: 'Settings', icon: 'gear' },
   { to: '/whatsapp/help', label: 'Help', icon: 'help' },
 ];
 
@@ -182,6 +188,10 @@ export default function WhatsApp() {
               <Route path="templates" element={<Templates />} />
               <Route path="contacts" element={<Contacts />} />
               <Route path="automations" element={<Automations />} />
+              <Route path="bulk" element={<BulkMessage />} />
+              <Route path="broadcasts" element={<Navigate to="/whatsapp/campaigns" replace />} />
+              <Route path="bot" element={<Bot />} />
+              <Route path="reports" element={<Reports />} />
               <Route path="connection" element={<Connection />} />
               <Route path="help" element={<Help />} />
               <Route path="*" element={<Navigate to="/whatsapp" replace />} />

@@ -75,6 +75,8 @@ function realGraph(c) {
     },
     createTemplate: (template) => call('POST', `${c.wabaId}/message_templates`, { body: template }),
     deleteTemplate: (name, id) => call('DELETE', `${c.wabaId}/message_templates`, { query: { name, hsm_id: id } }),
+    // A rejected (or approved) template's new wording; Meta reviews it again.
+    editTemplate: (id, body) => call('POST', String(id), { body }),
     send: (message) => call('POST', `${c.phoneNumberId}/messages`, { body: { messaging_product: 'whatsapp', recipient_type: 'individual', ...message } }),
     markRead: (messageId) => call('POST', `${c.phoneNumberId}/messages`, { body: { messaging_product: 'whatsapp', status: 'read', message_id: messageId } }),
     // A sample file for a template's media header (Meta's resumable upload):
@@ -105,6 +107,10 @@ function fakeGraph() {
       const id = String(Date.now()) + Math.floor(Math.random() * 1000);
       templates.set(`${t.name}|${t.language}`, { id, status: 'APPROVED', ...t });
       return { id, status: 'PENDING', category: t.category };
+    },
+    editTemplate: async (id, body) => {
+      for (const t of templates.values()) if (t.id === String(id)) Object.assign(t, body, { status: 'APPROVED' });
+      return { success: true };
     },
     deleteTemplate: async (name) => {
       for (const k of templates.keys()) if (k.startsWith(`${name}|`)) templates.delete(k);

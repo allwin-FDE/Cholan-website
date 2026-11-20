@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { buildTemplate, renderText, slotsOf, variablesIn } from '../src/lib/whatsapp/templates.js';
-import { contactsFromRows, isStart, isStop, missingValues, parseCsv, readNotification, signatureOk, templateMessage, valuesFor, waNumber } from '../src/lib/whatsapp/messages.js';
+import { contactsFromRows, isStart, isStop, menuMessage, missingValues, parseCsv, readNotification, signatureOk, templateMessage, valuesFor, waNumber } from '../src/lib/whatsapp/messages.js';
 import { pickAudience } from '../src/lib/whatsapp/service.js';
 
 const offer = {
@@ -145,4 +145,17 @@ test("Meta's notifications are read, and their signature checked", () => {
   assert.equal(signatureOk(`${raw} `, sig, 'app-secret'), false);
   assert.equal(signatureOk(raw, sig, ''), false);
   assert.deepEqual(variablesIn('a {{2}} b {{ 1 }}'), [2, 1]);
+});
+
+test('the bot menu is buttons for up to 3 choices and a list above that; taps are read back', () => {
+  const three = menuMessage('919876543210', { text: 'Hi!', options: [{ id: 'a', title: 'Today’s prices and more' }, { id: 'b', title: 'Order' }, { id: 'c', title: 'Talk' }] });
+  assert.equal(three.interactive.type, 'button');
+  assert.equal(three.interactive.action.buttons[0].reply.title.length <= 20, true);
+  const five = menuMessage('919876543210', { text: 'Hi!', button: 'Choose', options: Array.from({ length: 5 }, (_, i) => ({ id: `o${i}`, title: `Option ${i}`, description: 'more' })) });
+  assert.equal(five.interactive.type, 'list');
+  assert.equal(five.interactive.action.sections[0].rows.length, 5);
+  assert.equal(five.interactive.action.sections[0].rows[0].description, 'more');
+  const n = readNotification({ entry: [{ changes: [{ field: 'messages', value: { messages: [{ id: 'w1', from: '91', timestamp: '1', type: 'interactive', interactive: { type: 'list_reply', list_reply: { id: 'prices', title: 'Today’s prices' } } }] } }] }] });
+  assert.equal(n.incoming[0].replyId, 'prices');
+  assert.equal(n.incoming[0].text, 'Today’s prices');
 });

@@ -37,13 +37,13 @@ export default function Campaigns() {
   return (
     <div className="dash-page">
       <PageHead
-        title="Campaigns"
-        intro="Send an approved template to a group of contacts, now or at a set time. Each person’s name and details are filled in."
+        title="Broadcasts"
+        intro="Send an approved template to a group of contacts by tag, now or at a set time. Each person’s name and details are filled in. Bulk messages show here too."
         range={false}
         actions={
           allowed('editor') && (
             <button type="button" className="dash-btn" onClick={() => patch({ new: 1, campaign: '' })}>
-              <Icon name="plus" /> New campaign
+              <Icon name="plus" /> New broadcast
             </button>
           )
         }
@@ -80,7 +80,7 @@ export default function Campaigns() {
                     return (
                       <tr key={c.id} className="dash-row-link" onClick={() => patch({ campaign: c.id })}>
                         <td>
-                          <strong>{c.name}</strong>
+                          <strong>{c.name}</strong> {c.kind === 'bulk' && <Badge tone="info">Bulk</Badge>}
                           <span className="dash-muted dash-block dash-small">
                             {c.template?.name} · {c.status === 'scheduled' ? `goes ${when(c.scheduleAt)}` : ago(c.startedAt || c.createdAt)}
                           </span>
@@ -112,7 +112,7 @@ export default function Campaigns() {
               </table>
             </div>
           ) : (
-            <Empty icon="bolt" title="No campaigns yet">
+            <Empty icon="bolt" title="No broadcasts yet">
               Make a template first (Templates), add contacts, then start a campaign.
             </Empty>
           ))}
@@ -348,7 +348,7 @@ function NewCampaign({ copyOf, onClose, onSaved }) {
   };
 
   return (
-    <Drawer open onClose={onClose} title="New campaign" wide>
+    <Drawer open onClose={onClose} title="New broadcast" wide>
       <ol className="wa-steps">
         {STEPS.map((s, i) => (
           <li key={s} className={i === step ? 'is-on' : i < step ? 'is-done' : ''}>

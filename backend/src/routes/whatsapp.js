@@ -70,6 +70,7 @@ whatsappAdmin.get(
       categories: CATEGORIES,
       languages: LANGUAGES,
       triggers: wa.TRIGGERS,
+      botActions: wa.BOT_ACTIONS,
     };
   }),
 );
@@ -81,6 +82,11 @@ whatsappAdmin.get('/overview', ...run('viewer', (req) => wa.overview(Math.min(Ma
 whatsappAdmin.get('/templates', ...run('viewer', async () => ({ templates: await wa.listTemplates() })));
 whatsappAdmin.post('/templates/sync', ...run('editor', async () => ({ templates: await wa.syncTemplates(graph()) })));
 whatsappAdmin.post('/templates', ...run('editor', (req) => wa.createTemplate(graph(), body(req), req.user.email)));
+// Drafts: kept here until sent to Meta. Submit sends a draft, or a rejected
+// template's new wording.
+whatsappAdmin.post('/templates/drafts', ...run('editor', (req) => wa.saveDraft(body(req).id || null, body(req).form || {}, req.user.email)));
+whatsappAdmin.delete('/templates/drafts/:id', ...run('editor', async (req) => (await wa.deleteDraft(req.params.id), { ok: true })));
+whatsappAdmin.post('/templates/:id/submit', ...run('editor', (req) => wa.submitTemplate(graph(), req.params.id, body(req).form || null, req.user.email)));
 whatsappAdmin.delete('/templates/:name', ...run('admin', async (req) => (await wa.deleteTemplate(graph(), req.params.name, String(req.query.language || 'en')), { ok: true })));
 
 // Files: a sample for a template's media header goes to Meta (it wants a
@@ -194,6 +200,21 @@ whatsappAdmin.get('/automations', ...run('viewer', async () => ({ automations: a
 whatsappAdmin.post('/automations', ...run('editor', (req) => wa.saveAutomation(null, body(req), req.user.email)));
 whatsappAdmin.put('/automations/:id', ...run('editor', (req) => wa.saveAutomation(req.params.id, body(req), req.user.email)));
 whatsappAdmin.delete('/automations/:id', ...run('editor', async (req) => (await wa.deleteAutomation(req.params.id), { ok: true })));
+
+// ---- The bot ----
+whatsappAdmin.get('/bot', ...run('viewer', () => wa.getBot()));
+whatsappAdmin.put('/bot', ...run('editor', (req) => wa.saveBot(body(req), req.user.email)));
+
+// ---- Reports ----
+const ymd = (v, fallback) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : fallback);
+whatsappAdmin.get(
+  '/reports',
+  ...run('viewer', (req) => {
+    const today = new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
+    const monthAgo = new Date(Date.now() + 5.5 * 3600_000 - 29 * 86_400_000).toISOString().slice(0, 10);
+    return wa.reports(ymd(req.query.from, monthAgo), ymd(req.query.to, today));
+  }),
+);
 
 // ---- Meta's webhook ----
 // Meta checks the address once with the verify token.

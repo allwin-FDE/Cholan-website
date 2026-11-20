@@ -137,6 +137,23 @@ export function templateMessage(to, template, values) {
   return { to, type: 'template', template: { name: template.name, language: { code: template.language }, ...(components.length ? { components } : {}) } };
 }
 
+// A bot menu: up to 3 choices as buttons, more as a list (up to 10).
+export function menuMessage(to, { text, button = 'Choose', options }) {
+  const opts = options.slice(0, 10);
+  if (opts.length <= 3) {
+    return { to, type: 'interactive', interactive: { type: 'button', body: { text: String(text).slice(0, 1024) }, action: { buttons: opts.map((o) => ({ type: 'reply', reply: { id: o.id, title: String(o.title).slice(0, 20) } })) } } };
+  }
+  return {
+    to,
+    type: 'interactive',
+    interactive: {
+      type: 'list',
+      body: { text: String(text).slice(0, 1024) },
+      action: { button: String(button || 'Choose').slice(0, 20), sections: [{ title: 'Options', rows: opts.map((o) => ({ id: o.id, title: String(o.title).slice(0, 24), ...(o.description ? { description: String(o.description).slice(0, 72) } : {}) })) }] },
+    },
+  };
+}
+
 export const textMessage = (to, body) => ({ to, type: 'text', text: { body: String(body).slice(0, 4096), preview_url: /https?:\/\//.test(body) } });
 
 // Meta signs each notification with the app secret (X-Hub-Signature-256).
@@ -181,6 +198,8 @@ export function readNotification(payload = {}) {
           text,
           media: m.image || m.video || m.audio || m.document || m.sticker ? { kind: m.type, id: (m.image || m.video || m.audio || m.document || m.sticker).id, mime: (m.image || m.video || m.audio || m.document || m.sticker).mime_type, filename: m.document?.filename } : null,
           replyTo: m.context?.id || null,
+          // A tap on a bot's button or list row, or a template's quick reply.
+          replyId: m.interactive?.button_reply?.id || m.interactive?.list_reply?.id || m.button?.payload || null,
           at: new Date(Number(m.timestamp) * 1000 || Date.now()).toISOString(),
         });
       }

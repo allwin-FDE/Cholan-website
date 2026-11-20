@@ -14,9 +14,12 @@
 // large audience never depends on one web request staying open. Queries use
 // only single-field indexes (Firestore makes those by itself).
 import { FieldValue } from '@google-cloud/firestore';
+import { Storage } from '@google-cloud/storage';
+import { config } from '../../config.js';
 import { collection } from '../firestore.js';
+import { dbEnabled, query } from '../../db/pool.js';
 import { buildTemplate, renderText, slotsOf } from './templates.js';
-import { isStart, isStop, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber } from './messages.js';
+import { isStart, isStop, menuMessage, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber } from './messages.js';
 
 export class WaError extends Error {
   constructor(message, { status = 400, fields, code } = {}) {
@@ -83,18 +86,102 @@ export async function syncTemplates(g) {
     batch.set(col.templates().doc(key), { metaId: String(t.id || ''), name: t.name, language: t.language, category: t.category, status: t.status, components: t.components || [], rejectedReason: t.rejected_reason && t.rejected_reason !== 'NONE' ? t.rejected_reason : '', quality: t.quality_score?.score || '', syncedAt: now(), updatedAt: now() }, { merge: true });
   }
   // Templates deleted at Meta are marked, not removed, so old campaigns still read.
-  for (const t of await listTemplates()) if (!seen.has(t.id) && t.status !== 'DELETED') batch.set(col.templates().doc(t.id), { status: 'DELETED', updatedAt: now() }, { merge: true });
+  for (const t of await listTemplates()) if (!seen.has(t.id) && !['DELETED', 'DRAFT'].includes(t.status)) batch.set(col.templates().doc(t.id), { status: 'DELETED', updatedAt: now() }, { merge: true });
   await batch.commit();
   return listTemplates();
 }
+// A media header's sample for Meta: from a handle already made, or from the
+// file kept in our media bucket (a draft's picture, video or PDF).
+async function withMediaHandle(g, form) {
+  const h = form.header || {};
+  if (!['image', 'video', 'document'].includes(h.type) || h.handle) return form;
+  if (g.fake) return { ...form, header: { ...h, handle: 'fake-handle' } };
+  const name = String(h.mediaUrl || '').split('/api/media/')[1];
+  if (!name) throw new WaError(`Add a sample ${h.type} for the header.`, { fields: { headerMedia: 'Add a sample.' } });
+  const file = new Storage().bucket(config.mediaBucket).file(decodeURIComponent(name));
+  const [[bytes], [meta]] = await Promise.all([file.download(), file.getMetadata()]);
+  return { ...form, header: { ...h, handle: await g.uploadSample(bytes, meta.contentType) } };
+}
+// What a draft shows in the list and the preview, even half written.
+function looseComponents(form) {
+  const media = ['image', 'video', 'document'].includes(form.header?.type);
+  try {
+    return buildTemplate({ ...form, header: media ? { ...form.header, handle: form.header.handle || 'draft' } : form.header }).components;
+  } catch {
+    return [{ type: 'BODY', text: String(form.body?.text || '') }];
+  }
+}
+const cleanDescription = (form) => String(form.description || '').trim().slice(0, 200);
+
 export async function createTemplate(g, form, by) {
-  const body = buildTemplate(form);
+  const body = buildTemplate(await withMediaHandle(g, form));
   const key = templateKey(body.name, body.language);
-  if ((await col.templates().doc(key).get()).exists) throw new WaError(`A template called ${body.name} in this language already exists. Choose another name.`, { fields: { name: 'Already used.' } });
+  const existing = await col.templates().doc(key).get();
+  if (existing.exists && !['DRAFT', 'DELETED'].includes(existing.data().status)) throw new WaError(`A template called ${body.name} in this language already exists. Choose another name.`, { fields: { name: 'Already used.' } });
   const made = await g.createTemplate(body);
-  const saved = { metaId: String(made.id || ''), ...body, status: made.status || 'PENDING', rejectedReason: '', form, createdBy: by, createdAt: now(), updatedAt: now() };
+  const saved = { metaId: String(made.id || ''), ...body, description: cleanDescription(form), status: made.status || 'PENDING', rejectedReason: '', form: { ...form, header: { ...form.header, handle: '' } }, createdBy: existing.data()?.createdBy || by, createdAt: existing.data()?.createdAt || now(), submittedAt: now(), submittedBy: by, updatedAt: now() };
   await col.templates().doc(key).set(saved);
   return { id: key, ...saved };
+}
+
+// A draft: kept here, not at Meta, until it is sent. Renaming it moves it.
+export async function saveDraft(id, form, by) {
+  const name = String(form.name || '').trim();
+  const language = String(form.language || 'en');
+  if (!/^[a-z0-9_]{1,512}$/.test(name)) throw new WaError('Use small letters, numbers and _ only, like order_update.', { fields: { name: 'Small letters, numbers and _.' } });
+  const key = templateKey(name, language);
+  const there = await col.templates().doc(key).get();
+  if (there.exists && key !== id && there.data().status !== 'DELETED') throw new WaError(`A template called ${name} in this language already exists. Choose another name.`, { fields: { name: 'Already used.' } });
+  let started = there.exists && there.data().status === 'DRAFT' ? there.data() : null;
+  if (id && id !== key) {
+    const old = await col.templates().doc(id).get();
+    if (old.exists && old.data().status === 'DRAFT') {
+      started = old.data();
+      await old.ref.delete();
+    }
+  }
+  const doc = {
+    name,
+    language,
+    category: String(form.category || 'MARKETING').toUpperCase(),
+    description: cleanDescription(form),
+    status: 'DRAFT',
+    form: { ...form, header: { ...(form.header || {}), handle: '' } },
+    components: looseComponents(form),
+    updatedAt: now(),
+    updatedBy: by,
+    createdAt: started?.createdAt || now(),
+    createdBy: started?.createdBy || by,
+  };
+  await col.templates().doc(key).set(doc);
+  return { id: key, ...doc };
+}
+export async function deleteDraft(id) {
+  const doc = await col.templates().doc(id).get();
+  if (!doc.exists || doc.data().status !== 'DRAFT') throw new WaError('Only a draft can be deleted here.');
+  await doc.ref.delete();
+}
+// Sends a draft to Meta, or a rejected template's new wording (Meta reviews
+// it again under the same name). `form`, if given, is saved first.
+export async function submitTemplate(g, id, form, by) {
+  const doc = await col.templates().doc(id).get();
+  if (!doc.exists) throw new WaError('Template not found.', { status: 404 });
+  const cur = doc.data();
+  if (cur.status === 'DRAFT') {
+    const next = form || cur.form;
+    if (templateKey(next.name, next.language) !== id) await saveDraft(id, next, by);
+    return createTemplate(g, next, by);
+  }
+  if (cur.status === 'REJECTED' || cur.status === 'PAUSED') {
+    const next = { ...(form || cur.form), name: cur.name, language: cur.language };
+    const body = buildTemplate(await withMediaHandle(g, next));
+    if (body.category !== cur.category && cur.status !== 'REJECTED') throw new WaError('The kind of a template can’t be changed after approval.');
+    await g.editTemplate(cur.metaId, { category: body.category, components: body.components });
+    const saved = { ...body, description: cleanDescription(next), status: 'PENDING', rejectedReason: '', form: { ...next, header: { ...next.header, handle: '' } }, submittedAt: now(), submittedBy: by, updatedAt: now() };
+    await doc.ref.set(saved, { merge: true });
+    return { id, ...cur, ...saved };
+  }
+  throw new WaError(`A template that is ${String(cur.status).toLowerCase()} can’t be sent again. Make a copy instead.`);
 }
 export async function deleteTemplate(g, name, language) {
   const t = await getTemplate(name, language);
@@ -191,12 +278,16 @@ export const deleteContact = (wa) => col.contacts().doc(waNumber(wa)).delete();
 export function pickAudience(contacts, audience = {}, { marketing = true } = {}) {
   const tags = cleanTags(audience.tags || []);
   const exclude = cleanTags(audience.excludeTags || []);
+  // A bulk message names its people instead of tags.
+  const only = Array.isArray(audience.was) && audience.was.length ? new Set(audience.was) : null;
   const picked = [];
   const skipped = { optedOut: 0, noConsent: 0 };
   for (const c of contacts) {
     const has = (t) => (c.tags || []).includes(t);
-    if (tags.length && !(audience.match === 'all' ? tags.every(has) : tags.some(has))) continue;
-    if (exclude.some(has)) continue;
+    if (only) {
+      if (!only.has(c.wa)) continue;
+    } else if (tags.length && !(audience.match === 'all' ? tags.every(has) : tags.some(has))) continue;
+    if (!only && exclude.some(has)) continue;
     if (c.optedOut) {
       skipped.optedOut += 1;
       continue;
@@ -241,10 +332,29 @@ async function checkCampaign(body) {
 }
 // How a campaign would go out: how many, who's left out and why, and the
 // first message as it will read.
+// A bulk message's pasted list as contacts: people already here keep their
+// details (and an opt-out); the list's consent applies to the rest.
+function listAsContacts(audience, existing) {
+  const byWa = new Map(existing.map((c) => [c.wa, c]));
+  const seen = new Set();
+  const rows = [];
+  for (const r of audience.list || []) {
+    const wa = waNumber(r.phone || r.wa);
+    if (!wa || seen.has(wa)) continue;
+    seen.add(wa);
+    const cur = byWa.get(wa);
+    rows.push({ wa, name: r.name || cur?.name || '', tags: cur?.tags || [], attributes: { ...(cur?.attributes || {}), ...(r.attributes || {}) }, consent: Boolean(cur?.consent || audience.consent), optedOut: Boolean(cur?.optedOut) });
+  }
+  return rows.slice(0, 5000);
+}
+
 export async function previewCampaign(body) {
   const { template } = await checkCampaign({ name: body.name || 'preview', ...body });
   const marketing = template.category === 'MARKETING';
-  const { picked, skipped } = pickAudience(await listContacts(), body.audience, { marketing });
+  const all = await listContacts();
+  const { picked, skipped } = Array.isArray(body.audience?.list)
+    ? pickAudience(listAsContacts(body.audience, all), { was: listAsContacts(body.audience, all).map((c) => c.wa) }, { marketing })
+    : pickAudience(all, body.audience, { marketing });
   const sample = picked.slice(0, 3).map((c) => {
     const values = valuesFor(template, body.mapping, c);
     return { wa: c.wa, name: c.name, text: renderText(template, values), missing: missingValues(template, values) };
@@ -254,11 +364,22 @@ export async function previewCampaign(body) {
 }
 export async function createCampaign(body, by) {
   const { name, template, scheduleAt } = await checkCampaign(body);
+  // A bulk message: the pasted people become contacts first.
+  let was = null;
+  if (Array.isArray(body.audience?.list)) {
+    const rows = listAsContacts(body.audience, await listContacts());
+    if (!rows.length) throw new WaError('Add at least one valid WhatsApp number.', { fields: { list: 'No valid numbers.' } });
+    await importContacts(rows.map((r) => ({ wa: r.wa, name: r.name, tags: ['bulk'], attributes: r.attributes })), { source: 'bulk', consent: Boolean(body.audience.consent), by });
+    was = rows.map((r) => r.wa);
+  }
   const ref = col.campaigns().doc();
   const campaign = {
     name,
+    kind: was ? 'bulk' : 'broadcast',
     template: { name: template.name, language: template.language, category: template.category },
-    audience: { tags: cleanTags(body.audience?.tags), excludeTags: cleanTags(body.audience?.excludeTags), match: body.audience?.match === 'all' ? 'all' : 'any', includeNoConsent: Boolean(body.audience?.includeNoConsent) },
+    audience: was
+      ? { was, includeNoConsent: Boolean(body.audience?.includeNoConsent) }
+      : { tags: cleanTags(body.audience?.tags), excludeTags: cleanTags(body.audience?.excludeTags), match: body.audience?.match === 'all' ? 'all' : 'any', includeNoConsent: Boolean(body.audience?.includeNoConsent) },
     mapping: body.mapping || {},
     scheduleAt: scheduleAt ? scheduleAt.toISOString() : null,
     status: 'draft',
@@ -344,10 +465,13 @@ const RETRY = new Set([130429, 131056, 131000, 2, 4, 80007]);
 const FINAL_RANK = { sent: 1, delivered: 2, read: 3 };
 
 // Sends one message now and records it. Returns { wamid } or throws.
-async function sendNow(g, { wa, kind, template, values, text, campaignId = null, automationId = null, queueId = null, by = null }) {
+async function sendNow(g, { wa, kind, template, values, text, menu, campaignId = null, automationId = null, queueId = null, by = null }) {
   let message;
   let shown;
-  if (kind === 'template') {
+  if (kind === 'menu') {
+    message = menuMessage(wa, menu);
+    shown = `${menu.text}\n${menu.options.map((o, i) => `${i + 1}. ${o.title}`).join('\n')}`;
+  } else if (kind === 'template') {
     const t = await getTemplate(template.name, template.language);
     message = templateMessage(wa, t, values);
     shown = renderText(t, values);
@@ -464,6 +588,7 @@ export async function markRead(g, waRaw) {
 export async function reply(g, waRaw, body, by) {
   const wa = waNumber(waRaw);
   const contact = (await col.contacts().doc(wa).get()).data();
+  if (contact?.needsHuman) await col.contacts().doc(wa).set({ needsHuman: false }, { merge: true });
   if (body.text) {
     if (!windowOpen(contact)) throw new WaError('It’s more than 24 hours since they last wrote, so WhatsApp only allows a template. Choose one below.', { code: 'window-closed' });
     return sendNow(g, { wa, kind: 'text', text: String(body.text).trim().slice(0, 4096), by });
@@ -593,8 +718,12 @@ export async function handleNotification(g, { incoming, statuses, templates }) {
       if (isStop(m.text)) await sendNow(g, { wa: m.from, kind: 'text', text: settings.optOutReply, by: 'auto' });
       else if (isStart(m.text)) await sendNow(g, { wa: m.from, kind: 'text', text: settings.optInReply, by: 'auto' });
       else {
-        if (first) await runAutomations('new_contact', { wa: m.from, name: cur.data()?.name || m.name, text: m.text });
-        if (m.text) await runAutomations('keyword', { wa: m.from, name: cur.data()?.name || m.name, text: m.text });
+        const name = cur.data()?.name || m.name;
+        const handled = await runBot(g, { wa: m.from, name, text: m.text, replyId: m.replyId, first, contact: cur.data() || {} });
+        if (!handled) {
+          if (first) await runAutomations('new_contact', { wa: m.from, name, text: m.text });
+          if (m.text) await runAutomations('keyword', { wa: m.from, name, text: m.text });
+        }
       }
     } catch (error) {
       console.error('[whatsapp] auto reply failed:', error.message);
@@ -659,3 +788,176 @@ export async function overview(days = 30) {
 }
 
 export { showNumber };
+
+// ---- The bot ----
+// A menu that answers by itself: someone says hi (or writes for the first
+// time) and gets buttons or a list; a tap (or the option's number) gets the
+// answer: a message, today's prices, their order's status, or a person.
+export const BOT_ACTIONS = { reply: 'Send a message', prices: 'Today’s prices (from the plant)', order_status: 'Their latest order’s status', handoff: 'Hand over to a person' };
+export const DEFAULT_BOT = {
+  enabled: false,
+  onFirstMessage: true,
+  triggerWords: ['hi', 'hello', 'hai', 'vanakkam', 'menu', 'help'],
+  welcome: 'Vanakkam {name}! Welcome to Cholan Rice. What would you like to do?',
+  button: 'Choose',
+  options: [
+    { id: 'prices', title: 'Today’s prices', description: 'Rice and pack prices', action: 'prices', reply: 'Prices change with the market; call us for today’s rate.' },
+    { id: 'order', title: 'My order status', description: 'Where is my order?', action: 'order_status', reply: '' },
+    { id: 'buy', title: 'Place an order', description: 'Order on WhatsApp', action: 'reply', reply: 'Tell us the rice and pack size (for example: Moongil Ponni 26 kg × 2) and your area. Or order online: https://www.cholanrice.in/products' },
+    { id: 'bulk', title: 'Bulk / hotel rates', description: 'For hotels, caterers, shops', action: 'reply', reply: 'We supply hotels, caterers and shops across Coimbatore. Tell us the rice and how many bags a month, and we’ll send you our best rate.' },
+    { id: 'human', title: 'Talk to us', description: 'A person replies', action: 'handoff', reply: 'Thank you! Someone from our team will reply shortly (9 am to 8 pm).' },
+  ],
+  fallback: 'Sorry, I didn’t get that. Reply MENU to see the options.',
+  pauseHours: 12,
+};
+export async function getBot() {
+  const doc = await col.settings().doc('bot').get();
+  return { ...DEFAULT_BOT, ...(doc.exists ? doc.data() : {}) };
+}
+export async function saveBot(body, by) {
+  const options = (Array.isArray(body.options) ? body.options : [])
+    .slice(0, 10)
+    .map((o, i) => ({
+      id: String(o.id || `opt${i + 1}`).replace(/[^a-z0-9_-]/gi, '').slice(0, 30) || `opt${i + 1}`,
+      title: String(o.title || '').trim().slice(0, 24),
+      description: String(o.description || '').trim().slice(0, 72),
+      action: BOT_ACTIONS[o.action] ? o.action : 'reply',
+      reply: String(o.reply || '').trim().slice(0, 1000),
+    }))
+    .filter((o) => o.title);
+  const fields = {};
+  if (!options.length) fields.options = 'Add at least one option.';
+  if (options.length <= 3 && options.some((o) => o.title.length > 20)) fields.options = 'With 3 options or fewer they show as buttons: keep each title to 20 characters.';
+  if (new Set(options.map((o) => o.id)).size !== options.length) fields.options = 'Each option needs a different code.';
+  if (options.some((o) => o.action === 'reply' && !o.reply)) fields.options = 'Type the message for each “Send a message” option.';
+  if (!String(body.welcome || '').trim()) fields.welcome = 'Type the welcome message.';
+  if (Object.keys(fields).length) throw new WaError('Please check the highlighted details.', { fields });
+  const next = {
+    enabled: Boolean(body.enabled),
+    onFirstMessage: body.onFirstMessage !== false,
+    triggerWords: String(Array.isArray(body.triggerWords) ? body.triggerWords.join(',') : body.triggerWords || '').split(',').map((w) => w.trim().toLowerCase()).filter(Boolean).slice(0, 20),
+    welcome: String(body.welcome).trim().slice(0, 1000),
+    button: String(body.button || 'Choose').trim().slice(0, 20),
+    options,
+    fallback: String(body.fallback || '').trim().slice(0, 1000),
+    pauseHours: Math.min(Math.max(Number(body.pauseHours) || 12, 1), 72),
+    updatedAt: now(),
+    updatedBy: by,
+  };
+  await col.settings().doc('bot').set(next);
+  return getBot();
+}
+
+const ORDER_WORDS = { awaiting_payment: 'waiting for payment', new: 'received, we will confirm it shortly', confirmed: 'confirmed', packing: 'being packed', packed: 'packed and ready to go', dispatched: 'on its way', delivered: 'delivered', cancelled: 'cancelled', returned: 'returned' };
+async function botAnswer(option, { wa, name }) {
+  const first = String(name || '').split(' ')[0] || 'there';
+  if (option.action === 'prices') {
+    if (!dbEnabled()) return option.reply || 'Please call us for today’s prices.';
+    const { rows } = await query(
+      `SELECT p.name AS product, i.pack_label, li.price_paise
+       FROM catalog.items i JOIN catalog.products p ON p.id = i.product_id
+       JOIN price.list_items li ON li.item_id = i.id AND li.min_qty = 1 AND core.today_ist() BETWEEN li.valid_from AND coalesce(li.valid_to, 'infinity'::date)
+       JOIN price.price_lists pl ON pl.id = li.price_list_id AND pl.is_default AND pl.active
+       WHERE i.kind = 'finished' AND i.active AND p.active ORDER BY p.name, i.net_weight_g LIMIT 40`,
+    );
+    if (!rows.length) return option.reply || 'Please call us for today’s prices.';
+    return `Today’s prices at Cholan Rice:\n${rows.map((r) => `• ${r.product} ${r.pack_label}: ₹${(r.price_paise / 100).toLocaleString('en-IN')}`).join('\n')}\n\nReply with what you need, or order online: https://www.cholanrice.in/products`;
+  }
+  if (option.action === 'order_status') {
+    if (!dbEnabled()) return option.reply || 'Please call us and we will check your order.';
+    const { rows } = await query(
+      `SELECT o.number, o.status, o.order_date::text AS d FROM sales.orders o JOIN party.parties p ON p.id = o.party_id
+       WHERE p.phone = $1 ORDER BY o.id DESC LIMIT 3`,
+      [`+${wa}`],
+    );
+    if (!rows.length) return `Hi ${first}, we couldn’t find an order for this number. If you ordered with another number, please send us the order number.`;
+    return `Hi ${first}, here ${rows.length === 1 ? 'is your order' : 'are your latest orders'}:\n${rows.map((r) => `• ${r.number} (${r.d}): ${ORDER_WORDS[r.status] || r.status}`).join('\n')}`;
+  }
+  return String(option.reply || '').replace(/\{name\}/g, first);
+}
+
+// Returns true when the bot answered (so the keyword automations stay quiet).
+export async function runBot(g, { wa, name, text, replyId, first, contact }) {
+  const bot = await getBot();
+  if (!bot.enabled || !bot.options.length) return false;
+  if (contact.botPausedUntil && contact.botPausedUntil > now()) return false;
+  const t = String(text || '').trim().toLowerCase();
+  const byTap = replyId && bot.options.find((o) => o.id === replyId);
+  const byNumber = /^\d{1,2}$/.test(t) && contact.botMenuAt && Date.now() - Date.parse(contact.botMenuAt) < 30 * 60_000 ? bot.options[Number(t) - 1] : null;
+  const byTitle = bot.options.find((o) => o.title.toLowerCase() === t);
+  const option = byTap || byNumber || byTitle;
+  if (option) {
+    await sendNow(g, { wa, kind: 'text', text: await botAnswer(option, { wa, name }), by: 'bot' });
+    if (option.action === 'handoff') await col.contacts().doc(wa).set({ needsHuman: true, botPausedUntil: new Date(Date.now() + bot.pauseHours * 3600_000).toISOString() }, { merge: true });
+    await col.settings().doc('bot').set({ [`runs.${option.id}`]: FieldValue.increment(1) }, { merge: true });
+    return true;
+  }
+  if (bot.triggerWords.includes(t) || (first && bot.onFirstMessage)) {
+    const welcome = bot.welcome.replace(/\{name\}/g, String(name || '').split(' ')[0] || 'there');
+    await sendNow(g, { wa, kind: 'menu', menu: { text: welcome, button: bot.button, options: bot.options }, by: 'bot' });
+    await col.contacts().doc(wa).set({ botMenuAt: now() }, { merge: true });
+    await col.settings().doc('bot').set({ 'runs.menu': FieldValue.increment(1) }, { merge: true });
+    return true;
+  }
+  // Just shown the menu and the answer isn't one of the options.
+  if (bot.fallback && contact.botMenuAt && Date.now() - Date.parse(contact.botMenuAt) < 15 * 60_000) {
+    await sendNow(g, { wa, kind: 'text', text: bot.fallback, by: 'bot' });
+    return true;
+  }
+  return false;
+}
+
+// ---- Reports ----
+// Everything in a period: per day, per template, per campaign, per
+// automation, failures, new contacts and opt-outs, and when people write.
+export async function reports(fromDate, toDate) {
+  const from = new Date(`${fromDate}T00:00:00+05:30`).toISOString();
+  const to = new Date(`${toDate}T23:59:59.999+05:30`).toISOString();
+  if (Number.isNaN(Date.parse(from)) || Number.isNaN(Date.parse(to)) || from > to) throw new WaError('Choose a valid period.');
+  const msgs = docs(await col.messages().where('at', '>=', from).limit(50000).get()).filter((m) => m.at <= to);
+  const out = msgs.filter((m) => m.direction === 'out');
+  const inc = msgs.filter((m) => m.direction === 'in');
+  const tally = (list) => ({
+    sent: list.length,
+    delivered: list.filter((m) => ['delivered', 'read'].includes(m.status)).length,
+    read: list.filter((m) => m.status === 'read').length,
+    failed: list.filter((m) => m.status === 'failed').length,
+    replied: list.filter((m) => m.replied).length,
+  });
+  const group = (list, key) => {
+    const m = new Map();
+    for (const x of list) {
+      const k = key(x);
+      if (!k) continue;
+      if (!m.has(k)) m.set(k, []);
+      m.get(k).push(x);
+    }
+    return m;
+  };
+  const day = (iso) => new Date(Date.parse(iso) + 5.5 * 3600_000).toISOString().slice(0, 10);
+  const days = [...group(msgs, (m) => day(m.at))].map(([date, list]) => ({ date, ...tally(list.filter((m) => m.direction === 'out')), received: list.filter((m) => m.direction === 'in').length })).sort((a, b) => a.date.localeCompare(b.date));
+  const templates = [...group(out.filter((m) => m.template?.name), (m) => m.template.name)].map(([name, list]) => ({ name, ...tally(list) })).sort((a, b) => b.sent - a.sent);
+  const campaignIds = [...new Set(out.map((m) => m.campaignId).filter(Boolean))];
+  const campaigns = (await Promise.all(campaignIds.map((id) => col.campaigns().doc(id).get())))
+    .filter((d) => d.exists)
+    .map((d) => ({ id: d.id, name: d.data().name, kind: d.data().kind || 'broadcast', template: d.data().template?.name, startedAt: d.data().startedAt, ...d.data().counts }));
+  const autos = Object.fromEntries((await listAutomations()).map((a) => [a.id, a.name]));
+  const automations = [...group(out.filter((m) => m.automationId), (m) => m.automationId)].map(([id, list]) => ({ name: autos[id] || 'Deleted automation', ...tally(list) }));
+  const bot = tally(out.filter((m) => m.by === 'bot'));
+  const errors = [...group(out.filter((m) => m.status === 'failed'), (m) => m.error || 'Failed')].map(([name, list]) => ({ name, value: list.length })).sort((a, b) => b.value - a.value);
+  const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, received: 0 }));
+  for (const m of inc) hours[new Date(Date.parse(m.at) + 5.5 * 3600_000).getUTCHours()].received += 1;
+  const contacts = await listContacts();
+  return {
+    from: fromDate,
+    to: toDate,
+    totals: { ...tally(out), received: inc.length, people: new Set(inc.map((m) => m.wa)).size, newContacts: contacts.filter((c) => c.createdAt >= from && c.createdAt <= to).length, optedOut: contacts.filter((c) => c.optedOutAt && c.optedOutAt >= from && c.optedOutAt <= to).length },
+    days,
+    templates,
+    campaigns,
+    automations,
+    bot,
+    errors,
+    hours,
+  };
+}

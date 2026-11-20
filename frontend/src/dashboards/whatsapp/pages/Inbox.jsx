@@ -44,7 +44,9 @@ export default function Inbox() {
                 <button type="button" className={`wa-convo${chat === c.id ? ' is-on' : ''}${c.unread ? ' is-unread' : ''}`} onClick={() => patch({ chat: c.id })}>
                   <span className="wa-convo__avatar">{(c.name || '#')[0].toUpperCase()}</span>
                   <span className="wa-convo__text">
-                    <strong>{c.name || showNumber(c.id)}</strong>
+                    <strong>
+                      {c.name || showNumber(c.id)} {c.needsHuman && <span className="wa-human">Needs a person</span>}
+                    </strong>
                     <span className="wa-clip">
                       {c.lastDirection === 'out' ? 'You: ' : ''}
                       {c.lastMessageText}
@@ -122,7 +124,7 @@ function Thread({ id, onBack, onChanged }) {
         <span>
           <strong>{contact.name || showNumber(id)}</strong>
           <small className="dash-muted dash-block">
-            {showNumber(id)} · <ConsentBadge c={contact} />
+            {showNumber(id)} · <ConsentBadge c={contact} /> {contact.needsHuman && <span className="wa-human">Asked for a person</span>}
           </small>
         </span>
         <Link className="dash-link" to={`/whatsapp/contacts?contact=${id}`} style={{ marginLeft: 'auto' }}>

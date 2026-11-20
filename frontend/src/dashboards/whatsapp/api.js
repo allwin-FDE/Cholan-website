@@ -15,6 +15,9 @@ export const wa = {
   syncTemplates: () => post('/templates/sync'),
   createTemplate: (form) => post('/templates', form),
   deleteTemplate: (name, language) => call(`/templates/${encodeURIComponent(name)}?language=${encodeURIComponent(language)}`, { method: 'DELETE' }),
+  saveDraft: (id, form) => post('/templates/drafts', { id, form }),
+  deleteDraft: (id) => call(`/templates/drafts/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  submitTemplate: (id, form) => post(`/templates/${encodeURIComponent(id)}/submit`, { form }),
   uploadSample: (file) => call('/templates/sample', { method: 'POST', raw: file, contentType: file.type }),
   uploadMedia: (file) => call('/media', { method: 'POST', raw: file, contentType: file.type }),
 
@@ -36,6 +39,10 @@ export const wa = {
   conversation: (id) => call(`/inbox/${id}`),
   markRead: (id) => post(`/inbox/${id}/read`),
   reply: (id, body) => post(`/inbox/${id}/reply`, body),
+
+  bot: () => call('/bot'),
+  saveBot: (body) => call('/bot', { method: 'PUT', body }),
+  reports: (from, to) => call(`/reports?from=${from}&to=${to}`),
 
   automations: () => call('/automations'),
   saveAutomation: (body) => (body.id ? call(`/automations/${body.id}`, { method: 'PUT', body }) : post('/automations', body)),

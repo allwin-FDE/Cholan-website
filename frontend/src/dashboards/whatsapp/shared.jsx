@@ -9,7 +9,7 @@ import { Badge } from '../shared/ui.jsx';
 export const WaContext = createContext({ status: null, reloadStatus: () => {} });
 export const useWa = () => useContext(WaContext);
 
-export const STATUS_TONE = { APPROVED: 'good', PENDING: 'warn', IN_APPEAL: 'warn', PAUSED: 'warn', REJECTED: 'bad', DISABLED: 'bad', DELETED: 'muted' };
+export const STATUS_TONE = { DRAFT: 'info', APPROVED: 'good', PENDING: 'warn', IN_APPEAL: 'warn', PAUSED: 'warn', REJECTED: 'bad', DISABLED: 'bad', DELETED: 'muted' };
 export const TemplateStatus = ({ status }) => <Badge tone={STATUS_TONE[status] || 'neutral'}>{String(status || '').toLowerCase().replace(/_/g, ' ') || 'unknown'}</Badge>;
 export const CATEGORY = { MARKETING: 'Marketing', UTILITY: 'Utility', AUTHENTICATION: 'Authentication' };
 
@@ -89,9 +89,17 @@ export function PhonePreview({ components = [], values = {}, title = 'Cholan Ric
   return (
     <div className="wa-phone" aria-label="Preview">
       <div className="wa-phone__bar">
-        <span className="wa-phone__avatar">C</span>
+        <span className="wa-phone__avatar">
+          <img src="/images/cholan-logo.png" alt="" />
+        </span>
         <span>
-          <strong>{title}</strong>
+          <strong>
+            {title}{' '}
+            <svg className="wa-verified" viewBox="0 0 24 24" aria-label="Verified business">
+              <path d="M12 2l2.4 2.1 3.2-.3.9 3.1 2.8 1.6-1.1 3 1.1 3-2.8 1.6-.9 3.1-3.2-.3L12 22l-2.4-2.1-3.2.3-.9-3.1-2.8-1.6 1.1-3-1.1-3 2.8-1.6.9-3.1 3.2.3z" />
+              <path d="M8.5 12.2l2.3 2.3 4.7-4.8" fill="none" />
+            </svg>
+          </strong>
           <small>Business account</small>
         </span>
       </div>
