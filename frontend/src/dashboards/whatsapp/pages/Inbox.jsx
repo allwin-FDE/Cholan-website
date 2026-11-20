@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDash } from '../../shared/context.js';
-import { Empty, ErrorNote, Icon, Loading, PageHead, ago, useLoad } from '../../shared/ui.jsx';
+import { Badge, Empty, ErrorNote, Icon, Loading, PageHead, ago, useLoad } from '../../shared/ui.jsx';
 import { useUrl, useUrlSearch } from '../../shared/urlState.js';
 import { showNumber, wa } from '../api.js';
 import { ValueMapper, slotsOf } from '../shared.jsx';
@@ -11,10 +11,35 @@ import { ConsentBadge } from './Contacts.jsx';
 // WhatsApp allows free replies for 24 hours after a person's last message;
 // after that only a template can be sent. Refreshes every 15 seconds.
 const TICKS = { sent: '✓', delivered: '✓✓', read: '✓✓', failed: '!' };
+const VIEWS = [
+  ['', 'All chats'],
+  ['broadcast', 'Broadcasts'],
+  ['bulk', 'Bulk messages'],
+];
+// How one broadcast or bulk message did for one person.
+function CampaignMark({ c }) {
+  if (!c) return null;
+  if (c.replied) return <Badge tone="good">Replied</Badge>;
+  if (c.delivery === 'failed' || c.status === 'failed') return <Badge tone="bad">Failed</Badge>;
+  if (c.delivery === 'read') return <Badge tone="info">Read</Badge>;
+  if (c.delivery === 'delivered') return <Badge tone="neutral">Delivered</Badge>;
+  if (c.status === 'skipped') return <Badge tone="muted">Skipped</Badge>;
+  if (['queued', 'sending'].includes(c.status)) return <Badge tone="warn">Waiting</Badge>;
+  if (c.status === 'cancelled') return <Badge tone="muted">Cancelled</Badge>;
+  return <Badge tone="neutral">Sent</Badge>;
+}
+const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '');
 
 export default function Inbox() {
   const { get, patch } = useUrl();
-  const list = useLoad(() => wa.inbox(), []);
+  // The toggle: all chats, or only the people one broadcast or bulk message went to.
+  const view = VIEWS.some(([k]) => k && k === get('view')) ? get('view') : '';
+  const campaigns = useLoad(() => (view ? wa.campaigns() : Promise.resolve(null)), [view]);
+  const ofKind = (campaigns.data?.campaigns || []).filter((c) => (c.kind || 'broadcast') === view && !['draft', 'scheduled'].includes(c.status));
+  const campaignId = view ? get('campaign') || ofKind[0]?.id || '' : '';
+  const campaign = ofKind.find((c) => c.id === campaignId);
+  const repliedOnly = Boolean(get('replied'));
+  const list = useLoad(() => (view && !campaignId ? Promise.resolve({ conversations: [] }) : wa.inbox(campaignId)), [view, campaignId]);
   const [q, setQ, search] = useUrlSearch();
   const chat = get('chat');
   useEffect(() => {
@@ -23,13 +48,51 @@ export default function Inbox() {
   }, [list.reload]);
   const rows = useMemo(() => {
     const s = search.toLowerCase();
-    return (list.data?.conversations || []).filter((c) => !s || `${c.name} ${c.id} ${c.lastMessageText}`.toLowerCase().includes(s));
-  }, [list.data, search]);
+    return (list.data?.conversations || []).filter((c) => (!repliedOnly || c.campaign?.replied) && (!s || `${c.name} ${c.id} ${c.lastMessageText}`.toLowerCase().includes(s)));
+  }, [list.data, search, repliedOnly]);
 
   return (
     <div className="dash-page wa-inbox-page">
       <PageHead title="Inbox" intro="Messages people send to your WhatsApp number. Reply freely within 24 hours of their last message; after that, send a template." range={false} />
       {list.error && <ErrorNote error={list.error} onRetry={list.reload} />}
+      <div className="wa-inbox-bar">
+        <div className="dash-seg" role="group" aria-label="Show">
+          {VIEWS.map(([k, label]) => (
+            <button key={k || 'all'} type="button" className={view === k ? 'is-on' : ''} onClick={() => patch({ view: k, campaign: '', chat: '', replied: '' })}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {view && ofKind.length > 0 && (
+          <>
+            <select value={campaignId} onChange={(e) => patch({ campaign: e.target.value, chat: '' })} aria-label={view === 'bulk' ? 'Bulk message' : 'Broadcast'} className="wa-inbox-bar__pick">
+              {ofKind.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {shortDate(c.startedAt || c.createdAt)} · {c.counts?.total || 0} people
+                </option>
+              ))}
+            </select>
+            <label className="dash-check">
+              <input type="checkbox" checked={repliedOnly} onChange={(e) => patch({ replied: e.target.checked ? 1 : '' }, { replace: true })} /> Replied only
+            </label>
+          </>
+        )}
+      </div>
+      {view && campaigns.data && !ofKind.length && <p className="dash-muted">{view === 'bulk' ? 'No bulk messages sent yet.' : 'No broadcasts sent yet.'}</p>}
+      {campaign && (
+        <div className="wa-inbox-summary">
+          <strong>{campaign.name}</strong>
+          <span>{campaign.template?.name}</span>
+          <span>{campaign.counts?.total || 0} people</span>
+          <span>{campaign.counts?.delivered || 0} delivered</span>
+          <span>{campaign.counts?.read || 0} read</span>
+          <span className="is-good">{campaign.counts?.replied || 0} replied</span>
+          {campaign.counts?.failed > 0 && <span className="is-bad">{campaign.counts.failed} failed</span>}
+          <Link to={`/whatsapp/campaigns?campaign=${campaign.id}`} className="dash-link">
+            Full report
+          </Link>
+        </div>
+      )}
       <div className={`wa-inbox${chat ? ' has-chat' : ''}`}>
         <aside className="wa-convos">
           <label className="dash-search">
@@ -37,7 +100,7 @@ export default function Inbox() {
             <input placeholder="Search chats…" value={q} onChange={(e) => setQ(e.target.value)} />
           </label>
           {list.loading && !list.data && <Loading />}
-          {list.data && !rows.length && <p className="dash-muted dash-small">{search ? 'No chat matches.' : 'No messages yet. When someone writes to your WhatsApp number, it shows here.'}</p>}
+          {list.data && !rows.length && <p className="dash-muted dash-small">{search ? 'No chat matches.' : repliedOnly ? 'Nobody has replied to this one yet.' : view ? 'Choose a broadcast or bulk message above.' : 'No messages yet. When someone writes to your WhatsApp number, it shows here.'}</p>}
           <ul>
             {rows.map((c) => (
               <li key={c.id}>
@@ -53,6 +116,7 @@ export default function Inbox() {
                     </span>
                   </span>
                   <span className="wa-convo__meta">
+                    {c.campaign ? <CampaignMark c={c.campaign} /> : null}
                     <small>{ago(c.lastMessageAt)}</small>
                     {c.unread > 0 && <span className="dash-nav__count">{c.unread}</span>}
                   </span>

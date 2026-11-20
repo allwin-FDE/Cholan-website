@@ -861,3 +861,45 @@
   font-weight: 700;
   vertical-align: 1px;
 }
+
+/* Inbox: all chats, or one broadcast's or bulk message's people. */
+.dash.wa .wa-inbox-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.dash.wa .wa-inbox-bar__pick {
+  flex: 1 1 320px;
+  max-width: 520px;
+}
+.dash.wa .wa-inbox-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  padding: 12px 16px;
+  border: 1px solid rgba(228, 232, 236, 0.8);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--wa-shadow);
+  font-size: 0.88rem;
+  color: var(--d-ink-2);
+}
+.dash.wa .wa-inbox-summary strong {
+  color: var(--d-ink);
+}
+.dash.wa .wa-inbox-summary .is-good {
+  color: #087f5b;
+  font-weight: 700;
+}
+.dash.wa .wa-inbox-summary .is-bad {
+  color: var(--d-bad);
+  font-weight: 700;
+}
+.dash.wa .wa-inbox-summary .dash-link {
+  margin-left: auto;
+}
+.dash.wa .wa-convo__meta .dash-badge {
+  margin: 0;
+}

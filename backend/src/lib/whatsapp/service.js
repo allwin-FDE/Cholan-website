@@ -566,8 +566,28 @@ export async function sendTest(g, body, by) {
 }
 
 // ---- Inbox ----
-export async function conversations() {
-  return docs(await col.contacts().orderBy('lastMessageAt', 'desc').limit(500).get());
+export async function conversations(campaignId = null) {
+  if (!campaignId) return docs(await col.contacts().orderBy('lastMessageAt', 'desc').limit(500).get());
+  // The chats with the people one broadcast or bulk message went to, each
+  // with how that message did for them (sent, delivered, read, failed) and
+  // whether they replied to it.
+  const recipients = docs(await col.queue().where('campaignId', '==', campaignId).limit(5000).get());
+  const replied = new Set(docs(await col.messages().where('campaignId', '==', campaignId).limit(5000).get()).filter((m) => m.replied).map((m) => m.wa));
+  const out = [];
+  for (let i = 0; i < recipients.length; i += 300) {
+    const slice = recipients.slice(i, i + 300);
+    const snaps = await col.contacts().firestore.getAll(...slice.map((r) => col.contacts().doc(r.wa)));
+    slice.forEach((r, j) => {
+      const c = snaps[j].exists ? snaps[j].data() : { wa: r.wa, name: r.name };
+      out.push({
+        id: r.wa,
+        ...c,
+        name: c.name || r.name || '',
+        campaign: { status: r.status, delivery: r.delivery || '', replied: replied.has(r.wa), error: r.error || '' },
+      });
+    });
+  }
+  return out.sort((a, b) => Number(b.campaign.replied) - Number(a.campaign.replied) || String(b.lastMessageAt || '').localeCompare(String(a.lastMessageAt || '')));
 }
 const windowOpen = (contact) => Boolean(contact?.lastInboundAt && Date.now() - Date.parse(contact.lastInboundAt) < DAY);
 export async function conversation(waRaw) {

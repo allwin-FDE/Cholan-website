@@ -190,7 +190,8 @@ for (const action of ['pause', 'resume', 'cancel', 'unschedule']) {
 }
 
 // ---- Inbox ----
-whatsappAdmin.get('/inbox', ...run('viewer', async () => ({ conversations: await wa.conversations() })));
+// ?campaign=ID: only the people one broadcast or bulk message went to.
+whatsappAdmin.get('/inbox', ...run('viewer', async (req) => ({ conversations: await wa.conversations(String(req.query.campaign || '').replace(/[^A-Za-z0-9]/g, '') || null) })));
 whatsappAdmin.get('/inbox/:wa', ...run('viewer', (req) => wa.conversation(req.params.wa)));
 whatsappAdmin.post('/inbox/:wa/read', ...run('editor', async (req) => (await wa.markRead(graph(), req.params.wa), { ok: true })));
 whatsappAdmin.post('/inbox/:wa/reply', ...run('editor', (req) => wa.reply(graph(), req.params.wa, body(req), req.user.email)));

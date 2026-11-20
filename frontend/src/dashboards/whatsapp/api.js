@@ -35,7 +35,7 @@ export const wa = {
   createCampaign: (body) => post('/campaigns', body),
   campaignAction: (id, action, body) => post(`/campaigns/${id}/${action}`, body),
 
-  inbox: () => call('/inbox'),
+  inbox: (campaign = '') => call(`/inbox${campaign ? `?campaign=${encodeURIComponent(campaign)}` : ''}`),
   conversation: (id) => call(`/inbox/${id}`),
   markRead: (id) => post(`/inbox/${id}/read`),
   reply: (id, body) => post(`/inbox/${id}/reply`, body),
