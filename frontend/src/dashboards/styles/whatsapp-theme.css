@@ -1,0 +1,459 @@
+/* The /whatsapp dashboard's own look: modern and sleek, apart from /admin
+   and /warehouse. A floating near-black menu with WhatsApp green, a cool
+   light workspace, soft white cards, pill controls and Manrope type.
+   Everything is scoped to .dash.wa, so the other dashboards are untouched. */
+
+.dash.wa {
+  --d-bg: #f3f5f7;
+  --d-card: #ffffff;
+  --d-line: #e4e8ec;
+  --d-line-soft: #eef1f4;
+  --d-ink: #0f1a20;
+  --d-ink-2: #44515b;
+  --d-mute: #7b8792;
+  --d-green: #008069;
+  --d-green-2: #006b58;
+  --d-side: #0b141a;
+  --d-gold: #25d366;
+  --d-gold-soft: #e7faf0;
+  --d-bar: #00a884;
+  --d-bar-soft: #e3f6ef;
+  --d-good: #087f5b;
+  --d-warn: #b45309;
+  --d-bad: #d92d20;
+  --d-info: #1d4ed8;
+  --d-radius: 18px;
+  --wa-shadow: 0 1px 2px rgba(15, 26, 32, 0.04), 0 10px 30px -14px rgba(15, 26, 32, 0.14);
+  --side-w: 268px;
+  grid-template-columns: 268px minmax(0, 1fr);
+  background: var(--d-bg);
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-size: 14.5px;
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+.dash-root:has(.dash.wa) body {
+  background: #f3f5f7;
+}
+.dash.wa :is(h1, h2, h3, strong) {
+  font-family: inherit;
+}
+
+/* ---- The floating menu ---- */
+.dash.wa .dash-side {
+  top: 12px;
+  height: calc(100vh - 24px);
+  margin: 12px 0 12px 12px;
+  padding: 18px 12px 14px;
+  gap: 16px;
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(37, 211, 102, 0.16), transparent 60%),
+    linear-gradient(180deg, #0f1c23 0%, #0b141a 100%);
+  box-shadow: 0 20px 40px -20px rgba(11, 20, 26, 0.6);
+  color: #c4ccd2;
+}
+.dash.wa .dash-brand {
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.dash.wa .dash-brand span {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.dash.wa .wa-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #25d366, #00a884);
+  box-shadow: 0 8px 20px -6px rgba(37, 211, 102, 0.6);
+}
+.dash.wa .dash-nav {
+  gap: 4px;
+}
+.dash.wa .dash-nav__link {
+  position: relative;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: #aab4bb;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.dash.wa .dash-nav__link .dash-ico {
+  width: 19px;
+  height: 19px;
+  color: #7f8b93;
+  transition: color 0.15s;
+}
+.dash.wa .dash-nav__link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+.dash.wa .dash-nav__link:hover .dash-ico {
+  color: #d6dde2;
+}
+.dash.wa .dash-nav__link.active {
+  background: linear-gradient(90deg, rgba(37, 211, 102, 0.18), rgba(37, 211, 102, 0.04));
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(37, 211, 102, 0.22);
+}
+.dash.wa .dash-nav__link.active .dash-ico {
+  color: #25d366;
+}
+.dash.wa .dash-nav__link.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 4px;
+  height: 20px;
+  border-radius: 0 4px 4px 0;
+  background: #25d366;
+  box-shadow: 0 0 12px #25d366;
+  transform: translateY(-50%);
+}
+.dash.wa .dash-nav__count {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #25d366;
+  color: #0b141a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+.dash.wa .dash-side__foot .dash-nav__link {
+  font-size: 0.86rem;
+}
+.dash.wa .dash-me {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.dash.wa .dash-me__avatar {
+  background: linear-gradient(135deg, #25d366, #00a884);
+  color: #062014;
+}
+.dash.wa .dash-me__role {
+  color: #25d366;
+}
+.dash.wa .dash-side .dash-icon-btn {
+  color: #aab4bb;
+}
+
+/* ---- Workspace ---- */
+.dash.wa .dash-page {
+  max-width: 1320px;
+  padding-top: 30px;
+  gap: 20px;
+}
+.dash.wa .dash-head h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+.dash.wa .dash-head p {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  color: var(--d-mute);
+}
+.dash.wa .dash-card,
+.dash.wa .dash-stat {
+  border: 1px solid rgba(228, 232, 236, 0.8);
+  border-radius: var(--d-radius);
+  box-shadow: var(--wa-shadow);
+}
+.dash.wa .dash-card {
+  padding: 22px;
+}
+.dash.wa .dash-card h2 {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+.dash.wa .dash-stats {
+  gap: 16px;
+}
+.dash.wa .dash-stat {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  gap: 6px;
+}
+.dash.wa .dash-stat__label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--d-mute);
+}
+.dash.wa .dash-stat__value {
+  font-size: 2.05rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.dash.wa .dash-stat__sub {
+  font-size: 0.8rem;
+}
+
+/* ---- Controls ---- */
+.dash.wa .dash-btn {
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  box-shadow: 0 6px 16px -8px rgba(0, 128, 105, 0.55);
+  transition:
+    background 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.dash.wa .dash-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -10px rgba(0, 128, 105, 0.6);
+}
+.dash.wa .dash-btn--ghost {
+  background: #fff;
+  border-color: var(--d-line);
+  color: var(--d-ink);
+  box-shadow: 0 1px 2px rgba(15, 26, 32, 0.05);
+}
+.dash.wa .dash-btn--ghost:hover:not(:disabled) {
+  background: #fff;
+  border-color: #c9d2d9;
+  box-shadow: 0 6px 16px -10px rgba(15, 26, 32, 0.25);
+}
+.dash.wa .dash-btn--sm {
+  padding: 7px 12px;
+  border-radius: 10px;
+}
+.dash.wa .dash-seg {
+  padding: 4px;
+  gap: 2px;
+  border: 0;
+  border-radius: 14px;
+  background: #e9edf1;
+}
+.dash.wa .dash-seg button {
+  padding: 7px 14px;
+  border-radius: 10px;
+  color: var(--d-ink-2);
+  font-weight: 600;
+}
+.dash.wa .dash-seg button.is-on {
+  background: #fff;
+  color: var(--d-ink);
+  box-shadow: 0 1px 3px rgba(15, 26, 32, 0.12);
+}
+.dash.wa :is(input, select, textarea) {
+  border-color: var(--d-line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 13px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.dash.wa :is(input, select, textarea):hover {
+  border-color: #cfd7de;
+}
+.dash.wa :is(input, select, textarea):focus {
+  outline: none;
+  border-color: #00a884;
+  box-shadow: 0 0 0 4px rgba(0, 168, 132, 0.15);
+}
+.dash.wa .dash-search input {
+  padding-left: 40px;
+  border-radius: 999px;
+  background: #fff;
+}
+.dash.wa .dash-field__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--d-ink-2);
+}
+.dash.wa .dash-link {
+  color: #008069;
+  font-weight: 600;
+}
+.dash.wa :is(button, a):focus-visible {
+  outline: 2px solid #00a884;
+}
+
+/* ---- Tables and badges ---- */
+.dash.wa .dash-table th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--d-mute);
+  border-bottom-color: var(--d-line-soft);
+  padding: 10px 12px;
+}
+.dash.wa .dash-table td {
+  padding: 13px 12px;
+  border-bottom-color: var(--d-line-soft);
+}
+.dash.wa .dash-row-link:hover td {
+  background: #f6f9f8;
+}
+.dash.wa .dash-row-link:hover td:first-child {
+  box-shadow: inset 3px 0 0 #25d366;
+}
+.dash.wa .dash-badge {
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.dash.wa .dash-badge--good {
+  background: #dcfce7;
+  color: #087f5b;
+}
+.dash.wa .dash-badge--warn {
+  background: #fef3c7;
+  color: #b45309;
+}
+.dash.wa .dash-badge--bad {
+  background: #fee4e2;
+  color: #b42318;
+}
+.dash.wa .dash-badge--info {
+  background: #e0ecff;
+  color: #1d4ed8;
+}
+.dash.wa .dash-badge--muted,
+.dash.wa .dash-badge--neutral {
+  background: #eef1f4;
+  color: #5b6873;
+}
+.dash.wa .dash-empty {
+  border-radius: var(--d-radius);
+}
+
+/* ---- Side panels ---- */
+.dash.wa .dash-drawer__scrim {
+  background: rgba(11, 20, 26, 0.35);
+  backdrop-filter: blur(4px);
+}
+.dash.wa .dash-drawer__panel {
+  background: #fbfcfd;
+  border-radius: 26px 0 0 26px;
+  box-shadow: -30px 0 60px -30px rgba(11, 20, 26, 0.45);
+}
+.dash.wa .dash-drawer__head {
+  padding: 20px 24px;
+  border-bottom-color: var(--d-line-soft);
+}
+.dash.wa .dash-drawer__head h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.dash.wa .dash-drawer__body {
+  padding: 22px 24px;
+}
+.dash.wa .biz-box,
+.dash.wa .wa-cat,
+.dash.wa .wa-pick,
+.dash.wa .wa-lib,
+.dash.wa .wa-funnel div {
+  border-color: var(--d-line);
+  border-radius: 16px;
+  background: #fff;
+}
+.dash.wa .wa-cat:hover,
+.dash.wa .wa-pick:hover {
+  border-color: #b9e8d4;
+}
+.dash.wa .wa-cat.is-on,
+.dash.wa .wa-pick.is-on {
+  border-color: #00a884;
+  background: #f2fbf7;
+  box-shadow: 0 0 0 3px rgba(0, 168, 132, 0.14);
+}
+.dash.wa .wa-steps button {
+  border-radius: 999px;
+  font-weight: 600;
+}
+.dash.wa .wa-steps .is-on button {
+  border-color: #008069;
+  background: #008069;
+  box-shadow: 0 6px 14px -6px rgba(0, 128, 105, 0.6);
+}
+.dash.wa .wa-chip.is-on {
+  border-color: #008069;
+  background: #008069;
+}
+.dash.wa .wa-progress span {
+  background: linear-gradient(90deg, #00a884, #25d366);
+}
+.dash.wa .wa-banner {
+  border-radius: 14px;
+  border: 1px solid #f6dfa8;
+  margin: 12px clamp(16px, 3vw, 36px) 0;
+}
+.dash.wa .wa-banner--test {
+  border-color: #c7dbf6;
+}
+.dash.wa .wa-inbox {
+  border-color: rgba(228, 232, 236, 0.8);
+  border-radius: 22px;
+  box-shadow: var(--wa-shadow);
+}
+.dash.wa .wa-convo.is-on {
+  background: #eaf7f1;
+}
+.dash.wa .wa-tag {
+  background: #eef1f4;
+  font-weight: 600;
+}
+
+/* The arrow that hides the menu sits on the floating menu's edge. */
+.dash.wa .dash-sidetoggle {
+  top: 30px;
+  left: calc(var(--side-w) - 22px);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #1b2a32;
+  color: #e6ecef;
+  box-shadow: 0 6px 16px -6px rgba(11, 20, 26, 0.6);
+}
+.dash.wa.dash--hidden .dash-sidetoggle {
+  left: 12px;
+  background: #0b141a;
+}
+.dash.wa.dash--hidden {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+.dash.wa.dash--hidden > .dash-side {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ---- Phones ---- */
+@media (max-width: 900px) {
+  .dash.wa {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dash.wa .dash-side {
+    top: 0;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0 24px 24px 0;
+  }
+  .dash.wa .dash-mobilebar {
+    background: rgba(243, 245, 247, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--d-line-soft);
+  }
+  .dash.wa .dash-head h1 {
+    font-size: 1.6rem;
+  }
+  .dash.wa .dash-drawer__panel {
+    border-radius: 0;
+  }
+}

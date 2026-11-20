@@ -19,6 +19,7 @@ import Connection from './pages/Connection.jsx';
 import Help from './pages/Help.jsx';
 import '../styles/dashboard.css';
 import '../styles/whatsapp.css';
+import '../styles/whatsapp-theme.css';
 
 // /whatsapp: WhatsApp campaigns through Meta's WhatsApp Cloud API. Templates
 // (made here, approved by Meta), contacts and their consent, campaigns sent
