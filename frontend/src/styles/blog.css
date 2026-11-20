@@ -507,14 +507,20 @@
   width: 16px;
   height: 16px;
 }
+/* The post's category: gold capitals in a thin gold outline, like the category on the blog's cards
+   (was a pale green filled pill). */
 .post-meta__cat {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 5px 14px;
-  color: #1b4d33;
-  font-weight: 600;
-  background: #e4eccb;
+  color: var(--gold-600, #9a6c08);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: transparent;
+  border: 1px solid var(--gold-500, #c9a24a);
   border-radius: 999px;
 }
 .post-meta__facts {
