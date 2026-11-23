@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 // The /whatsapp dashboard's data and work, in Firestore (the prefix keeps
 // local testing in dev_ collections):
 //
@@ -813,15 +814,39 @@ export { showNumber };
 // A menu that answers by itself: someone says hi (or writes for the first
 // time) and gets buttons or a list; a tap (or the option's number) gets the
 // answer: a message, today's prices, their order's status, or a person.
-export const BOT_ACTIONS = { reply: 'Send a message', prices: 'Today’s prices (from the plant)', order_status: 'Their latest order’s status', handoff: 'Hand over to a person' };
+export const BOT_ACTIONS = { reply: 'Send a message', catalogue: 'Our catalogue (products, packs and prices)', prices: 'Today’s prices (from the plant)', order_status: 'Their latest order’s status', handoff: 'Hand over to a person' };
+
+// The website's products, pack sizes and prices (npm run knowledge writes
+// catalogue.json from the frontend's data), sent as the bot's catalogue.
+let CATALOGUE = { products: [], phone: '', website: 'https://www.cholanrice.in' };
+try {
+  CATALOGUE = JSON.parse(readFileSync(new URL('./catalogue.json', import.meta.url), 'utf8'));
+} catch {
+  // No catalogue file: the catalogue message is just the website link.
+}
+const rupees = (n) => `₹${Number(n).toLocaleString('en-IN')}`;
+export function catalogueText(contact = '') {
+  const lines = CATALOGUE.products.map((p, i) => {
+    const packs = p.packs.length ? p.packs.map((k) => (k.price != null ? `${k.size} ${rupees(k.price)}` : `${k.size} (ask us)`)).join(' · ') : 'sizes on request';
+    return `${i + 1}. *${p.name}*\n    ${packs}`;
+  });
+  const text = ['🌾 *Cholan Rice: our catalogue*', lines.join('\n'), `Photos and online orders: ${CATALOGUE.website}/products`, String(contact || '').trim()]
+    .filter(Boolean)
+    .join('\n\n');
+  return text.length > 4000 ? `${text.slice(0, 3990)}…` : text;
+}
+const DEFAULT_CONTACT = `📞 Call us: ${CATALOGUE.phone || '+91 90922 66667'}\n💬 Or reply here on WhatsApp\n🌐 www.cholanrice.in`;
 export const DEFAULT_BOT = {
   enabled: false,
   onFirstMessage: true,
+  // On hi: the catalogue and the contact details first, then the menu.
+  showCatalogue: true,
+  contact: DEFAULT_CONTACT,
   triggerWords: ['hi', 'hello', 'hai', 'vanakkam', 'menu', 'help'],
   welcome: 'Vanakkam {name}! Welcome to Cholan Rice. What would you like to do?',
   button: 'Choose',
   options: [
-    { id: 'prices', title: 'Today’s prices', description: 'Rice and pack prices', action: 'prices', reply: 'Prices change with the market; call us for today’s rate.' },
+    { id: 'catalogue', title: 'Our catalogue', description: 'Rice, pack sizes and prices', action: 'catalogue', reply: '' },
     { id: 'order', title: 'My order status', description: 'Where is my order?', action: 'order_status', reply: '' },
     { id: 'buy', title: 'Place an order', description: 'Order on WhatsApp', action: 'reply', reply: 'Tell us the rice and pack size (for example: Moongil Ponni 26 kg × 2) and your area. Or order online: https://www.cholanrice.in/products' },
     { id: 'bulk', title: 'Bulk / hotel rates', description: 'For hotels, caterers, shops', action: 'reply', reply: 'We supply hotels, caterers and shops across Coimbatore. Tell us the rice and how many bags a month, and we’ll send you our best rate.' },
@@ -855,6 +880,8 @@ export async function saveBot(body, by) {
   const next = {
     enabled: Boolean(body.enabled),
     onFirstMessage: body.onFirstMessage !== false,
+    showCatalogue: body.showCatalogue !== false,
+    contact: String(body.contact ?? DEFAULT_CONTACT).trim().slice(0, 600),
     triggerWords: String(Array.isArray(body.triggerWords) ? body.triggerWords.join(',') : body.triggerWords || '').split(',').map((w) => w.trim().toLowerCase()).filter(Boolean).slice(0, 20),
     welcome: String(body.welcome).trim().slice(0, 1000),
     button: String(body.button || 'Choose').trim().slice(0, 20),
@@ -869,8 +896,9 @@ export async function saveBot(body, by) {
 }
 
 const ORDER_WORDS = { awaiting_payment: 'waiting for payment', new: 'received, we will confirm it shortly', confirmed: 'confirmed', packing: 'being packed', packed: 'packed and ready to go', dispatched: 'on its way', delivered: 'delivered', cancelled: 'cancelled', returned: 'returned' };
-async function botAnswer(option, { wa, name }) {
+async function botAnswer(option, { wa, name, bot }) {
   const first = String(name || '').split(' ')[0] || 'there';
+  if (option.action === 'catalogue') return catalogueText(bot?.contact);
   if (option.action === 'prices') {
     if (!dbEnabled()) return option.reply || 'Please call us for today’s prices.';
     const { rows } = await query(
@@ -907,13 +935,16 @@ export async function runBot(g, { wa, name, text, replyId, first, contact }) {
   const byTitle = bot.options.find((o) => o.title.toLowerCase() === t);
   const option = byTap || byNumber || byTitle;
   if (option) {
-    await sendNow(g, { wa, kind: 'text', text: await botAnswer(option, { wa, name }), by: 'bot' });
+    await sendNow(g, { wa, kind: 'text', text: await botAnswer(option, { wa, name, bot }), by: 'bot' });
     if (option.action === 'handoff') await col.contacts().doc(wa).set({ needsHuman: true, botPausedUntil: new Date(Date.now() + bot.pauseHours * 3600_000).toISOString() }, { merge: true });
     await col.settings().doc('bot').set({ [`runs.${option.id}`]: FieldValue.increment(1) }, { merge: true });
     return true;
   }
   if (bot.triggerWords.includes(t) || (first && bot.onFirstMessage)) {
     const welcome = bot.welcome.replace(/\{name\}/g, String(name || '').split(' ')[0] || 'there');
+    // The catalogue and contact details first, then the menu to choose from.
+    if (bot.showCatalogue) await sendNow(g, { wa, kind: 'text', text: catalogueText(bot.contact), by: 'bot' });
+    else if (String(bot.contact || '').trim()) await sendNow(g, { wa, kind: 'text', text: bot.contact, by: 'bot' });
     await sendNow(g, { wa, kind: 'menu', menu: { text: welcome, button: bot.button, options: bot.options }, by: 'bot' });
     await col.contacts().doc(wa).set({ botMenuAt: now() }, { merge: true });
     await col.settings().doc('bot').set({ 'runs.menu': FieldValue.increment(1) }, { merge: true });

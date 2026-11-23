@@ -10,6 +10,7 @@ import { useWa } from '../shared.jsx';
 // hands the chat to a person (the bot then stays quiet with them for a while).
 const ACTION_HELP = {
   reply: 'Sends the message you type.',
+  catalogue: 'Sends the catalogue: every product with its pack sizes and prices, as on the website, and your contact details.',
   prices: 'Sends today’s website prices for every pack, from the plant’s price list.',
   order_status: 'Finds their latest orders by their number and sends where each one is.',
   handoff: 'Sends your message, marks the chat “needs a person” in the Inbox, and the bot stays quiet with them.',
@@ -33,6 +34,25 @@ function MenuPreview({ bot }) {
         <div className="wa-bubble wa-bubble--in-demo">
           <p className="wa-bubble__body">Hi</p>
         </div>
+        {(bot.showCatalogue || String(bot.contact || '').trim()) && (
+          <div className="wa-bubble">
+            <p className="wa-bubble__body">
+              {bot.showCatalogue && (
+                <>
+                  🌾 <strong>Cholan Rice: our catalogue</strong>
+                  <br />
+                  1. Chennai Pattinam Ponni · 1 kg ₹110 · 5 kg ₹520…
+                  <br />
+                  2. Karikalan · 5 kg ₹510…
+                  <br />…
+                  <br />
+                </>
+              )}
+              <span style={{ whiteSpace: 'pre-line' }}>{bot.contact}</span>
+            </p>
+            <span className="wa-bubble__time">10:24</span>
+          </div>
+        )}
         <div className="wa-bubble">
           <p className="wa-bubble__body">{welcome || 'Your welcome message'}</p>
           <span className="wa-bubble__time">10:24</span>
@@ -105,7 +125,7 @@ export default function Bot() {
     <div className="dash-page">
       <PageHead
         title="Bot"
-        intro="Answers by itself when someone says hi: a menu of buttons or a list, today’s prices, their order’s status, or a hand-over to your team."
+        intro="Answers by itself when someone says hi: your catalogue and contact number, then a menu: the catalogue, today’s prices, their order’s status, or a hand-over to your team."
         range={false}
         actions={
           <label className="wa-switch-row">
@@ -128,6 +148,13 @@ export default function Bot() {
               </label>
               <label className="dash-check biz-wide">
                 <input type="checkbox" checked={bot.onFirstMessage} onChange={(e) => set({ onFirstMessage: e.target.checked })} disabled={!editor} /> Also when someone writes for the first time
+              </label>
+              <label className="dash-check biz-wide">
+                <input type="checkbox" checked={bot.showCatalogue !== false} onChange={(e) => set({ showCatalogue: e.target.checked })} disabled={!editor} /> First send our catalogue (every product with pack sizes and prices, as on the website)
+              </label>
+              <label className="dash-field biz-wide">
+                <span className="dash-field__label">Contact details (sent with the catalogue, before the menu)</span>
+                <textarea className="dash-textarea" rows={3} value={bot.contact || ''} onChange={(e) => set({ contact: e.target.value })} disabled={!editor} placeholder={'📞 Call us: +91 90922 66667'} />
               </label>
               <label className="dash-field biz-wide">
                 <span className="dash-field__label">Welcome message ({'{name}'} becomes their first name)</span>

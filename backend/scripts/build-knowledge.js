@@ -214,6 +214,25 @@ for (const [id, title, url, files] of pages) {
   if (text) add(id, title, url, text);
 }
 
+// The WhatsApp bot's catalogue: the same products, pack sizes and prices
+// the website shows, plus the shop's phone number, sent when someone says hi.
+const catalogue = path.resolve(here, '..', 'src', 'lib', 'whatsapp', 'catalogue.json');
+fs.writeFileSync(
+  catalogue,
+  `${JSON.stringify(
+    {
+      builtAt: new Date().toISOString(),
+      phone: site.phone,
+      website: 'https://www.cholanrice.in',
+      products: products.map((p) => ({ name: p.name, slug: p.id, category: categoryName(p.category), packs: p.packs.map((k) => ({ size: k.size, price: k.price })) })),
+    },
+    null,
+    2,
+  )}
+`,
+);
+console.log(`Wrote ${products.length} products to ${path.relative(process.cwd(), catalogue)}`);
+
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, `${JSON.stringify({ builtAt: new Date().toISOString(), chunks }, null, 2)}\n`);
 console.log(`Wrote ${chunks.length} chunks to ${path.relative(process.cwd(), out)}`);

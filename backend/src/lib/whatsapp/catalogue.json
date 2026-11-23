@@ -1,0 +1,168 @@
+{
+  "builtAt": "2026-11-23T06:19:25.192Z",
+  "phone": "+91 90922 66667",
+  "website": "https://www.cholanrice.in",
+  "products": [
+    {
+      "name": "Chennai Pattinam Ponni",
+      "slug": "chennai-pattanam-rice",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "1 kg",
+          "price": 110
+        },
+        {
+          "size": "5 kg",
+          "price": 520
+        },
+        {
+          "size": "10 kg",
+          "price": 1030
+        },
+        {
+          "size": "26 kg",
+          "price": 2500
+        }
+      ]
+    },
+    {
+      "name": "Karikalan",
+      "slug": "karikalan-rice",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "5 kg",
+          "price": 510
+        },
+        {
+          "size": "10 kg",
+          "price": 1010
+        },
+        {
+          "size": "26 kg",
+          "price": 2450
+        }
+      ]
+    },
+    {
+      "name": "Kettimelam",
+      "slug": "kettimelam-rice",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "26 kg",
+          "price": 2400
+        }
+      ]
+    },
+    {
+      "name": "Moongil Ponni",
+      "slug": "moongil-ponni",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "5 kg",
+          "price": 490
+        },
+        {
+          "size": "10 kg",
+          "price": 970
+        },
+        {
+          "size": "26 kg",
+          "price": 2350
+        }
+      ]
+    },
+    {
+      "name": "Senthoora",
+      "slug": "senthoora",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "26 kg",
+          "price": 2300
+        }
+      ]
+    },
+    {
+      "name": "Senthoora Half Boil",
+      "slug": "senthoora-half-boil",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "26 kg",
+          "price": 1950
+        }
+      ]
+    },
+    {
+      "name": "Thooyamalli Ponni Raw Rice",
+      "slug": "thooyamalli-ponni-raw-rice",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "1 kg",
+          "price": 100
+        },
+        {
+          "size": "5 kg",
+          "price": 500
+        },
+        {
+          "size": "26 kg",
+          "price": 2400
+        }
+      ]
+    },
+    {
+      "name": "Chennai Pattinam Idli Rice",
+      "slug": "chennai-pattanam-idli-rice",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "5 kg",
+          "price": 320
+        },
+        {
+          "size": "26 kg",
+          "price": 1500
+        }
+      ]
+    },
+    {
+      "name": "Kurunai Rice",
+      "slug": "kurunai-rice",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "26 kg",
+          "price": 1100
+        }
+      ]
+    },
+    {
+      "name": "Basmati Rice",
+      "slug": "basmati-rice",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "1 kg",
+          "price": 130
+        }
+      ]
+    },
+    {
+      "name": "Seeraga Samba",
+      "slug": "seeraga-samba",
+      "category": "Rice",
+      "packs": [
+        {
+          "size": "1 kg",
+          "price": 230
+        }
+      ]
+    }
+  ]
+}
