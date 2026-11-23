@@ -108,6 +108,7 @@ export default function Stores() {
       {data && (
         <>
           {!data.mapsConfigured && <div className="dash-error">Google Maps is not set up on the server, so stores can’t be placed yet.</div>}
+          <MapsUsage tick={run ? run.done : 0} />
           <div className="dash-stats">
             <Stat label="Stores shown" value={num(c.active)} sub={c.total > c.active ? `${num(c.total - c.active)} hidden` : 'all shown'} icon="pin" />
             <Stat label="Verified" value={num(c.verified)} sub="exact shop location" icon="check" />
@@ -211,7 +212,6 @@ export default function Stores() {
           )}
           <p className="dash-muted dash-small">
             {num(list.length)} of {num(all.length)} stores.
-            {data.usage && ` Google today: ${num(data.usage.routes || 0)} of ${num(data.usage.limits.routes)} road-distance searches, ${num(data.usage.geocodes || 0)} of ${num(data.usage.limits.geocodes)} place searches.`}
           </p>
         </>
       )}
@@ -230,6 +230,93 @@ export default function Stores() {
           />
         )}
       </Drawer>
+    </div>
+  );
+}
+
+// ---- Google Maps use today ----
+
+// How many customer searches are left today, against the daily limits that
+// keep Google Maps under ₹1,000 a month; and the lookups used when placing
+// stores. Refreshes every minute, and after each batch of stores is placed.
+function MapsUsage({ tick }) {
+  const { data, error, reload } = useLoad(() => api.stores.usage(), [tick]);
+  useEffect(() => {
+    const timer = setInterval(reload, 60_000);
+    return () => clearInterval(timer);
+  }, [reload]);
+  if (error) return <ErrorNote error={error} onRetry={reload} />;
+  if (!data) return null;
+  const t = data.today;
+  const L = data.limits;
+  // Our own cap, or Google's quota if that runs out first (each search
+  // measures `shortlist` stores; each typed place is one address lookup).
+  const left = Math.max(0, Math.min(L.routes - t.routes, Math.floor((L.routeElements - t.routeElements) / (L.shortlist || 10))));
+  const typedLeft = Math.max(0, Math.min(L.geocodes - t.geocodes, L.geocode - t.geocode));
+  const hours = Math.max(0, (Date.parse(data.resetsAt) - Date.now()) / 3600_000);
+  const resets = hours < 1 ? `in ${Math.max(1, Math.round(hours * 60))} min` : `in ${Math.floor(hours)} h ${Math.round((hours % 1) * 60)} min`;
+  const m = data.month;
+  return (
+    <Card
+      className="maps-usage"
+      title="Store searches left today"
+      hint={`Google Maps limits, set to keep Maps under ₹1,000 a month. They start again at midnight (${resets}).`}
+      action={
+        <button type="button" className="dash-btn dash-btn--ghost dash-btn--sm" onClick={reload}>
+          <Icon name="refresh" /> Refresh
+        </button>
+      }
+    >
+      <div className="maps-usage__main">
+        <div className="maps-usage__big">
+          <strong>{num(left)}</strong>
+          <span>of {num(L.routes)} left</span>
+        </div>
+        <div className="maps-usage__body">
+          <Meter used={L.routes - left} limit={L.routes} label={`${num(left)} customer searches with road distance left`} big />
+          <p className="dash-muted dash-small">
+            {num(t.searches)} searches today
+            {t.searchesPopup ? ` (${num(t.searchesPopup)} from the home page popup)` : ''}. A repeat search from the same spot within 6 hours is free.
+            {left === 0 ? ' The limit is reached: searches still work, but show straight-line distances until midnight.' : ' After the limit, searches still work, with straight-line distances.'}
+            {t.searchesNoRoad ? ` ${num(t.searchesNoRoad)} got straight-line distances today.` : ''}
+          </p>
+        </div>
+      </div>
+      <div className="maps-usage__grid">
+        <MeterRow title="Typed pincode or area" hint="Customers who type a place instead of using their location (each new place once a month)" used={L.geocodes - typedLeft} limit={L.geocodes} />
+        <MeterRow title="Address lookups" hint="Google’s daily quota: typed places plus placing stores on the map" used={t.geocode} limit={L.geocode} />
+        <MeterRow title="Shop listing searches" hint="Google’s daily quota, used only when placing stores on the map" used={t.places} limit={L.places} />
+      </div>
+      <p className="dash-muted dash-small maps-usage__month">
+        This month so far: {num(m.searches)} customer searches ({num(m.searchesPopup)} from the popup), {num(m.routes)} road-distance checks, {num(m.geocode)} address lookups, {num(m.places)} listing searches. The map on /stores also has its own limit of {num(L.mapLoads)} views a day.
+      </p>
+    </Card>
+  );
+}
+
+function MeterRow({ title, hint, used, limit }) {
+  const left = Math.max(0, limit - used);
+  return (
+    <div className="maps-usage__row">
+      <div className="maps-usage__row-head">
+        <strong>{title}</strong>
+        <span>
+          <b>{num(left)}</b> of {num(limit)} left
+        </span>
+      </div>
+      <Meter used={used} limit={limit} label={`${title}: ${num(left)} of ${num(limit)} left`} />
+      <p className="dash-muted dash-small">{hint}</p>
+    </div>
+  );
+}
+
+// A bar of what is left: green, amber under half, red under a fifth.
+function Meter({ used, limit, label, big = false }) {
+  const share = limit > 0 ? Math.max(0, Math.min(1, (limit - used) / limit)) : 0;
+  const tone = share < 0.2 ? 'bad' : share < 0.5 ? 'warn' : 'good';
+  return (
+    <div className={`maps-meter maps-meter--${tone}${big ? ' maps-meter--big' : ''}`} role="meter" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={Math.max(0, limit - used)} aria-label={label}>
+      <span style={{ width: `${share * 100}%` }} />
     </div>
   );
 }

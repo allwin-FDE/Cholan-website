@@ -108,6 +108,15 @@ export const config = {
     // 380 a day, address lookups 320), set so Maps stays under ₹1,000 a month.
     routeDailyLimit: num(process.env.MAPS_ROUTE_DAILY_LIMIT, 38),
     geocodeDailyLimit: num(process.env.MAPS_GEOCODE_DAILY_LIMIT, 250),
+    // Google's own daily quotas on the project (Cloud console > Quotas), shown
+    // in the admin usage bar. Change them here too when they change there.
+    googleDaily: {
+      geocode: num(process.env.MAPS_QUOTA_GEOCODE, 320),
+      places: num(process.env.MAPS_QUOTA_PLACES, 160),
+      place: num(process.env.MAPS_QUOTA_PLACE, 160),
+      routeElements: num(process.env.MAPS_QUOTA_ROUTE_ELEMENTS, 380),
+      mapLoads: num(process.env.MAPS_QUOTA_MAP_LOADS, 320),
+    },
   },
 
   // Per-IP submit limit, to keep the form from being used as a spam relay.

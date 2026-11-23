@@ -4,6 +4,7 @@
 //   GET  /api/stores/:code             one store
 //   POST /api/stores/nearest           { lat, lng, accuracy } or { q: pincode/place }
 //                                      → nearest stores by road distance
+//   GET  /api/admin/stores/usage       Google Maps use today against the limits
 //   /api/admin/stores/*                website staff (Settings → Website app):
 //                                      viewer looks; editor fixes addresses and
 //                                      pins and places stores; admin imports sheets
@@ -58,9 +59,10 @@ storesPublic.post(
     res.set('Cache-Control', 'no-store');
     const b = req.body || {};
     const limit = Math.min(30, Math.max(5, Number(b.limit) || 20));
-    if (b.q) return stores.nearest({ q: String(b.q), limit });
+    const from = b.from === 'popup' ? 'popup' : 'page';
+    if (b.q) return stores.nearest({ q: String(b.q), limit, from });
     if (b.lat == null || b.lng == null) throw Object.assign(new Error('Share your location or type a pincode.'), { status: 400 });
-    return stores.nearest({ lat: b.lat, lng: b.lng, accuracy: b.accuracy, limit });
+    return stores.nearest({ lat: b.lat, lng: b.lng, accuracy: b.accuracy, limit, from });
   }),
 );
 storesPublic.get(
@@ -80,6 +82,15 @@ storesAdmin.get(
   ...guarded('viewer', async () => {
     const list = await stores.allStores();
     return { stores: list.map((s) => ({ ...s, address: stores.publicStore(s).address, directionsUrl: stores.directionsUrl(s) })), counts: stores.counts(list), mapsConfigured: mapsConfigured(), usage: await stores.usageToday().catch(() => null) };
+  }),
+);
+
+// Google Maps use today against the daily limits (the bar on the Stores page).
+storesAdmin.get(
+  '/usage',
+  ...guarded('viewer', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    return stores.usageReport();
   }),
 );
 

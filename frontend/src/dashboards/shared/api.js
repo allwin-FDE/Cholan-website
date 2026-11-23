@@ -147,6 +147,8 @@ export const api = {
   // The store finder's list (/stores): import a sheet, place stores, fix pins.
   stores: {
     list: () => adminFetch('/stores'),
+    // Google Maps use today against the daily limits (the bar on the Stores page).
+    usage: () => adminFetch('/stores/usage'),
     importSheet: (file, { commit = false, hideMissing = false } = {}) =>
       adminFetch(`/stores/import?${new URLSearchParams({ commit: commit ? '1' : '0', hideMissing: hideMissing ? '1' : '0' })}`, { method: 'POST', raw: file, contentType: file.type || 'application/octet-stream' }),
     locate: (body = {}) => adminFetch('/stores/locate', { method: 'POST', body }),

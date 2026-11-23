@@ -17,8 +17,9 @@ async function call(path, init) {
 export const fetchStores = () => call('');
 
 // The nearest stores to a point ({ lat, lng, accuracy }) or a typed place ({ q }).
-export const findNearest = (where) =>
-  call('/nearest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...where, limit: 20 }) });
+// from: 'popup' for the home page popup (counted apart in /admin).
+export const findNearest = (where, { from = 'page' } = {}) =>
+  call('/nearest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...where, limit: 20, from }) });
 
 // The browser's location, asked only when the visitor presses the button.
 export function currentPosition() {

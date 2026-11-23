@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import Seo from '../../components/common/Seo.jsx';
 import { Icon, iconPaths } from '../../components/common/Icon.jsx';
 import { pages } from '../../config/seo.js';
@@ -20,12 +20,15 @@ const PAGE = 5;
 // clearly marked fallback; pins Google could only place roughly say so.
 export default function Stores() {
   const [params, setParams] = useSearchParams();
+  // Results carried over from the home page popup ("See more stores on the
+  // map"), shown without searching again.
+  const carried = useLocation().state?.found || null;
   const [all, setAll] = useState(null);
   const [listError, setListError] = useState('');
   const [query, setQuery] = useState(params.get('q') || '');
-  const [state, setState] = useState('idle'); // idle | locating | searching | done | error
+  const [state, setState] = useState(carried ? 'done' : 'idle'); // idle | locating | searching | done | error
   const [error, setError] = useState('');
-  const [found, setFound] = useState(null);
+  const [found, setFound] = useState(carried);
   const [shown, setShown] = useState(PAGE);
   const [selected, setSelected] = useState(null);
   const resultsRef = useRef(null);
@@ -40,7 +43,8 @@ export default function Stores() {
   // A shared link with ?q=641402 runs that search.
   useEffect(() => {
     const q = params.get('q');
-    if (q && hasBackend) search({ q });
+    if (carried) setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    else if (q && hasBackend) search({ q });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

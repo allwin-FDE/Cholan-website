@@ -1141,3 +1141,89 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Stores: Google Maps use today (the searches-left bar) */
+.maps-usage__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+}
+.maps-usage__big {
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+}
+.maps-usage__big strong {
+  color: var(--d-ink);
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.maps-usage__big span {
+  margin-top: 4px;
+  color: var(--d-ink-2);
+  font-size: 0.86rem;
+}
+.maps-usage__body {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+.maps-usage__body p {
+  margin: 8px 0 0;
+}
+.maps-meter {
+  height: 10px;
+  border-radius: 999px;
+  background: #ecebe4;
+  overflow: hidden;
+}
+.maps-meter--big {
+  height: 16px;
+}
+.maps-meter span {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: inherit;
+  background: var(--d-good);
+  transition: width 0.4s;
+}
+.maps-meter--warn span {
+  background: #d29b2c;
+}
+.maps-meter--bad span {
+  background: var(--d-bad);
+}
+.maps-usage__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 22px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--d-line, #e6e4dc);
+}
+.maps-usage__row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+.maps-usage__row-head span {
+  color: var(--d-ink-2);
+  font-size: 0.84rem;
+}
+.maps-usage__row-head b {
+  color: var(--d-ink);
+  font-variant-numeric: tabular-nums;
+}
+.maps-usage__row p {
+  margin: 6px 0 0;
+}
+.maps-usage__month {
+  margin: 16px 0 0;
+}

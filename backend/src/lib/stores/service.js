@@ -209,6 +209,65 @@ export async function usageToday() {
   return { day: today(), ...(snap.exists ? snap.data() : {}), limits: { routes: config.maps.routeDailyLimit, geocodes: config.maps.geocodeDailyLimit } };
 }
 
+// Adds to today's counters ({ google: { geocode: 1 } } is +1), without
+// holding up the caller; a failed count is only logged.
+function bump(counts) {
+  const inc = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'object' ? inc(v) : FieldValue.increment(v)]));
+  return col
+    .usage()
+    .doc(today())
+    .set({ day: today(), ...inc(counts) }, { merge: true })
+    .catch((error) => console.error('[stores] usage count failed:', error.message));
+}
+
+// The Google client, with every real call counted by kind (Google's daily
+// quotas count calls, and road distances by the stores measured).
+function client() {
+  const g = maps();
+  return {
+    geocode: (a) => (bump({ google: { geocode: 1 } }), g.geocode(a)),
+    places: (a) => (bump({ google: { places: 1 } }), g.places(a)),
+    place: (id) => (bump({ google: { place: 1 } }), g.place(id)),
+    routes: (o, d) => (bump({ google: { routeElements: d.length } }), g.routes(o, d)),
+  };
+}
+
+// For the usage bar in /admin > Stores: today against the limits, this
+// month so far, and the last two weeks day by day.
+export async function usageReport() {
+  const day = today();
+  const month = day.slice(0, 7);
+  const dayBefore = (n) => new Date(Date.parse(`${day}T00:00:00Z`) - n * 86400_000).toISOString().slice(0, 10);
+  const start = dayBefore(13) < `${month}-01` ? dayBefore(13) : `${month}-01`;
+  const snap = await col.usage().where('day', '>=', start).get();
+  const days = new Map(snap.docs.map((d) => [d.id, d.data()]));
+  const flat = (d = {}) => ({
+    searches: d.searches || 0,
+    searchesPopup: d.searchesPopup || 0,
+    searchesNoRoad: d.searchesNoRoad || 0,
+    routes: d.routes || 0,
+    geocodes: d.geocodes || 0,
+    geocode: d.google?.geocode || 0,
+    places: d.google?.places || 0,
+    place: d.google?.place || 0,
+    routeElements: d.google?.routeElements || 0,
+  });
+  const sum = (rows) => rows.reduce((t, r) => Object.fromEntries(Object.keys(r).map((k) => [k, (t[k] || 0) + r[k]])), flat());
+  const monthRows = [...days].filter(([id]) => id.startsWith(month)).map(([, d]) => flat(d));
+  const recent = [];
+  for (let i = 13; i >= 0; i -= 1) recent.push({ day: dayBefore(i), ...flat(days.get(dayBefore(i))) });
+  return {
+    day,
+    // Midnight in India, when the counters start again.
+    resetsAt: new Date(Date.parse(`${day}T00:00:00+05:30`) + 86400_000).toISOString(),
+    today: flat(days.get(day)),
+    month: { month, days: monthRows.length, ...sum(monthRows) },
+    recent,
+    limits: { routes: config.maps.routeDailyLimit, geocodes: config.maps.geocodeDailyLimit, shortlist: config.maps.shortlist, ...config.maps.googleDaily },
+    configured: Boolean(config.maps.serverKey || config.maps.fake),
+  };
+}
+
 const cacheId = (kind, q) => createHash('sha1').update(`${kind}:${JSON.stringify(q)}`).digest('hex');
 
 // A Google answer, from the cache when it is fresh enough.
@@ -233,7 +292,7 @@ const locked = (s) => ['manual', 'sheet', 'checked'].includes(s.location?.source
 
 // fresh: ask Google again instead of using the cache (the 30-day refresh).
 async function lookUp(store, { fresh = false } = {}) {
-  const g = maps();
+  const g = client();
   const cached = (kind, q, fetcher) => cachedAnswer(kind, q, fetcher, fresh ? 0 : FRESH_DAYS - 2);
   const q = geocodeQuery(store);
   let results = await cached('geocode', { q, pin: store.pincode }, () => g.geocode({ address: q, pincode: store.pincode }));
@@ -359,7 +418,7 @@ export async function resolvePlace(text) {
   const pin = /^\d{6}$/.test(q.replace(/\s/g, '')) ? q.replace(/\s/g, '') : null;
   const fetcher = async () => {
     if (!(await allow('geocodes', config.maps.geocodeDailyLimit))) throw Object.assign(new Error('The search is busy right now. Please try “Find stores near me”, or try again later.'), { status: 429 });
-    return maps().geocode(pin ? { pincode: pin } : { address: /tamil nadu|india/i.test(q) ? q : `${q}, Tamil Nadu` });
+    return client().geocode(pin ? { pincode: pin } : { address: /tamil nadu|india/i.test(q) ? q : `${q}, Tamil Nadu` });
   };
   const results = await cachedAnswer('place', { q: q.toLowerCase() }, fetcher);
   // A whole state or country is not a place to measure from ("Tamil Nadu" is
@@ -376,13 +435,13 @@ async function roads(origin, stores) {
   const hit = routeCache.get(k);
   if (hit && hit.until > Date.now()) return hit.value;
   if (!(await allow('routes', config.maps.routeDailyLimit))) return null;
-  const value = await maps().routes(origin, stores);
+  const value = await client().routes(origin, stores);
   if (routeCache.size > 500) routeCache.delete(routeCache.keys().next().value);
   routeCache.set(k, { value, until: Date.now() + 6 * 3600_000 });
   return value;
 }
 
-export async function nearest({ lat, lng, accuracy, q, limit = 20 }) {
+export async function nearest({ lat, lng, accuracy, q, limit = 20, from = 'page' }) {
   let origin;
   if (q) origin = await resolvePlace(q);
   else {
@@ -402,12 +461,9 @@ export async function nearest({ lat, lng, accuracy, q, limit = 20 }) {
     console.error('[stores] road distances failed:', error.message);
   }
   const ranked = rank(byLine, short.length, routes, limit);
-  return {
-    origin,
-    ...ranked,
-    fallbackReason: ranked.method === 'road' ? null : routeError ? 'error' : routes === null ? 'limit' : 'no_routes',
-    total: placed.length,
-  };
+  const fallbackReason = ranked.method === 'road' ? null : routeError ? 'error' : routes === null ? 'limit' : 'no_routes';
+  bump({ searches: 1, ...(from === 'popup' ? { searchesPopup: 1 } : {}), ...(fallbackReason ? { searchesNoRoad: 1 } : {}) });
+  return { origin, ...ranked, fallbackReason, total: placed.length };
 }
 
 // The order shown: stores reached by road first, nearest by road; then the

@@ -102,6 +102,8 @@ const SECTIONS = [
       'To fix a pin, open the shop, drag the pin to the shop (or click the map) and Save this pin. Or paste the shop’s Google Maps link, or “latitude, longitude”. If the pin is already right, click “The pin is right”. Pins set or checked by staff are never changed by Google.',
       'A note such as “the pincode in the sheet may be wrong” or “Possible Google listing… check which store it is” says exactly what to look at. Add a phone number to show a “Call store” button. “Hide from the website” takes a shop off the finder without deleting it.',
       'The ASM, Region and Zone are for staff only and never shown on the website. Customers’ locations are used for the search only and never saved.',
+      'The home page also offers the finder in a popup: it opens by itself once, a few seconds in (then not again for a week on that phone or computer), and the “Find a store” button at the bottom left brings it back. It shows the three nearest shops, without a map; “See more stores on the map” opens /stores with the same results.',
+      '“Store searches left today” at the top of Stores shows how many customer searches with road distance are left before today’s Google Maps limit, which keeps Maps under ₹1,000 a month. Green is plenty, amber under half, red under a fifth. When it reaches 0, searches still work but show straight-line distances until midnight. The smaller bars are for typed pincodes and for placing stores on the map, which uses Google’s own daily quotas.',
     ],
   },
 ];
