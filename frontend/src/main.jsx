@@ -18,6 +18,7 @@ import './styles/product-detail.css';
 import './styles/about.css';
 import './styles/blog.css';
 import './styles/contact.css';
+import './styles/stores.css';
 import './styles/policy.css';
 import './styles/checkout.css';
 import './styles/chat.css';

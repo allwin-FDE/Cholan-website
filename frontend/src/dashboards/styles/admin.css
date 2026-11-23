@@ -1040,3 +1040,104 @@
   font-size: 0.86rem;
   color: var(--ink-mute, #6b6b6b);
 }
+
+/* ---- Stores (the store finder's list) ---- */
+.stores-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+.stores-toolbar .dash-search {
+  flex: 1 1 260px;
+}
+.stores-table td {
+  vertical-align: top;
+}
+.stores-table__note {
+  max-width: 420px;
+  margin-top: 4px;
+}
+.stores-progress {
+  height: 8px;
+  margin: 8px 0;
+  border-radius: 999px;
+  background: var(--d-line-soft, #eef1f4);
+  overflow: hidden;
+}
+.stores-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--d-green);
+  transition: width 0.3s;
+}
+.stores-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.stores-editor h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+.stores-editor__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.stores-editor__pin {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.stores-editor__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.stores-editor__wide {
+  grid-column: 1 / -1;
+}
+.stores-pinmap {
+  width: 100%;
+  height: 300px;
+  margin-top: 10px;
+  border: 1px solid var(--d-line, #e2e5e9);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.stores-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.stores-upload__sum {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.stores-upload__sum li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--d-bg);
+  font-size: 0.86rem;
+}
+.stores-upload__sum li strong {
+  display: block;
+  font-size: 1.3rem;
+}
+.stores-upload__sum li.is-bad strong {
+  color: var(--d-bad, #b3402f);
+}
+@media (max-width: 640px) {
+  .stores-editor__grid {
+    grid-template-columns: 1fr;
+  }
+}

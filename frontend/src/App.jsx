@@ -18,6 +18,7 @@ import ProductDetail from './pages/ProductDetail';
 import About from './pages/About';
 import Blog from './pages/Blog';
 import Contact from './pages/Contact';
+import Stores from './pages/Stores';
 import Checkout, { OrderConfirmed } from './pages/Checkout';
 import Policy from './pages/Policy';
 import NotFound from './pages/NotFound';
@@ -57,6 +58,9 @@ function AppShell() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<Post />} />
           <Route path="/contact" element={<Contact />} />
+          {/* The store finder: the nearest Cholan shop by road distance. */}
+          <Route path="/stores" element={<Stores />} />
+          <Route path="/store-locator" element={<Navigate to="/stores" replace />} />
           <Route
             path="/checkout"
             element={features.cart ? <Checkout /> : <Navigate to="/products" replace />}

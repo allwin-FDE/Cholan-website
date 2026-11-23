@@ -15,6 +15,7 @@ import inward from './routes/inward.js';
 import accounts from './routes/accounts.js';
 import { jobs, razorpayWebhook, shop } from './routes/shop.js';
 import { whatsappAdmin, whatsappJobs, whatsappWebhook } from './routes/whatsapp.js';
+import { storesAdmin, storesJobs, storesPublic } from './routes/stores.js';
 import { dbEnabled, query } from './db/pool.js';
 import { knowledgeSize } from './chat/retrieve.js';
 import { startSyncWorker } from './lib/sync.js';
@@ -39,10 +40,11 @@ app.use(
   }),
 );
 // Small bodies everywhere, except blog posts (an uploaded Word document or PDF
-// makes them large) and the warehouse, which parse their own body in their routes.
+// makes them large), the warehouse and uploaded sheets, which parse their own
+// body in their routes.
 const smallJson = express.json({ limit: '32kb' });
 app.use((req, res, next) =>
-  /^\/api\/(admin\/(short-)?posts|warehouse|razorpay\/webhook|whatsapp\/webhook|admin\/whatsapp\/contacts\/import$)/.test(req.path) ? next() : smallJson(req, res, next),
+  /^\/api\/(admin\/(short-)?posts|warehouse|razorpay\/webhook|whatsapp\/webhook|admin\/whatsapp\/contacts\/import$|admin\/stores\/import$)/.test(req.path) ? next() : smallJson(req, res, next),
 );
 
 // /health?db=1 also checks the business database answers (SELECT 1), saying
@@ -82,6 +84,10 @@ app.use('/api/razorpay/webhook', razorpayWebhook);
 app.use('/api/jobs', jobs);
 app.use('/api/jobs', whatsappJobs);
 app.use('/api/admin/whatsapp', whatsappAdmin);
+// The store finder (/stores) and its list in /admin.
+app.use('/api/stores', storesPublic);
+app.use('/api/admin/stores', storesAdmin);
+app.use('/api/jobs', storesJobs);
 app.use('/api/whatsapp/webhook', whatsappWebhook);
 app.use('/api/admin', admin);
 app.use('/api/warehouse', warehouse);

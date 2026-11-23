@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { site } from '../../config/site.js';
 import { footerNav, policyNav } from '../../config/navigation.js';
 import { categories } from '../../data/categories.js';
-import { Icon, iconPaths } from '../common/Icon.jsx';
+import { Icon, iconPaths, WhatsAppLogo } from '../common/Icon.jsx';
 import { track } from '../../lib/analytics.js';
 import { hasBackend, subscribe } from '../../lib/api.js';
 import { enquiryContext } from '../../lib/tracker.js';
@@ -62,6 +62,14 @@ export default function Footer() {
                 <Icon d={iconPaths.phone} />
                 <a href={`tel:${site.phoneRaw}`}>{site.phone}</a>
               </li>
+              {site.whatsapp?.show && (
+                <li className="footer__whatsapp">
+                  <WhatsAppLogo />
+                  <a href={`https://wa.me/${site.whatsapp.raw}`} target="_blank" rel="noreferrer" aria-label={`WhatsApp ${site.whatsapp.number}`}>
+                    {site.whatsapp.number}
+                  </a>
+                </li>
+              )}
               <li>
                 <Icon d={iconPaths.mail} />
                 <a href={`mailto:${site.email}`}>{site.email}</a>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageHero from '../../components/common/PageHero.jsx';
+import { WhatsAppLogo } from '../../components/common/Icon.jsx';
 import { site } from '../../config/site.js';
 import { getProduct } from '../../lib/products.js';
 import { hasBackend, submitEnquiry } from '../../lib/api.js';
@@ -233,6 +234,11 @@ export default function Contact() {
                 <a href={`tel:${site.phoneRaw}`} className="infocard__value">
                   {site.phone}
                 </a>
+                {site.whatsapp?.show && (
+                  <a href={`https://wa.me/${site.whatsapp.raw}`} target="_blank" rel="noreferrer" className="infocard__whatsapp" aria-label={`WhatsApp ${site.whatsapp.number}`}>
+                    <WhatsAppLogo /> {site.whatsapp.number}
+                  </a>
+                )}
               </div>
               <div className="infocard">
                 <span className="infocard__label">Email</span>

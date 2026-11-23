@@ -9,9 +9,14 @@ export const site = {
     'From the paddy fields of Tamil Nadu to your kitchen — rice, sourced and packed with care.',
   phone: '+91 90922 66667',
   phoneRaw: '919092266667',
+  // The WhatsApp Business number (the /whatsapp dashboard and bot), shown
+  // with the WhatsApp logo under the call number. show: false hides it.
+  // The "WhatsApp us" buttons still open phoneRaw.
+  whatsapp: { number: '+91 81483 13478', raw: '918148313478', show: true },
   email: 'info@cholanrice.in',
   address: {
-    line1: '32/A2, SP Kannusamy Gounder St',
+    // As on the company's GST registration (and Meta's verified business info).
+    line1: '32/B2, SP Kannusamy Street',
     line2: 'Sanganoor, Coimbatore',
     pincode: '641027',
     state: 'Tamil Nadu, India',

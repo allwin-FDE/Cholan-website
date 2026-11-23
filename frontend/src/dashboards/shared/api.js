@@ -144,6 +144,14 @@ export const api = {
   enquiries: () => adminFetch('/enquiries'),
   updateEnquiry: (id, patch) => adminFetch(`/enquiries/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
   deleteEnquiry: (id) => adminFetch(`/enquiries/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  // The store finder's list (/stores): import a sheet, place stores, fix pins.
+  stores: {
+    list: () => adminFetch('/stores'),
+    importSheet: (file, { commit = false, hideMissing = false } = {}) =>
+      adminFetch(`/stores/import?${new URLSearchParams({ commit: commit ? '1' : '0', hideMissing: hideMissing ? '1' : '0' })}`, { method: 'POST', raw: file, contentType: file.type || 'application/octet-stream' }),
+    locate: (body = {}) => adminFetch('/stores/locate', { method: 'POST', body }),
+    update: (code, body) => adminFetch(`/stores/${encodeURIComponent(code)}`, { method: 'PATCH', body }),
+  },
   subscribers: () => adminFetch('/subscribers'),
   removeSubscriber: (email) => adminFetch(`/subscribers/${encodeURIComponent(email)}`, { method: 'DELETE' }),
   access: () => adminFetch('/access'),

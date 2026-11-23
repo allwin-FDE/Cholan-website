@@ -13,6 +13,7 @@ import Enquiries from './pages/Enquiries.jsx';
 import Subscribers from './pages/Subscribers.jsx';
 import BlogList from './pages/BlogList.jsx';
 import Comments from './pages/Comments.jsx';
+import Stores from './pages/Stores.jsx';
 import BlogEditor from './pages/BlogEditor.jsx';
 import NewPost from './blog/NewPost.jsx';
 import Settings from './pages/Settings.jsx';
@@ -57,6 +58,7 @@ const NAV = [
   { group: 'Content', role: 'editor' },
   { to: '/admin/blog', label: 'Blog', icon: 'pen', role: 'editor' },
   { to: '/admin/comments', label: 'Comments', icon: 'chat', role: 'editor' },
+  { to: '/admin/stores', label: 'Stores', icon: 'pin', role: 'viewer' },
   { group: 'Admin' },
   { to: '/admin/settings', label: 'Settings', icon: 'gear', role: 'admin' },
   { to: '/admin/help', label: 'Help', icon: 'help', role: 'viewer' },
@@ -266,6 +268,7 @@ export default function Admin() {
             <Route path="blog" element={guard('editor', <BlogList />)} />
             <Route path="blog/:id" element={guard('editor', <BlogEditor />)} />
             <Route path="comments" element={guard('editor', <Comments />)} />
+            <Route path="stores" element={<Stores />} />
             <Route path="settings" element={guard('admin', <Settings />)} />
             <Route path="help" element={<Help />} />
             <Route path="login" element={<Navigate to="/admin" replace />} />

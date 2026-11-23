@@ -91,6 +91,19 @@ const SECTIONS = [
       'To correct a live blog, open it from the list and click “Save changes”. To take it down, choose Save draft, or Delete to remove it for good.',
     ],
   },
+  {
+    id: 'stores',
+    title: 'The store finder (Stores)',
+    steps: [
+      'Customers find the nearest shop at www.cholanrice.in/stores: “Find stores near me” (they allow their location) or a pincode, town or area. Stores are ranked by road distance with the driving time, and “Get directions” opens Google Maps.',
+      'To add or update shops, an admin clicks “Upload Excel” and chooses the store list (.xlsx or .csv, one row per shop, with a header row such as Shop Code, Branch, Door No., Street Name, Area, Landmark, Taluk, Pincode; Phone, Latitude and Longitude are optional). Check the preview (new, updated, unchanged, and rows that can’t be used), then Import. Shops are matched by Shop Code; nothing is ever deleted, and a column missing from the sheet leaves that detail as it was.',
+      'After an import, “Place on the map” looks up each new or changed shop with Google: first its own Google listing (Cholan Rice and Millet Shops…), then its street address.',
+      '“Verified” is an exact shop location; “Street address” is the exact address. “Approximate” means Google found only the road, area or pincode: customers see “Approximate location” on those. The “To check” list has them all.',
+      'To fix a pin, open the shop, drag the pin to the shop (or click the map) and Save this pin. Or paste the shop’s Google Maps link, or “latitude, longitude”. If the pin is already right, click “The pin is right”. Pins set or checked by staff are never changed by Google.',
+      'A note such as “the pincode in the sheet may be wrong” or “Possible Google listing… check which store it is” says exactly what to look at. Add a phone number to show a “Call store” button. “Hide from the website” takes a shop off the finder without deleting it.',
+      'The ASM, Region and Zone are for staff only and never shown on the website. Customers’ locations are used for the search only and never saved.',
+    ],
+  },
 ];
 
 export default function Help() {

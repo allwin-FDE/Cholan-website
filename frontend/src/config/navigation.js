@@ -6,6 +6,7 @@ export const mainNav = [
   { to: '/products', label: 'Products' },
   { to: '/about', label: 'About Us' },
   { to: '/blog', label: 'Blog' },
+  { to: '/stores', label: 'Stores' },
   { to: '/contact', label: 'Contact' },
 ];
 
@@ -15,6 +16,7 @@ export const footerNav = [
   { to: '/products', label: 'Products' },
   { to: '/about', label: 'About Us' },
   { to: '/blog', label: 'Blog' },
+  { to: '/stores', label: 'Find a Store' },
   { to: '/contact', label: 'Contact Us' },
 ];
 

@@ -94,6 +94,22 @@ export const config = {
     fake: process.env.WHATSAPP_FAKE === '1',
   },
 
+  // Google Maps for the store finder (/stores). The server key (Secret
+  // Manager on Cloud Run) works only for Geocoding, Places and Routes. Daily
+  // caps keep a burst of traffic from running up the bill: past them the
+  // finder falls back to straight-line distances, clearly labelled.
+  // MAPS_FAKE=1 answers locally (tests), so nothing reaches Google.
+  maps: {
+    serverKey: process.env.GOOGLE_MAPS_SERVER_KEY || '',
+    fake: process.env.MAPS_FAKE === '1',
+    // Stores compared by road distance in each search (the rest by straight line).
+    shortlist: num(process.env.MAPS_SHORTLIST, 10),
+    // Kept under Google's own daily quotas on the project (road distances
+    // 380 a day, address lookups 320), set so Maps stays under ₹1,000 a month.
+    routeDailyLimit: num(process.env.MAPS_ROUTE_DAILY_LIMIT, 38),
+    geocodeDailyLimit: num(process.env.MAPS_GEOCODE_DAILY_LIMIT, 250),
+  },
+
   // Per-IP submit limit, to keep the form from being used as a spam relay.
   rateLimit: {
     windowMs: num(process.env.RATE_LIMIT_WINDOW_MS, 60_000),

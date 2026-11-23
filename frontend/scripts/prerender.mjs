@@ -39,6 +39,7 @@ const routes = [
   ...products.map((p) => ({ path: `/products/${p.id}`, priority: '0.8', changefreq: 'monthly' })),
   { path: '/about', priority: '0.7', changefreq: 'monthly' },
   { path: '/contact', priority: '0.7', changefreq: 'monthly' },
+  { path: '/stores', priority: '0.8', changefreq: 'weekly' },
   { path: '/story', priority: '0.5', changefreq: 'monthly' },
   { path: '/blog', priority: '0.3', changefreq: 'weekly' },
   ...Object.keys(policies).map((slug) => ({ path: `/policies/${slug}`, priority: '0.2', changefreq: 'yearly' })),

@@ -41,6 +41,12 @@ export const pages = {
     title: 'Contact Us — Orders & Bulk Enquiries',
     description: `Order rice or ask for a bulk quote. Call or WhatsApp ${site.phone}, email ${site.email}, or visit us in Sanganoor, Coimbatore.`,
   },
+  stores: {
+    path: '/stores',
+    title: 'Find Your Nearest Cholan Store',
+    description:
+      'Find the nearest Cholan rice shop: over 270 stores across Coimbatore, Tiruppur, Erode, Salem, Namakkal and Hosur. See the road distance and get directions.',
+  },
   blog: {
     path: '/blog',
     title: 'Blog',
