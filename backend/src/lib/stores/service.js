@@ -53,6 +53,11 @@ export async function allStores() {
 
 export function directionsUrl(s) {
   if (s.lat == null) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`Cholan Rice ${addressLine(s)}`)}`;
+  // A pin placed only by road, area or pincode can be shared by several shops,
+  // so directions go to the shop's own address and Google Maps finds it.
+  if (!TRUSTED.includes(s.location?.status)) {
+    return `https://www.google.com/maps/dir/?${new URLSearchParams({ api: '1', destination: addressLine(s) })}`;
+  }
   const q = new URLSearchParams({ api: '1', destination: `${s.lat},${s.lng}` });
   if (s.location?.placeId) q.set('destination_place_id', s.location.placeId);
   return `https://www.google.com/maps/dir/?${q}`;

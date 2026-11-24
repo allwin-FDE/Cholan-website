@@ -174,13 +174,15 @@ export function diffStores(incoming, existing, present = EDIT_FIELDS) {
 // Short words kept in capitals (bank names, "GH", "RS"…); the rest of an
 // all-capitals address is put in normal case so it reads well.
 const KEEP_UPPER = new Set(
-  'GH SBI ATM RS SF KVB TNHB TNPL MIG CBE LGB SVN KK KN TN PO VAO EB ESI RVS KSP SNS SCV SIHS MM NGGOS SRT MRS IOB IDBI ICICI TVK RR DL GRS SK NR KVR PV JR KRG RH SS MLA SP VK TPR NKL GSP UDCA JHS SIDCO ABT SVV CSI EDC RMS KVA RC GRT TCM RTO DG BHEL HP IOC BPCL HDFC AXIS CSB TMB IOCL'.split(' '),
+  'GH SBI ATM RS SF KVB TNHB TNPL MIG CBE LGB SVN KK KN TN PO VAO EB ESI RVS KSP SNS SCV SIHS MM NGGOS SRT MRS IOB IDBI ICICI TVK RR DL GRS SK NR KVR PV JR KRG RH SS MLA SP VK TPR NKL GSP UDCA JHS SIDCO ABT SVV CSI EDC RMS KVA RC GRT TCM RTO DG BHEL HP IOC BPCL HDFC AXIS CSB TMB IOCL CBM VKS MGN SNR SAP AB MK VN'.split(' '),
 );
 export function prettify(v) {
   const s = tidy(v);
   if (!s) return '';
-  return s.replace(/[A-Za-z][A-Za-z']*/g, (w) => {
+  return s.replace(/[A-Za-z][A-Za-z']*/g, (w, at) => {
     const up = w.toUpperCase();
+    // "3RD Avenue", "5TH Mile" -> "3rd", "5th".
+    if (/^(ST|ND|RD|TH)$/.test(up) && /\d/.test(s[at - 1] || '')) return up.toLowerCase();
     if (KEEP_UPPER.has(up)) return up;
     // Leave words that were typed in mixed case alone.
     if (w !== up && w !== w.toLowerCase()) return w;
