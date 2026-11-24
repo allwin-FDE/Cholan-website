@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { site } from '../../config/site.js';
-import { Link } from 'react-router-dom';
 import { getSectionTop, useSnapScroll } from '../../hooks/useSnapScroll.js';
-import { openStoreFinder } from '../../components/stores/StoreFinderPopup.jsx';
 
 const packs = [
   {
@@ -123,14 +121,6 @@ export default function HeroCurtain() {
                   </span>,
                 ])}
               </h1>
-              <div className="curtain__cta">
-                <Link to="/products" className="btn btn--primary">
-                  Shop rice
-                </Link>
-                <button type="button" className="btn btn--ghost" onClick={openStoreFinder}>
-                  Find nearest store
-                </button>
-              </div>
             </div>
             <div className="curtain__stage">
               <div className="curtain__packs">
