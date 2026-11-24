@@ -105,10 +105,8 @@ export default function Footer() {
         </div>
         <div className="container footer__bar">
           <span className="footer__copy">
-            © {new Date().getFullYear()} {site.name}. All rights reserved.
-            <span className="footer__reg">
-              <span>A brand of {site.legalName}</span>
-            </span>
+            {/* The company's exact registered name (GST certificate), as owner of the copyright. */}
+            © {new Date().getFullYear()} {site.legalName}. All rights reserved.
             <span className="footer__reg">
               {site.cin && <span>CIN {site.cin}</span>}
               {site.gstin && <span>GSTIN {site.gstin}</span>}
