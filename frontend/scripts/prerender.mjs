@@ -116,6 +116,16 @@ try {
 // Reduced motion: every animated element is captured at rest and visible,
 // rather than mid-animation or hidden waiting for a scroll.
 const context = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 1280, height: 900 } });
+// Popups that open by themselves (the home page store finder) must never be
+// saved into a page: a saved copy sits outside the app, can't be closed, and
+// locks the page's scrolling. Each page is told it was "just shown".
+await context.addInitScript(() => {
+  try {
+    localStorage.setItem('cholan-store-popup', String(Date.now()));
+  } catch {
+    /* no storage: the capture below still removes it */
+  }
+});
 // The backend only answers the site's own address, so reads are made as the
 // site. Anything else (visit tracking and the like) is dropped: a build must
 // not write to the live data.
@@ -134,6 +144,10 @@ for (const route of routes) {
   await page.goto(base + route.path, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
   const html = await page.evaluate(() => {
+    // Anything that opened over the page (a popup, its scroll lock) is left
+    // out, in case it opened anyway.
+    document.querySelectorAll('body > .storepop').forEach((el) => el.remove());
+    document.documentElement.style.removeProperty('overflow');
     // Head tags React placed for this page: marked so the app can remove them
     // before it renders its own (otherwise each would appear twice).
     document.head
