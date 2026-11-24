@@ -36,6 +36,8 @@ export function connection(c = config.whatsapp) {
   };
 }
 
+const PROFILE_FIELDS = 'about,address,description,email,profile_picture_url,websites,vertical';
+
 function realGraph(c) {
   const base = `https://graph.facebook.com/${c.graphVersion}`;
   async function call(method, path, { body, query, headers = {}, raw } = {}) {
@@ -77,6 +79,10 @@ function realGraph(c) {
     deleteTemplate: (name, id) => call('DELETE', `${c.wabaId}/message_templates`, { query: { name, hsm_id: id } }),
     // A rejected (or approved) template's new wording; Meta reviews it again.
     editTemplate: (id, body) => call('POST', String(id), { body }),
+    // The business profile customers see on the number (About, description,
+    // address, email, websites, category, picture).
+    profile: async () => (await call('GET', `${c.phoneNumberId}/whatsapp_business_profile`, { query: { fields: PROFILE_FIELDS } })).data?.[0] || {},
+    updateProfile: (fields) => call('POST', `${c.phoneNumberId}/whatsapp_business_profile`, { body: { messaging_product: 'whatsapp', ...fields } }),
     send: (message) => call('POST', `${c.phoneNumberId}/messages`, { body: { messaging_product: 'whatsapp', recipient_type: 'individual', ...message } }),
     markRead: (messageId) => call('POST', `${c.phoneNumberId}/messages`, { body: { messaging_product: 'whatsapp', status: 'read', message_id: messageId } }),
     // A sample file for a template's media header (Meta's resumable upload):
@@ -99,8 +105,14 @@ function realGraph(c) {
 // they are made, so the whole flow can be tried locally.
 function fakeGraph() {
   const templates = new Map();
+  let profile = { about: 'Pure goodness, always.', address: '32/B2, SP Kannusamy Street, Coimbatore 641027', description: 'Cholan Rice (test profile).', email: '', websites: ['https://www.cholanrice.in/'], vertical: 'GROCERY', profile_picture_url: '' };
   return {
     fake: true,
+    profile: async () => ({ ...profile }),
+    updateProfile: async ({ messaging_product: _mp, profile_picture_handle: handle, ...fields }) => {
+      profile = { ...profile, ...fields, ...(handle ? { profile_picture_url: 'https://www.cholanrice.in/images/cholan-logo.png' } : {}) };
+      return { success: true };
+    },
     phone: async () => ({ display_phone_number: '+91 90922 66667', verified_name: 'Cholan Rice (test)', quality_rating: 'GREEN', messaging_limit_tier: 'TIER_1K', code_verification_status: 'VERIFIED', name_status: 'APPROVED' }),
     listTemplates: async () => [...templates.values()],
     createTemplate: async (t) => {

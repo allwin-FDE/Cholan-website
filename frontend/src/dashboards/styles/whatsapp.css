@@ -733,3 +733,124 @@
 .wa-lib__preview .wa-phone__chat {
   min-height: 0;
 }
+
+/* Business profile: the form beside a preview of the WhatsApp info screen. */
+.wa-profile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+.wa-profile__form {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.wa-profile__pic {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.wa-profile__avatar,
+.wa-prof-card__avatar {
+  flex: none;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--d-line-soft, #eef1f4);
+  color: var(--d-mute);
+}
+.wa-profile__avatar img,
+.wa-prof-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wa-profile__count {
+  float: right;
+  font-weight: 400;
+  color: var(--d-mute);
+  font-variant-numeric: tabular-nums;
+}
+.wa-profile__count.is-over,
+.wa-profile__error,
+.wa-profile__msg--bad {
+  color: var(--d-bad);
+}
+.wa-profile__msg--good {
+  color: var(--d-good);
+}
+.wa-profile__save {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.wa-profile__preview {
+  position: sticky;
+  top: 16px;
+}
+.wa-prof-card {
+  background: var(--d-card);
+  border: 1px solid var(--d-line);
+  border-radius: 18px;
+  padding: 24px 18px 8px;
+  text-align: center;
+  box-shadow: var(--wa-shadow, none);
+}
+.wa-prof-card__avatar {
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 12px;
+}
+.wa-prof-card__name {
+  display: block;
+  font-size: 1.15rem;
+  color: var(--d-ink);
+}
+.wa-prof-card__num {
+  display: block;
+  color: var(--d-mute);
+  font-size: 0.9rem;
+}
+.wa-prof-card__about {
+  margin: 12px 0 0;
+  color: var(--d-ink-2, var(--d-ink));
+  font-size: 0.92rem;
+}
+.wa-prof-card__rows {
+  list-style: none;
+  margin: 14px -18px 0;
+  padding: 0;
+  text-align: left;
+  border-top: 1px solid var(--d-line);
+}
+.wa-prof-card__rows li {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--d-line-soft, var(--d-line));
+  font-size: 0.9rem;
+  color: var(--d-ink);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.wa-prof-card__rows li:last-child {
+  border-bottom: 0;
+}
+.wa-prof-card__rows span {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--d-mute);
+}
+@media (max-width: 1000px) {
+  .wa-profile {
+    grid-template-columns: 1fr;
+  }
+  .wa-profile__preview {
+    position: static;
+    max-width: 360px;
+  }
+}

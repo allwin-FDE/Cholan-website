@@ -3,7 +3,8 @@
 //   /api/admin/whatsapp/*      signed-in staff with the WhatsApp app (Settings):
 //                              viewer looks; editor makes templates, contacts and
 //                              campaigns, replies in the inbox; admin deletes
-//                              templates and contacts and changes the settings.
+//                              templates and contacts, changes the settings and
+//                              the business profile (About, description, picture…).
 //   /api/whatsapp/webhook      Meta's notifications: messages in, delivery
 //                              status, template approvals (signed with the app secret).
 //   /api/jobs/whatsapp-tick    sends what is queued and starts scheduled
@@ -21,6 +22,7 @@ import { connection, graph } from '../lib/whatsapp/graph.js';
 import { CATEGORIES, LANGUAGES } from '../lib/whatsapp/templates.js';
 import { contactsFromRows, parseCsv, readNotification, signatureOk, waNumber } from '../lib/whatsapp/messages.js';
 import * as wa from '../lib/whatsapp/service.js';
+import { PICTURE_MAX_BYTES, PICTURE_TYPES, VERTICALS, profileUpdate, profileView } from '../lib/whatsapp/profile.js';
 
 export const whatsappAdmin = Router();
 export const whatsappWebhook = Router();
@@ -110,6 +112,36 @@ whatsappAdmin.post(
     const name = `${config.firestore.prefix}whatsapp/${Date.now()}-${randomUUID().slice(0, 8)}.${SAMPLE_TYPES[type]}`;
     await bucket().file(name).save(req.body, { contentType: type, metadata: { cacheControl: 'public, max-age=31536000, immutable', metadata: { uploadedBy: req.user.email } } });
     return { name, url: `${req.protocol}://${req.get('host')}/api/media/${name}`, size: req.body.length };
+  }),
+);
+
+// ---- Business profile (what customers see on the number) ----
+whatsappAdmin.get(
+  '/profile',
+  ...run('viewer', async () => ({ profile: profileView(await graph().profile()), verticals: VERTICALS, canUploadPicture: connection().canUploadMedia })),
+);
+whatsappAdmin.put(
+  '/profile',
+  ...run('admin', async (req) => {
+    const g = graph();
+    await g.updateProfile(profileUpdate(body(req)));
+    console.log(`[whatsapp] business profile updated by ${req.user.email}`);
+    return { profile: profileView(await g.profile()) };
+  }),
+);
+// The picture goes to Meta's upload first (it answers with a handle), then on
+// the profile.
+whatsappAdmin.post(
+  '/profile/picture',
+  ...runWith('admin', express.raw({ type: PICTURE_TYPES, limit: '6mb' }), async (req) => {
+    if (!PICTURE_TYPES.includes(req.get('content-type')) || !req.body?.length) throw Object.assign(new Error('Upload a JPG or PNG picture.'), { status: 400 });
+    if (req.body.length > PICTURE_MAX_BYTES) throw Object.assign(new Error('The picture must be 5 MB or smaller.'), { status: 400 });
+    if (!connection().canUploadMedia) throw Object.assign(new Error('Set the Meta app ID (WHATSAPP_APP_ID) to upload a picture.'), { status: 400 });
+    const g = graph();
+    const handle = await g.uploadSample(req.body, req.get('content-type'));
+    await g.updateProfile({ profile_picture_handle: handle });
+    console.log(`[whatsapp] profile picture changed by ${req.user.email}`);
+    return { profile: profileView(await g.profile()) };
   }),
 );
 

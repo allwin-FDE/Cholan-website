@@ -11,6 +11,10 @@ export const wa = {
   test: (body) => post('/test', body),
   overview: (days) => call(`/overview?days=${days}`),
 
+  profile: () => call('/profile'),
+  saveProfile: (body) => call('/profile', { method: 'PUT', body }),
+  uploadProfilePicture: (file) => call('/profile/picture', { method: 'POST', raw: file, contentType: file.type }),
+
   templates: () => call('/templates'),
   syncTemplates: () => post('/templates/sync'),
   createTemplate: (form) => post('/templates', form),

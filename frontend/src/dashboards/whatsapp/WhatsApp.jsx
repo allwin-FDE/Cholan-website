@@ -19,6 +19,7 @@ import BulkMessage from './pages/BulkMessage.jsx';
 import Bot from './pages/Bot.jsx';
 import Reports from './pages/Reports.jsx';
 import Connection from './pages/Connection.jsx';
+import Profile from './pages/Profile.jsx';
 import Help from './pages/Help.jsx';
 import '../styles/dashboard.css';
 import '../styles/whatsapp.css';
@@ -39,6 +40,7 @@ const NAV = [
   { to: '/whatsapp/automations', label: 'Automations', icon: 'route' },
   { to: '/whatsapp/bot', label: 'Bot', icon: 'pulse' },
   { to: '/whatsapp/reports', label: 'Reports', icon: 'download' },
+  { to: '/whatsapp/profile', label: 'Business profile', icon: 'user' },
   { to: '/whatsapp/connection', label: 'Settings', icon: 'gear' },
   { to: '/whatsapp/help', label: 'Help', icon: 'help' },
 ];
@@ -192,6 +194,7 @@ export default function WhatsApp() {
               <Route path="broadcasts" element={<Navigate to="/whatsapp/campaigns" replace />} />
               <Route path="bot" element={<Bot />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="profile" element={<Profile />} />
               <Route path="connection" element={<Connection />} />
               <Route path="help" element={<Help />} />
               <Route path="*" element={<Navigate to="/whatsapp" replace />} />
