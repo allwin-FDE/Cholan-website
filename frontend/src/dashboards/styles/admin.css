@@ -1244,3 +1244,19 @@
 .finder-people__phone {
   white-space: nowrap;
 }
+/* Sales Daddy: new / existing lead, retrying, not sent */
+.finder-people__crm {
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.finder-people__crm--good {
+  color: var(--d-good);
+}
+.finder-people__crm--warn {
+  color: var(--d-warn);
+}
+.finder-people__crm--muted {
+  color: var(--d-mute);
+  font-weight: 400;
+}

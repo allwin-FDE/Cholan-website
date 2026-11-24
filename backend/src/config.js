@@ -75,6 +75,9 @@ export const config = {
     baseUrl: process.env.SALESDADDY_API_URL || 'https://api.salesdaddy.in/v1/ext',
     // A source key from the workspace's masters.
     source: process.env.SALESDADDY_SOURCE || 'website',
+    // The tag on leads from the store finder (name and mobile before a search).
+    // It must already exist in Sales Daddy; empty = no tag.
+    finderTag: process.env.SALESDADDY_FINDER_TAG || '',
   },
 
   // WhatsApp Cloud API (Meta), for the /whatsapp dashboard. The access token

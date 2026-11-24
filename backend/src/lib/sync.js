@@ -98,6 +98,12 @@ export function startSyncWorker() {
 
   const tick = () => {
     syncPending().catch((error) => console.error('[sync] worker error:', error));
+    // Store-finder leads that didn't reach Sales Daddy at the time of the search.
+    if (salesDaddyEnabled && firestoreEnabled) {
+      import('./stores/service.js')
+        .then((m) => m.retryFinderLeads())
+        .catch((error) => console.error('[sync] store-finder leads:', error?.message || error));
+    }
   };
 
   tick();

@@ -338,10 +338,18 @@ function FinderPeople() {
   const shown = all ? list : list.slice(0, 10);
   const local = (iso) => (iso ? new Date(iso).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '');
   const how = (p) => (p.how === 'typed' ? `Typed “${p.query}”` : 'Their location');
+  // Whether the person reached Sales Daddy as a lead (people from before the
+  // link have no record and are shown as not sent).
+  const crm = (p) =>
+    p.crm?.state === 'sent'
+      ? { label: p.crm.duplicate ? 'Existing lead' : 'New lead', tone: 'good' }
+      : p.crm?.state === 'failed'
+        ? { label: 'Not sent yet (retrying)', tone: 'warn', hint: p.crm.error }
+        : { label: 'Not sent', tone: 'muted' };
   const exportCsv = () =>
     downloadCsv('cholan-store-finder-people.csv', [
-      ['Name', 'Mobile', 'Searched on', 'Last seen', 'Repeat visits', 'How', 'Place', 'Nearest store', 'Store code', 'Distance (km)', 'By road', 'From'],
-      ...list.map((p) => [p.name, p.phone, local(p.createdAt), local(p.lastSeenAt), p.repeats || 0, p.how === 'typed' ? `Typed: ${p.query}` : 'Location', p.place || '', p.nearest?.name || '', p.nearest?.code || '', p.nearest?.km ?? '', p.nearest?.byRoad ? 'Yes' : 'No', p.from === 'popup' ? 'Home page popup' : 'Stores page']),
+      ['Name', 'Mobile', 'Searched on', 'Last seen', 'Repeat visits', 'How', 'Place', 'Nearest store', 'Store code', 'Distance (km)', 'By road', 'From', 'Sales Daddy'],
+      ...list.map((p) => [p.name, p.phone, local(p.createdAt), local(p.lastSeenAt), p.repeats || 0, p.how === 'typed' ? `Typed: ${p.query}` : 'Location', p.place || '', p.nearest?.name || '', p.nearest?.code || '', p.nearest?.km ?? '', p.nearest?.byRoad ? 'Yes' : 'No', p.from === 'popup' ? 'Home page popup' : 'Stores page', crm(p).label]),
     ]);
   return (
     <Card
@@ -372,6 +380,7 @@ function FinderPeople() {
                 <th>Searched</th>
                 <th>How</th>
                 <th>Nearest store</th>
+                <th>Sales Daddy</th>
               </tr>
             </thead>
             <tbody>
@@ -412,6 +421,11 @@ function FinderPeople() {
                     ) : (
                       '—'
                     )}
+                  </td>
+                  <td>
+                    <span className={`finder-people__crm finder-people__crm--${crm(p).tone}`} title={crm(p).hint || ''}>
+                      {crm(p).label}
+                    </span>
                   </td>
                 </tr>
               ))}

@@ -4,15 +4,15 @@
 // the new enquiry is then added to that lead as a note, so no message is lost.
 import { config } from '../config.js';
 
-async function call(path, body) {
+async function call(path, body, { method = body ? 'POST' : 'GET', timeoutMs = 15_000 } = {}) {
   const response = await fetch(`${config.salesDaddy.baseUrl}${path}`, {
-    method: 'POST',
+    method,
     headers: {
       Authorization: `Bearer ${config.salesDaddy.apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15_000),
+    body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(timeoutMs),
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.ok === false) {
@@ -55,4 +55,36 @@ export async function pushLead(row) {
   });
   if (lead.duplicate) await call(`/leads/${lead.leadId}/notes`, { body: note });
   return lead.leadId;
+}
+
+// A store-finder visitor (name and mobile, no message) as a lead, with the
+// store-finder tag. A number Sales Daddy already knows keeps its lead: the
+// search is added as a note and the tag added to its own. The customer's
+// search waits on this, so each call gives up after a few seconds (a failed
+// one is retried later, see stores/service.js).
+export async function pushFinderLead({ name, phone, city, note }) {
+  const { source, finderTag: tag } = config.salesDaddy;
+  const quick = { timeoutMs: 5000 };
+  const lead = await call(
+    '/leads',
+    {
+      name: String(name).slice(0, 200),
+      mobile: phone,
+      source,
+      ...(tag ? { tags: [tag] } : {}),
+      ...(city ? { city: String(city).slice(0, 100) } : {}),
+      note: String(note).slice(0, 2000),
+    },
+    quick,
+  );
+  const id = lead.leadId || lead.lead?.id;
+  if (lead.duplicate && id) {
+    await call(`/leads/${encodeURIComponent(id)}/notes`, { body: String(note).slice(0, 2000) }, quick);
+    if (tag) {
+      const got = await call(`/leads/${encodeURIComponent(id)}`, null, quick);
+      const tags = got.lead?.tags || [];
+      if (!tags.includes(tag)) await call(`/leads/${encodeURIComponent(id)}`, { tags: [...tags, tag].slice(0, 20) }, { ...quick, method: 'PATCH' });
+    }
+  }
+  return { leadId: id || '', duplicate: Boolean(lead.duplicate) };
 }

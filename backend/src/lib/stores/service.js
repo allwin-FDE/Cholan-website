@@ -17,10 +17,11 @@
 // then, shown again on a repeat without asking Google).
 import { createHash } from 'node:crypto';
 import { FieldValue } from '@google-cloud/firestore';
-import { config } from '../../config.js';
+import { config, salesDaddyEnabled } from '../../config.js';
 import { collection, firestore } from '../firestore.js';
 import { addressKey, addressLine, diffStores, EDIT_FIELDS, geocodeQuery, inIndia, prettify, storesFromRows, tidy, cleanPhone, cleanDoor } from './sheet.js';
 import { classifyGeocode, haversineKm, localityNamesStore, maps, matchListings, parseLocation } from './geo.js';
+import { pushFinderLead } from '../salesdaddy.js';
 
 const col = {
   stores: () => collection('stores'),
@@ -536,6 +537,8 @@ export async function nearestFor({ name, phone, ip, from = 'page', where }) {
   if (old?.result) {
     await ref.update({ repeats: FieldValue.increment(1), lastSeenAt: now, ...(old.name !== who.name ? { otherNames: FieldValue.arrayUnion(who.name) } : {}) });
     bump({ repeats: 1 });
+    // A lead that didn't reach Sales Daddy the first time gets another go.
+    if (salesDaddyEnabled && old.crm?.state !== 'sent') await toSalesDaddy(ref, old);
     return { ...old.result, repeat: true, person: { name: old.name, firstAt: old.createdAt } };
   }
   // Two searches for the same new number at once: the second waits.
@@ -553,7 +556,7 @@ export async function nearestFor({ name, phone, ip, from = 'page', where }) {
   }
   // The first store on the customer's list (closest), as they saw it.
   const top = result.results[0];
-  await ref.set({
+  const record = {
     phone: who.phone,
     name: who.name,
     createdAt: now,
@@ -563,17 +566,62 @@ export async function nearestFor({ name, phone, ip, from = 'page', where }) {
     how: where.q ? 'typed' : 'location',
     query: where.q ? tidy(where.q).slice(0, 80) : '',
     place: result.origin.kind === 'gps' ? '' : result.origin.label || '',
-    nearest: top ? { code: top.code, name: top.name, km: top.roadKm ?? top.straightKm ?? null, byRoad: top.roadKm != null } : null,
+    nearest: top ? { code: top.code, name: top.name, city: top.city || top.district || '', km: top.roadKm ?? top.straightKm ?? null, byRoad: top.roadKm != null } : null,
     method: result.method,
     result: keepable(result),
-  });
+  };
+  await ref.set(record);
   bump({ people: 1 });
+  if (salesDaddyEnabled) await toSalesDaddy(ref, record);
   return { ...result, repeat: false, person: { name: who.name, firstAt: now } };
+}
+
+// ---- Sales Daddy: each store-finder visitor as a lead ----
+
+// What the sales team reads on the lead. The customer's own location is never
+// kept, so only what they typed or the shop found is said.
+export function finderLeadNote(p) {
+  const where = p.how === 'typed' ? `typed "${p.query}"${p.place && p.place !== p.query ? ` (${p.place})` : ''}` : 'their phone’s location';
+  const shop = p.nearest ? `${p.nearest.name} (${p.nearest.code})${p.nearest.km != null ? `, ${p.nearest.km} km${p.nearest.byRoad ? ' by road' : ' in a straight line'}` : ''}` : 'none found';
+  return [
+    `Used the store finder on cholanrice.in (${p.from === 'popup' ? 'home page popup' : 'Stores page'}).`,
+    `Searched from: ${where}`,
+    `Nearest shop shown: ${shop}`,
+  ].join('\n');
+}
+
+// Sends one person and keeps the outcome on their record (crm): sent, with the
+// lead id, or failed, with the reason and a count of tries. Never throws: the
+// customer's search goes on whatever Sales Daddy says.
+async function toSalesDaddy(ref, p) {
+  const at = nowIso();
+  try {
+    const { leadId, duplicate } = await pushFinderLead({ name: p.name, phone: p.phone, city: p.nearest?.city || '', note: finderLeadNote(p) });
+    await ref.set({ crm: { state: 'sent', leadId, duplicate, at, tries: (p.crm?.tries || 0) + 1 } }, { merge: true });
+  } catch (error) {
+    console.error(`[stores] Sales Daddy lead for ${p.phone.slice(0, 2)}…${p.phone.slice(-2)} failed:`, error?.message || error);
+    await ref.set({ crm: { state: 'failed', error: String(error?.message || error).slice(0, 200), at, tries: (p.crm?.tries || 0) + 1 } }, { merge: true }).catch(() => {});
+  }
+}
+
+// Retries the ones that failed (run by the sync worker): up to 20 at a time,
+// each person at most 10 tries.
+export async function retryFinderLeads() {
+  if (!salesDaddyEnabled) return { skipped: 'off' };
+  const snap = await col.people().where('crm.state', '==', 'failed').limit(20).get();
+  let sent = 0;
+  for (const d of snap.docs) {
+    const p = d.data();
+    if ((p.crm?.tries || 0) >= 10) continue;
+    await toSalesDaddy(d.ref, p);
+    sent += 1;
+  }
+  return { tried: sent };
 }
 
 // For staff: who used the finder, newest first (without the stored results).
 export async function people({ limit = 1000 } = {}) {
-  const snap = await col.people().orderBy('createdAt', 'desc').limit(Math.min(limit, 5000)).select('phone', 'name', 'otherNames', 'createdAt', 'lastSeenAt', 'repeats', 'from', 'how', 'query', 'place', 'nearest', 'method').get();
+  const snap = await col.people().orderBy('createdAt', 'desc').limit(Math.min(limit, 5000)).select('phone', 'name', 'otherNames', 'createdAt', 'lastSeenAt', 'repeats', 'from', 'how', 'query', 'place', 'nearest', 'method', 'crm').get();
   return snap.docs.map((d) => d.data());
 }
 
