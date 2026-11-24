@@ -11,6 +11,7 @@ import { pages, businessSchema } from '../../config/seo.js';
 import { track } from '../../lib/analytics.js';
 import { enquiryContext } from '../../lib/tracker.js';
 import { isMobile, tenDigits } from '../../lib/phone.js';
+import { isName, lettersOnly } from '../../lib/names.js';
 
 const fullAddress = `${site.address.line1}, ${site.address.line2} ${site.address.pincode}, ${site.address.state}`;
 
@@ -54,8 +55,9 @@ export default function Contact() {
   }, [product]);
 
   const updateField = (field) => (event) => {
-    // The phone box takes a 10-digit mobile number only.
-    const value = field === 'phone' ? tenDigits(event.target.value) : event.target.value;
+    // The phone box takes a 10-digit mobile number only; the name, letters.
+    const raw = event.target.value;
+    const value = field === 'phone' ? tenDigits(raw) : field === 'name' ? lettersOnly(raw) : raw;
     setForm((current) => ({ ...current, [field]: value }));
     // Clear this field's error as soon as it is edited, so a correction does
     // not sit next to a stale complaint.
@@ -69,6 +71,11 @@ export default function Contact() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (status === 'sending') return;
+    if (!isName(form.name)) {
+      setFieldErrors((current) => ({ ...current, name: form.name.trim().length < 2 ? 'Please type your full name.' : 'Please type your name using letters only.' }));
+      document.getElementById('name')?.focus();
+      return;
+    }
     if (!isMobile(form.phone)) {
       setFieldErrors((current) => ({ ...current, phone: 'Please type a 10-digit mobile number.' }));
       document.getElementById('phone')?.focus();

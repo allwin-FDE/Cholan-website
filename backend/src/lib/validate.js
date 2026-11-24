@@ -26,6 +26,8 @@ const text = (value) => (typeof value === 'string' ? value.trim() : '');
 // 090922-66667, and rejecting a reachable number costs more than a bad row.
 const PHONE = /^\+?[\d\s().-]{7,20}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Names: letters (any language), spaces and the dot of an initial.
+const NAME = /^\p{L}[\p{L}\p{M} .]+$/u;
 
 export function validateEnquiry(body) {
   const errors = {};
@@ -41,6 +43,8 @@ export function validateEnquiry(body) {
 
   if (!name) errors.name = 'Your name is required.';
   else if (name.length > LIMITS.name) errors.name = `Keep the name under ${LIMITS.name} characters.`;
+  else if (name.length < 2) errors.name = 'Please type your full name.';
+  else if (!NAME.test(name)) errors.name = 'Please type your name using letters only.';
 
   if (!phone) errors.phone = 'A phone number is required.';
   else if (!PHONE.test(phone)) errors.phone = 'That phone number does not look right.';

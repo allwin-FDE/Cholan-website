@@ -477,11 +477,16 @@ export async function nearest({ lat, lng, accuracy, q, limit = 20, from = 'page'
 
 // ---- Name and mobile first, one search per number ----
 
+// Letters (any language), spaces and the dot of an initial; at least 2.
+const NAME = /^\p{L}[\p{L}\p{M} .]+$/u;
+
 export function checkPerson({ name, phone } = {}) {
   const n = tidy(name).replace(/[<>{}]/g, '').slice(0, 60);
   const p = cleanPhone(phone);
   const fields = {};
-  if (n.length < 2 || !/\p{L}/u.test(n)) fields.name = 'Please type your name.';
+  if (!n) fields.name = 'Please type your name.';
+  else if (n.length < 2) fields.name = 'Please type your full name.';
+  else if (!NAME.test(n)) fields.name = 'Please type your name using letters only.';
   if (!p) fields.phone = 'Please type a 10-digit mobile number.';
   if (Object.keys(fields).length) throw Object.assign(new Error(fields.name || fields.phone), { status: 400, fields });
   return { name: n, phone: p };

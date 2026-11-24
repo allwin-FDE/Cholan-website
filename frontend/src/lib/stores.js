@@ -1,5 +1,6 @@
 // The store finder's calls to the backend (/api/stores).
 import { apiUrl, ApiError } from './api.js';
+import { isName } from './names.js';
 
 async function call(path, init) {
   let response;
@@ -35,7 +36,9 @@ export function cleanMobile(value) {
 export function checkPerson({ name, phone }) {
   const errors = {};
   const n = String(name || '').trim().replace(/\s+/g, ' ');
-  if (n.length < 2 || !/\p{L}/u.test(n)) errors.name = 'Please type your name.';
+  if (!n) errors.name = 'Please type your name.';
+  else if (n.length < 2) errors.name = 'Please type your full name.';
+  else if (!isName(n)) errors.name = 'Please type your name using letters only.';
   const p = cleanMobile(phone);
   if (!p) errors.phone = 'Please type a 10-digit mobile number.';
   return Object.keys(errors).length ? { errors } : { name: n, phone: p };

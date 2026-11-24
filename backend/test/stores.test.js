@@ -307,4 +307,7 @@ test('a search needs a name and a 10-digit Indian mobile number', () => {
   assert.deepEqual(bad({ name: 'Ravi', phone: '12345' }), { status: 400, fields: ['phone'] });
   assert.deepEqual(bad({ name: 'Ravi', phone: '5876543210' }), { status: 400, fields: ['phone'] });
   assert.deepEqual(bad({}), { status: 400, fields: ['name', 'phone'] });
+  assert.deepEqual(bad({ name: 'Ravi2', phone: '9876543210' }), { status: 400, fields: ['name'] });
+  assert.deepEqual(bad({ name: 'Ravi@home', phone: '9876543210' }), { status: 400, fields: ['name'] });
+  assert.deepEqual(checkPerson({ name: 'S. Ravi', phone: '9876543210' }).name, 'S. Ravi');
 });

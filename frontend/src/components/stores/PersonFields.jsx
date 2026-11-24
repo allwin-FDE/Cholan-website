@@ -1,8 +1,9 @@
 import { tenDigits } from '../../lib/phone.js';
+import { lettersOnly } from '../../lib/names.js';
 
 // Name and mobile number, asked before the store search (popup and /stores).
-// errors: { name, phone } from checkPerson or the server. The mobile box
-// takes 10 digits, with +91 shown in front.
+// errors: { name, phone } from checkPerson or the server. The name box takes
+// letters only; the mobile box 10 digits, with +91 shown in front.
 
 export default function PersonFields({ id, person, onChange, errors = {}, disabled }) {
   const phone = tenDigits(person.phone);
@@ -14,7 +15,7 @@ export default function PersonFields({ id, person, onChange, errors = {}, disabl
           id={`${id}-name`}
           className="input"
           value={person.name}
-          onChange={(e) => onChange({ ...person, name: e.target.value })}
+          onChange={(e) => onChange({ ...person, name: lettersOnly(e.target.value) })}
           autoComplete="name"
           maxLength={60}
           disabled={disabled}
