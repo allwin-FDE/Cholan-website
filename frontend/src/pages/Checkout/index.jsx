@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { site } from '../../config/site';
+import { whatsappNumber } from '../../lib/whatsapp';
 import DetailsFields from './DetailsFields';
 import EmptyCart from './EmptyCart';
 import OrderDone from './OrderDone';
@@ -132,7 +133,7 @@ export default function Checkout() {
       try {
         const placed = await placeOrder({ details, lines });
         remember();
-        const url = `https://wa.me/${site.phoneRaw}?text=${encodeURIComponent(buildOrderMessage(placed.orderNumber, items, subtotal, hasUnpriced, details))}`;
+        const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(buildOrderMessage(placed.orderNumber, items, subtotal, hasUnpriced, details))}`;
         setOrder({ ref: placed.orderNumber, url, total: placed.totalPaise / 100, count, hasUnpriced: false, method: details.method, name: details.name.trim(), saved: true });
         clear();
         return;
@@ -152,7 +153,7 @@ export default function Checkout() {
 
   const sendOnWhatsApp = () => {
     const ref = makeOrderId();
-    const url = `https://wa.me/${site.phoneRaw}?text=${encodeURIComponent(
+    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
       buildOrderMessage(ref, items, subtotal, hasUnpriced, details),
     )}`;
     remember();

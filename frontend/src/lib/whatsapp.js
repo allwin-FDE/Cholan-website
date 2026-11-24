@@ -1,11 +1,16 @@
 import { site } from '../config/site.js';
 
+// The WhatsApp Business number (+91 81483 13478): chats land in the
+// /whatsapp dashboard's Inbox, where the bot answers first. Calls stay on
+// site.phoneRaw.
+export const whatsappNumber = site.whatsapp?.raw || site.phoneRaw;
+
 // wa.me link with a prefilled enquiry message (original `Rn`). Pass a product for a product enquiry.
 export function whatsappLink(product) {
   const message = product
     ? `Hello Cholan Rice, I would like to enquire about "${product.name}". Please share price and availability.`
     : 'Hello Cholan Rice, I would like to enquire about your products.';
-  return `https://wa.me/${site.phoneRaw}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
 
 // A full enquiry from the contact form, as a prefilled WhatsApp message.
@@ -21,5 +26,5 @@ export function whatsappEnquiryLink(form) {
   ]
     .filter((line) => line != null)
     .join('\n');
-  return `https://wa.me/${site.phoneRaw}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }

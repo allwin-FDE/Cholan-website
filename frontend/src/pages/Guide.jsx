@@ -4,6 +4,7 @@ import ProductCard from '../components/product/ProductCard';
 import Seo from '../components/common/Seo.jsx';
 import { absoluteUrl } from '../config/seo.js';
 import { site } from '../config/site.js';
+import { whatsappNumber } from '../lib/whatsapp.js';
 import { categories } from '../data/categories.js';
 import { guides } from '../data/guides.js';
 import { getProduct } from '../lib/products.js';
@@ -101,8 +102,11 @@ export default function Guide({ slug }) {
 
           <div className="guide__cta">
             <p>
-              Not sure which to pick? Call or WhatsApp <a href={`tel:${site.phoneRaw}`}>{site.phone}</a>, or ask
-              our assistant in the corner.
+              Not sure which to pick? Call <a href={`tel:${site.phoneRaw}`}>{site.phone}</a>, WhatsApp{' '}
+              <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer">
+                {site.whatsapp?.number || site.phone}
+              </a>
+              , or ask our assistant in the corner.
             </p>
             <Link to="/contact" className="btn btn--primary">
               Send an enquiry

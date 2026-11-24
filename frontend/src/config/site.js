@@ -10,8 +10,8 @@ export const site = {
   phone: '+91 90922 66667',
   phoneRaw: '919092266667',
   // The WhatsApp Business number (the /whatsapp dashboard and bot), shown
-  // with the WhatsApp logo under the call number. show: false hides it.
-  // The "WhatsApp us" buttons still open phoneRaw.
+  // with the WhatsApp logo under the call number (show: false hides it
+  // there). Every WhatsApp button opens this number; calls use phoneRaw.
   whatsapp: { number: '+91 81483 13478', raw: '918148313478', show: true },
   email: 'info@cholanrice.in',
   address: {

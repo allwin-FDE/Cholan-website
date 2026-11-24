@@ -45,7 +45,7 @@ add(
   [
     `Business name: ${site.name} (short name: ${site.shortName}).`,
     site.legalName && `Company: ${site.name} is a brand of ${site.legalName}${site.cin ? `, CIN ${site.cin}` : ''}.`,
-    `Phone and WhatsApp: ${site.phone}.`,
+    `Phone: ${site.phone}. WhatsApp: ${site.whatsapp?.number || site.phone}.`,
     `Email: ${site.email}.`,
     `Address (shop and warehouse): ${site.address.line1}, ${site.address.line2} – ${site.address.pincode}, ${site.address.state}.`,
     site.gstin && `GSTIN: ${site.gstin}.`,
@@ -72,7 +72,7 @@ add(
     features.cart
       ? 'Each product page has Add to cart and a Call to order button.'
       : `Each product page has an Enquire button that opens the Contact page with that product filled in.`,
-    `Phone and WhatsApp: ${site.phone}. Email: ${site.email}.`,
+    `Phone: ${site.phone}. WhatsApp: ${site.whatsapp?.number || site.phone}. Email: ${site.email}.`,
     'Bulk and wholesale orders (26 kg bags, monthly supply) are quoted on request — see the bulk supply section.',
   ].join('\n'),
 );
