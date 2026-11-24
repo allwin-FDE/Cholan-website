@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.jsx';
+import App, { preloadAllPages, preloadPage } from './App.jsx';
 
 // Stylesheets: import order == original cascade order. Do not reorder. See README.md.
 import './styles/base.css';
@@ -37,8 +37,12 @@ if (window.top !== window.self && new URLSearchParams(window.location.search).ha
   document.documentElement.classList.add('heatmap-mode');
 }
 
+// The page being opened is fetched first (pages load as their own files), so
+// the saved copy is replaced by the finished page, never by a blank one.
+await preloadPage(window.location.pathname);
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
 );
+preloadAllPages();

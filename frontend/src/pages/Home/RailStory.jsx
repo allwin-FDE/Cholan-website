@@ -226,8 +226,8 @@ export default function RailStory() {
           <div className="rs__ground" aria-hidden="true" />
           <div className="rs__brand">
             <h2 className="rs__brand-title">
-              <span className="rs__line">{splitWords('Rooted in the')}</span>
-              <span className="rs__line">{splitWords('timeless legacy of')}</span>
+              <span className="rs__line">{splitWords('Rooted in the')}</span>{' '}
+              <span className="rs__line">{splitWords('timeless legacy of')}</span>{' '}
               <span className="rs__line">{splitWords('the Chola land.')}</span>
             </h2>
             <span className="rs__brand-rule" aria-hidden="true" />

@@ -5,7 +5,7 @@ export const reviews = [
       'The idly rice is exactly what my mother used to buy. Batter ferments beautifully and the idlis stay soft all day.',
     name: 'Lakshmi R.',
     city: 'Chennai',
-    product: 'Idly Rice',
+    product: 'Idli Rice',
   },
   {
     quote:

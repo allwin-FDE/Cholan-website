@@ -135,11 +135,18 @@ export async function sendComment(slug, comment) {
   return data;
 }
 
+// Blog pictures are stored by the backend; on the live site they're served
+// through the site's own address (/api/media, see firebase.json), not the
+// backend's run.app one. Applied to the post data as it arrives.
+const MEDIA_FROM = `${baseUrl}/api/media/`;
+const MEDIA_TO = import.meta.env.PROD && import.meta.env.VITE_API_URL ? 'https://www.cholanrice.in/api/media/' : MEDIA_FROM;
+const ownMedia = async (response) => JSON.parse((await response.text()).split(MEDIA_FROM).join(MEDIA_TO));
+
 // Published blog posts, newest first (without their full text).
 export async function fetchPosts() {
   const response = await fetch(`${baseUrl}/api/posts`);
   if (!response.ok) throw new ApiError('Could not load the blog.', { status: response.status });
-  return (await response.json()).posts;
+  return (await ownMedia(response)).posts;
 }
 
 // One published post by its web address, or null if there is none.
@@ -147,5 +154,5 @@ export async function fetchPost(slug) {
   const response = await fetch(`${baseUrl}/api/posts/${encodeURIComponent(slug)}`);
   if (response.status === 404) return null;
   if (!response.ok) throw new ApiError('Could not load this post.', { status: response.status });
-  return response.json();
+  return ownMedia(response);
 }

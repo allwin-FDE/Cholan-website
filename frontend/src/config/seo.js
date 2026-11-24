@@ -14,43 +14,45 @@ export const absoluteUrl = (path = '/') => new URL(path, SITE_URL).href;
 // Shown when a page is shared on WhatsApp, Facebook and the like.
 export const DEFAULT_IMAGE = absoluteUrl('/images/og-cover.jpg');
 
-const BRAND = `${site.name}, Coimbatore`;
-export const pageTitle = (title) => (title ? `${title} | ${BRAND}` : `${site.name} — Rice Online, Coimbatore`);
+// Short brand suffix, so titles stay under ~60 characters in search results;
+// no town in it, since the shops are in eight districts.
+const BRAND = 'Cholan Rice';
+export const pageTitle = (title) => (title ? `${title} | ${BRAND}` : `${site.name} — Ponni, Idli & Biryani Rice`);
 
 export const pages = {
   home: {
     path: '/',
     title: null,
     description:
-      'Cholan Rice and Millet Shop, Coimbatore: Chennai Pattinam Ponni, Karikalan, Moongil Ponni, Senthoora, idli rice, seeraga samba and basmati — 1 kg to 26 kg bags, delivered across India.',
+      'Cholan Rice and Millet Shop: Chennai Pattanam Ponni, Karikalan, Moongil Poompuhar Ponni, Senthura, idli rice, seeraga samba and basmati, in 1 kg to 26 kg bags.',
   },
   products: {
     path: '/products',
-    title: 'Rice — All Products',
+    title: 'All Rice Products',
     description:
-      'Shop Cholan rice: Chennai Pattinam Ponni, Karikalan, Kettimelam, Moongil Ponni, Senthoora, Thooyamalli Ponni raw rice, idli rice, kurunai (broken rice), basmati and seeraga samba, in 1 kg to 26 kg packs.',
+      'Cholan rice: Chennai Pattanam Ponni, Karikalan, Kettimelam, Moongil Poompuhar Ponni, Senthura, Thooya Malli raw rice, idli rice, kurunai (broken rice), basmati and seeraga samba, 1 kg to 26 kg.',
   },
   about: {
     path: '/about',
-    title: 'About Us — Rice Traders Since 1998',
+    title: 'About Us — Rice Since 1998',
     description:
       'Cholan Rice and Millet Shop began as a rice trading counter in 1998 and now mills and packs rice in Coimbatore, Tamil Nadu.',
   },
   contact: {
     path: '/contact',
     title: 'Contact Us — Orders & Bulk Enquiries',
-    description: `Order rice or ask for a bulk quote. Call or WhatsApp ${site.phone}, email ${site.email}, or visit us in Sanganoor, Coimbatore.`,
+    description: `Order rice or ask for a bulk quote. Call ${site.phone}, WhatsApp ${site.whatsapp.number}, email ${site.email}, or visit us in Sanganoor, Coimbatore.`,
   },
   stores: {
     path: '/stores',
     title: 'Find Your Nearest Cholan Store',
     description:
-      'Find the nearest Cholan rice shop: over 270 stores across Coimbatore, Tiruppur, Erode, Salem, Namakkal and Hosur. See the road distance and get directions.',
+      'Find the nearest Cholan rice shop: over 270 stores across Coimbatore, Erode, Salem, Namakkal, Tiruppur, Krishnagiri (Hosur), Karur and Dindigul. Road distance and directions.',
   },
   blog: {
     path: '/blog',
     title: 'Blog',
-    description: 'News, recipes and stories from Cholan Rice and Millet Shop, Coimbatore. Our first posts are on their way.',
+    description: 'Rice buying guides, recipes and stories from Cholan Rice and Millet Shop.',
   },
   story: {
     path: '/story',

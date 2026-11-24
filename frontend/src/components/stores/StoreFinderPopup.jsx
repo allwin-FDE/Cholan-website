@@ -32,6 +32,9 @@ function markSeen() {
   }
 }
 
+// Opens the popup from anywhere on the home page (the hero's button).
+export const openStoreFinder = () => window.dispatchEvent(new Event('store-finder:open'));
+
 // The store finder in a popup on the home page: name and mobile number, then
 // "Find stores near me" or a pincode, and the three nearest by road with
 // directions. Each number searches once; a repeat shows the first answer. No map here (each
@@ -116,6 +119,18 @@ export default function StoreFinderPopup() {
       openerRef.current?.focus?.({ preventScroll: true });
     };
   }, [open]);
+
+  useEffect(() => {
+    const onOpen = () => {
+      openerRef.current = document.activeElement;
+      autoRef.current = false;
+      markSeen();
+      setOpen(true);
+      track('store_popup_open', { how: 'hero' });
+    };
+    window.addEventListener('store-finder:open', onOpen);
+    return () => window.removeEventListener('store-finder:open', onOpen);
+  }, []);
 
   function show() {
     openerRef.current = document.activeElement;
@@ -212,7 +227,7 @@ export default function StoreFinderPopup() {
               </button>
               <span className="eyebrow storepop__eyebrow">Store finder</span>
               <h2 id="storepop-title">Find your nearest Cholan store</h2>
-              <p className="storepop__lede">Over 270 Cholan rice shops across Coimbatore, Tiruppur, Erode, Salem, Namakkal and Hosur. Enter your name and mobile number to search.</p>
+              <p className="storepop__lede">Over 270 Cholan rice shops across eight districts, from Coimbatore and Erode to Salem and Hosur. Enter your name and mobile number to search.</p>
               <PersonFields id="storepop-who" person={person} onChange={setPerson} errors={personErrors} disabled={busy} />
 
               <button type="button" className="btn btn--primary storepop__near" onClick={nearMe} disabled={busy}>

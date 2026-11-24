@@ -1,10 +1,10 @@
 {
-  "builtAt": "2026-11-23T06:19:25.192Z",
+  "builtAt": "2026-11-24T07:01:49.740Z",
   "phone": "+91 90922 66667",
   "website": "https://www.cholanrice.in",
   "products": [
     {
-      "name": "Chennai Pattinam Ponni",
+      "name": "Chennai Pattanam Ponni",
       "slug": "chennai-pattanam-rice",
       "category": "Rice",
       "packs": [
@@ -57,7 +57,7 @@
       ]
     },
     {
-      "name": "Moongil Ponni",
+      "name": "Moongil Poompuhar Ponni",
       "slug": "moongil-ponni",
       "category": "Rice",
       "packs": [
@@ -76,7 +76,7 @@
       ]
     },
     {
-      "name": "Senthoora",
+      "name": "Senthura",
       "slug": "senthoora",
       "category": "Rice",
       "packs": [
@@ -87,7 +87,7 @@
       ]
     },
     {
-      "name": "Senthoora Half Boil",
+      "name": "Senthura Half Boil",
       "slug": "senthoora-half-boil",
       "category": "Rice",
       "packs": [
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "name": "Thooyamalli Ponni Raw Rice",
+      "name": "Thooya Malli Ponni Raw Rice",
       "slug": "thooyamalli-ponni-raw-rice",
       "category": "Rice",
       "packs": [
@@ -117,7 +117,7 @@
       ]
     },
     {
-      "name": "Chennai Pattinam Idli Rice",
+      "name": "Chennai Pattanam Idli Rice",
       "slug": "chennai-pattanam-idli-rice",
       "category": "Rice",
       "packs": [

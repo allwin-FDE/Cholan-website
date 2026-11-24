@@ -8,6 +8,14 @@ import AddToCart from './AddToCart';
 import { useStock } from '../../context/StockContext';
 import { categoryName } from './productOrder';
 
+// Tamil words inside an English line, wrapped in lang="ta".
+const TAMIL = /([\u0B80-\u0BFF][\u0B80-\u0BFF\s]*[\u0B80-\u0BFF]|[\u0B80-\u0BFF])/;
+export function TamilAware({ text }) {
+  return String(text)
+    .split(TAMIL)
+    .map((part, i) => (TAMIL.test(part) ? <span key={i} lang="ta">{part}</span> : part));
+}
+
 // Product tile used on Home, Products and ProductDetail "related" (original `xf`).
 // The sizes can be picked: the price and Add to cart (or Enquire, for a pack
 // with no stock) follow the chosen one.
@@ -23,21 +31,23 @@ export default function ProductCard({ product }) {
     <article className="card" data-cat={product.category}>
       <Link to={href} className="card__media" tabIndex={-1} aria-hidden="true">
         {hasProductImage(product) ? (
-          <img src={product.image} alt="" loading="lazy" decoding="async" />
+          <img src={product.image} alt={`${product.fullName || product.name} pack`} loading="lazy" decoding="async" width="600" height="600" />
         ) : (
           <span className="card__monogram">
             <span className="card__initial">{product.name.charAt(0)}</span>
             <span className="card__mononame">{product.name}</span>
           </span>
         )}
-        {product.featured && <span className="card__badge">★ Bestseller</span>}
+        {product.bestseller && <span className="card__badge">★ Bestseller</span>}
         <span className="card__cat">{categoryName(product.category)}</span>
       </Link>
       <div className="card__body">
         <h3 className="card__title">
           <Link to={href}>{product.name}</Link>
         </h3>
-        <p className="card__tagline">{product.tagline}</p>
+        <p className="card__tagline">
+          <TamilAware text={product.tagline} />
+        </p>
         {product.packs.length > 0 && (
           <div className="card__packs" role="group" aria-label={`${product.name} pack size`}>
             {product.packs.map((p) => (
@@ -67,7 +77,7 @@ export default function ProductCard({ product }) {
             {buyable ? (
               <AddToCart product={product} pack={pack} />
             ) : (
-              <Link to={`/contact?product=${product.id}`} className="card__enquire">
+              <Link to={`/contact?product=${product.id}${pack.size ? `&size=${encodeURIComponent(pack.size)}` : ''}`} className="card__enquire">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path
                     fill="none"

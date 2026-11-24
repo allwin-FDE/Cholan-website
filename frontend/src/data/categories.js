@@ -3,7 +3,7 @@ export const categories = [
   {
     slug: 'rice',
     name: 'Rice',
-    blurb: 'Chennai Pattinam, Karikalan, Moongil Ponni, Seeraga Samba, idli rice and more.',
+    blurb: 'Chennai Pattanam, Karikalan, Moongil Poompuhar Ponni, Seeraga Samba, idli rice and more.',
     image: '/images/categories/rice.webp',
   },
 ];

@@ -16,7 +16,7 @@ export default function BulkSection() {
             <Link to="/contact" className="btn btn--primary">
               Request a bulk quote
             </Link>
-            <a href={`tel:${site.phoneRaw}`} className="btn btn--ghost">
+            <a href={`tel:+${site.phoneRaw}`} className="btn btn--ghost">
               Call {site.phone}
             </a>
           </div>

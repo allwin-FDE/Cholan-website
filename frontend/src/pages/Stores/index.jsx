@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { districtSlug } from './District.jsx';
 import Seo from '../../components/common/Seo.jsx';
 import { Icon, iconPaths } from '../../components/common/Icon.jsx';
 import { pages } from '../../config/seo.js';
@@ -117,6 +118,13 @@ export default function Stores() {
   const visible = results.slice(0, shown);
   const busy = state === 'locating' || state === 'searching';
   const count = all?.count;
+  // The districts with shops, most shops first ("Coimbatore, Erode … and Dindigul").
+  const districts = useMemo(() => {
+    const n = new Map();
+    for (const s of all?.stores || []) if (s.district) n.set(s.district, (n.get(s.district) || 0) + 1);
+    return [...n].sort((a, b) => b[1] - a[1]).map(([d]) => d);
+  }, [all]);
+  const where = districts.length > 1 ? `${districts.slice(0, -1).join(', ')} and ${districts.at(-1)}` : 'Coimbatore, Erode, Salem, Namakkal, Tiruppur, Krishnagiri, Karur and Dindigul';
 
   return (
     <>
@@ -126,7 +134,7 @@ export default function Stores() {
           <span className="eyebrow pagehero__eyebrow">Store finder</span>
           <h1>Find your nearest Cholan store</h1>
           <p className="lede pagehero__lede">
-            {count ? `${count} Cholan rice shops` : 'Cholan rice shops'} across Coimbatore, Tiruppur, Erode, Salem, Namakkal and Hosur. Find the one closest to you, see how far it is by road, and get directions.
+            {count ? `${count} Cholan rice shops` : 'Cholan rice shops'} across {where}. Find the one closest to you, see how far it is by road, and get directions.
           </p>
         </div>
       </section>
@@ -314,6 +322,11 @@ function AllStores({ data, error }) {
           <summary>
             {zone} <span>{list.length}</span>
           </summary>
+          {zone !== 'Other' && (
+            <p className="stores-all__page">
+              <Link to={`/stores/${districtSlug(zone)}`}>All Cholan shops in {zone} →</Link>
+            </p>
+          )}
           <ul>
             {list.map((s) => (
               <li key={s.code}>

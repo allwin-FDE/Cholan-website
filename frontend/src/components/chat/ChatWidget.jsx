@@ -14,7 +14,8 @@ const STARTERS = [
 
 // The greeting bubble beside the button: shown once per visit, a few seconds
 // after the page settles, until the visitor opens the chat or dismisses it.
-const NUDGE_DELAY_MS = 4000;
+// Phones wait longer, so the greeting doesn't cover the first screen.
+const NUDGE_DELAY_MS = typeof window !== 'undefined' && window.matchMedia?.('(max-width: 640px)').matches ? 18000 : 4000;
 const NUDGE_KEY = 'cholan-chat-nudged';
 
 const ICONS = {
@@ -205,7 +206,7 @@ export default function ChatWidget() {
             </div>
             <a
               className="chatx-head__btn"
-              href={`tel:${site.phoneRaw}`}
+              href={`tel:+${site.phoneRaw}`}
               aria-label={`Call ${site.phone}`}
               title={`Call ${site.phone}`}
             >

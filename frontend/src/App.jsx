@@ -11,19 +11,52 @@ import PageTransition from './components/effects/PageTransition.jsx';
 import InteractionFx from './components/effects/InteractionFx.jsx';
 import ChatWidget from './components/chat/ChatWidget.jsx';
 import Analytics from './components/common/Analytics.jsx';
+import CookieNotice from './components/common/CookieNotice.jsx';
 import Home from './pages/Home';
-import Story from './pages/Story';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
-import About from './pages/About';
-import Blog from './pages/Blog';
-import Contact from './pages/Contact';
-import Stores from './pages/Stores';
-import Checkout, { OrderConfirmed } from './pages/Checkout';
-import Policy from './pages/Policy';
 import NotFound from './pages/NotFound';
-import Guide from './pages/Guide';
-import Post from './pages/Blog/Post.jsx';
+import { lazyPage } from './lib/lazyPage.js';
+
+// Pages most visits never open load as their own files (the audit: one
+// 610 KB file on every page). The home and product pages stay in the main one.
+const Story = lazyPage(() => import('./pages/Story'));
+const About = lazyPage(() => import('./pages/About'));
+const Blog = lazyPage(() => import('./pages/Blog'));
+const Post = lazyPage(() => import('./pages/Blog/Post.jsx'));
+const Contact = lazyPage(() => import('./pages/Contact'));
+const Stores = lazyPage(() => import('./pages/Stores'));
+const District = lazyPage(() => import('./pages/Stores/District.jsx'));
+const Checkout = lazyPage(() => import('./pages/Checkout'), (m) => m.default);
+const OrderConfirmed = lazyPage(() => import('./pages/Checkout'), (m) => m.OrderConfirmed);
+const Policy = lazyPage(() => import('./pages/Policy'));
+const Guide = lazyPage(() => import('./pages/Guide'));
+
+// The page an address opens, so main.jsx can fetch it before the app starts.
+const PAGES = [
+  [/^\/story\/?$/, Story],
+  [/^\/about\/?$/, About],
+  [/^\/blog\/?$/, Blog],
+  [/^\/blog\/./, Post],
+  [/^\/contact\/?$/, Contact],
+  [/^\/stores\/?$/, Stores],
+  [/^\/stores\/./, District],
+  [/^\/checkout\/confirmed/, OrderConfirmed],
+  [/^\/checkout/, Checkout],
+  [/^\/policies\//, Policy],
+  [/^\/rice\/?$/, Guide],
+];
+export function preloadPage(pathname) {
+  const hit = PAGES.find(([re]) => re.test(pathname));
+  return hit ? hit[1].preload().catch(() => {}) : Promise.resolve();
+}
+// After the first page is up, the rest are fetched quietly, so moving
+// between pages has no wait.
+export function preloadAllPages() {
+  const run = () => PAGES.forEach(([, Page]) => Page.preload().catch(() => {}));
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 4000 });
+  else setTimeout(run, 2500);
+}
 
 // The website admin at /admin (visitors and the analyst reports, enquiries,
 // blog, comments, settings), loaded only when someone opens it, so the public
@@ -40,8 +73,12 @@ const WhatsApp = lazy(() => import('./dashboards/whatsapp/WhatsApp.jsx'));
 function AppShell() {
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
       <Header />
-      <main>
+      <main id="main" tabIndex={-1}>
+        <Suspense fallback={<div className="page-loading" />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
@@ -60,6 +97,8 @@ function AppShell() {
           <Route path="/contact" element={<Contact />} />
           {/* The store finder: the nearest Cholan shop by road distance. */}
           <Route path="/stores" element={<Stores />} />
+          {/* One page per district: "Cholan rice shops in Erode". */}
+          <Route path="/stores/:district" element={<District />} />
           <Route path="/store-locator" element={<Navigate to="/stores" replace />} />
           <Route
             path="/checkout"
@@ -69,6 +108,7 @@ function AppShell() {
           <Route path="/policies/:slug" element={<Policy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </main>
       <Footer />
       {features.cart && <CartDrawer />}
@@ -93,10 +133,18 @@ export default function App() {
     <BrowserRouter>
       <ScrollToTop />
       <Analytics />
+      <CookieNotice />
       <CartProvider>
       <StockProvider>
         <Routes>
-          <Route path="/story" element={<Story />} />
+          <Route
+            path="/story"
+            element={
+              <Suspense fallback={<div className="page-loading" />}>
+                <Story />
+              </Suspense>
+            }
+          />
           <Route
             path="/admin/*"
             element={

@@ -12,6 +12,9 @@ import { enquiryEvent } from '../lib/whatsapp/events.js';
 const router = Router();
 
 router.post('/', rateLimit, async (req, res) => {
+  // The form's hidden field: only robots fill it in. They get a normal
+  // answer, and nothing is stored or sent on.
+  if (String(req.body?.website_url || '').trim()) return res.status(201).json({ ok: true });
   const { value, errors } = validateEnquiry(req.body);
   if (errors) return res.status(400).json({ error: 'Please check the form.', fields: errors });
 

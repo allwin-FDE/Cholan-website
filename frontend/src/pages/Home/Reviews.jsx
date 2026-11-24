@@ -54,9 +54,7 @@ export default function Reviews() {
                   </div>
                   <blockquote>{r.quote}</blockquote>
                   <figcaption>
-                    <span className="quote__avatar" aria-hidden="true">
-                      {r.name.charAt(0)}
-                    </span>
+                    <span className="quote__avatar" aria-hidden="true" data-letter={r.name.charAt(0)} />
                     <span className="quote__who">
                       <strong>{r.name}</strong>
                       <span>{r.city}</span>

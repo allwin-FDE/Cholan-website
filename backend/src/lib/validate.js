@@ -22,9 +22,13 @@ const ENQUIRY_TYPES = [
 
 const text = (value) => (typeof value === 'string' ? value.trim() : '');
 
-// Deliberately loose: Indian mobiles arrive as 9092266667, +91 90922 66667 or
-// 090922-66667, and rejecting a reachable number costs more than a bad row.
-const PHONE = /^\+?[\d\s().-]{7,20}$/;
+// A 10-digit Indian mobile, however it's written: 9092266667, +91 90922 66667
+// or 090922-66667. Stored as the 10 digits.
+const mobile = (value) => {
+  const d = String(value || '').replace(/\D/g, '');
+  const ten = d.length === 12 && d.startsWith('91') ? d.slice(2) : d.length === 11 && d.startsWith('0') ? d.slice(1) : d;
+  return /^[6-9]\d{9}$/.test(ten) ? ten : '';
+};
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 // Names: letters (any language), spaces and the dot of an initial.
 const NAME = /^\p{L}[\p{L}\p{M} .]+$/u;
@@ -34,7 +38,8 @@ export function validateEnquiry(body) {
   const input = body && typeof body === 'object' ? body : {};
 
   const name = text(input.name);
-  const phone = text(input.phone);
+  const phone = mobile(input.phone);
+  const phoneTyped = text(input.phone);
   const email = text(input.email);
   const message = text(input.message);
   const enquiryType = text(input.enquiryType) || 'Other';
@@ -46,8 +51,8 @@ export function validateEnquiry(body) {
   else if (name.length < 2) errors.name = 'Please type your full name.';
   else if (!NAME.test(name)) errors.name = 'Please type your name using letters only.';
 
-  if (!phone) errors.phone = 'A phone number is required.';
-  else if (!PHONE.test(phone)) errors.phone = 'That phone number does not look right.';
+  if (!phoneTyped) errors.phone = 'A phone number is required.';
+  else if (!phone) errors.phone = 'Please type a 10-digit mobile number.';
 
   if (email && !EMAIL.test(email)) errors.email = 'That email address does not look right.';
   else if (email.length > LIMITS.email) errors.email = 'That email address is too long.';

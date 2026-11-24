@@ -241,3 +241,21 @@
     will-change: auto;
   }
 }
+
+/* Hero buttons: shop, or find the nearest store */
+.curtain__cta {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: clamp(14px, 2.4vh, 26px);
+}
+.curtain__cta .btn {
+  min-height: 48px;
+  padding-inline: 24px;
+}
+.curtain__cta .btn--ghost {
+  background: #fffaf0;
+}

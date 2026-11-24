@@ -10,6 +10,16 @@ import { hasProductImage } from '../../lib/products';
 import ProductFilters from './ProductFilters';
 import Seo from '../../components/common/Seo.jsx';
 import { pages } from '../../config/seo.js';
+import { aliases } from '../../data/guides.js';
+
+// Everything a product can be searched by: names in English and Tamil, the
+// spellings people use (aliases), and every pack size ("26 kg" or "26kg").
+const haystack = (p) =>
+  [p.name, p.fullName, p.tamil, p.tagline, p.description, ...(aliases[p.id] || []), ...p.packs.map((k) => k.size)]
+    .filter(Boolean)
+    .join(' | ')
+    .toLowerCase();
+const squash = (s) => s.replace(/\s+/g, '');
 
 export default function Products() {
   const [params, setParams] = useSearchParams();
@@ -35,12 +45,10 @@ export default function Products() {
     let list = category === 'all' ? [...products] : products.filter((p) => p.category === category);
     const needle = query.trim().toLowerCase();
     if (needle) {
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(needle) ||
-          p.tagline.toLowerCase().includes(needle) ||
-          p.description.toLowerCase().includes(needle),
-      );
+      list = list.filter((p) => {
+        const hay = haystack(p);
+        return hay.includes(needle) || squash(hay).includes(squash(needle));
+      });
     }
     list.sort(
       (a, b) =>
@@ -103,6 +111,7 @@ export default function Products() {
           <p className="muted results-count">
             Showing {visible.length} of {products.length} products
           </p>
+          <h2 className="visually-hidden">All rice products</h2>
           {visible.length > 0 ? (
             <div className="products-grid" ref={gridRef}>
               {visible.map((product) => (

@@ -167,7 +167,9 @@ export default function Post() {
             <aside className="post__cta">
               <div>
                 <strong>Want to try the rice in this post?</strong>
-                <p>Call or WhatsApp {site.phone}, or send us an enquiry. Packed fresh against your order.</p>
+                <p>
+                  Call {site.phone}, WhatsApp {site.whatsapp?.number || site.phone}, or send us an enquiry. Packed fresh against your order.
+                </p>
               </div>
               <Link to="/contact" className="btn btn--primary">
                 Send an enquiry

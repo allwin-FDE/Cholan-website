@@ -60,7 +60,7 @@ export default function Footer() {
             <ul className="footer__contact">
               <li>
                 <Icon d={iconPaths.phone} />
-                <a href={`tel:${site.phoneRaw}`}>{site.phone}</a>
+                <a href={`tel:+${site.phoneRaw}`}>{site.phone}</a>
               </li>
               {site.whatsapp?.show && (
                 <li className="footer__whatsapp">

@@ -12,6 +12,10 @@ import { track } from '../../lib/analytics.js';
 import { enquiryContext } from '../../lib/tracker.js';
 import { isMobile, tenDigits } from '../../lib/phone.js';
 import { isName, lettersOnly } from '../../lib/names.js';
+import { formatPrice } from '../../lib/format.js';
+import { Link } from 'react-router-dom';
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const fullAddress = `${site.address.line1}, ${site.address.line2} ${site.address.pincode}, ${site.address.state}`;
 
@@ -28,15 +32,18 @@ const emptyForm = {
 export default function Contact() {
   const [searchParams] = useSearchParams();
   const product = getProduct(searchParams.get('product') || '');
-  const [form, setForm] = useState(() =>
-    product
-      ? {
-          ...emptyForm,
-          enquiryType: 'Product question',
-          message: `I would like to know more about ${product.name}${product.packs.length ? ` (${product.packs.map((pack) => pack.size).join(' / ')})` : ''}. Please share the price and availability.`,
-        }
-      : emptyForm,
-  );
+  // "Enquire" on a product carries the pack size chosen there.
+  const pack = product?.packs.find((p) => p.size === searchParams.get('size'));
+  const [form, setForm] = useState(() => {
+    if (!product) return emptyForm;
+    const name = product.fullName || product.name;
+    const message = pack
+      ? `I would like to order ${name}, ${pack.size}${pack.price != null ? ` (${formatPrice(pack.price)})` : ''}. Please confirm the price and delivery to my area.`
+      : `I would like to know more about ${name}${product.packs.length ? ` (${product.packs.map((p) => p.size).join(' / ')})` : ''}. Please share the price and availability.`;
+    return { ...emptyForm, enquiryType: 'Household order', message };
+  });
+  // A field people can't see: filled in only by spam robots.
+  const [trap, setTrap] = useState('');
   // 'idle' | 'sending' | 'sent' | 'error'
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
@@ -81,6 +88,11 @@ export default function Contact() {
       document.getElementById('phone')?.focus();
       return;
     }
+    if (form.email.trim() && !EMAIL.test(form.email.trim())) {
+      setFieldErrors((current) => ({ ...current, email: 'That email address does not look right.' }));
+      document.getElementById('email')?.focus();
+      return;
+    }
 
     // No backend online yet: send the enquiry through WhatsApp instead.
     if (!hasBackend) {
@@ -96,7 +108,7 @@ export default function Contact() {
     setFieldErrors({});
 
     try {
-      await submitEnquiry({ ...form, product: product?.id || null, meta: enquiryContext() });
+      await submitEnquiry({ ...form, product: product?.id || null, website_url: trap, meta: enquiryContext() });
       // What was asked about, never who asked: no name, phone or email.
       track('generate_lead', { method: 'enquiry_form', enquiry_type: form.enquiryType, product: product?.id });
       setStatus('sent');
@@ -141,6 +153,8 @@ export default function Contact() {
                 <label htmlFor="name">Your name *</label>
                 <input
                   id="name"
+                  name="name"
+                  autoComplete="name"
                   className="input"
                   required
                   value={form.name}
@@ -163,6 +177,7 @@ export default function Contact() {
                     </span>
                     <input
                       id="phone"
+                      name="tel"
                       className="input"
                       type="tel"
                       inputMode="numeric"
@@ -185,6 +200,8 @@ export default function Contact() {
                   <label htmlFor="email">Email</label>
                   <input
                     id="email"
+                    name="email"
+                    autoComplete="email"
                     className="input"
                     type="email"
                     value={form.email}
@@ -218,6 +235,7 @@ export default function Contact() {
                 <label htmlFor="message">Message *</label>
                 <textarea
                   id="message"
+                  name="message"
                   className="input"
                   rows={6}
                   required
@@ -233,6 +251,10 @@ export default function Contact() {
                   </p>
                 )}
               </div>
+              <div className="form__trap" aria-hidden="true">
+                <label htmlFor="website_url">Leave this empty</label>
+                <input id="website_url" name="website_url" tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} />
+              </div>
               <button
                 type="submit"
                 className="btn btn--primary btn--block"
@@ -241,7 +263,8 @@ export default function Contact() {
                 {status === 'sending' ? 'Sending…' : 'Send enquiry'}
               </button>
               <p className="muted form__note">
-                We reply by phone or email, usually within one working day.
+                We reply by phone or email, usually within one working day. We use your details only to
+                reply to this enquiry (<Link to="/policies/privacy">Privacy Policy</Link>).
               </p>
             </form>
           </div>
@@ -254,7 +277,7 @@ export default function Contact() {
             <div className="contact__cards">
               <div className="infocard">
                 <span className="infocard__label">Phone</span>
-                <a href={`tel:${site.phoneRaw}`} className="infocard__value infocard__phone" aria-label={`Call ${site.phone}`}>
+                <a href={`tel:+${site.phoneRaw}`} className="infocard__value infocard__phone" aria-label={`Call ${site.phone}`}>
                   <Icon d={iconPaths.phone} /> {site.phone}
                 </a>
                 {site.whatsapp?.show && (

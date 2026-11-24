@@ -830,7 +830,7 @@ export function catalogueText(contact = '') {
     const packs = p.packs.length ? p.packs.map((k) => (k.price != null ? `${k.size} ${rupees(k.price)}` : `${k.size} (ask us)`)).join(' · ') : 'sizes on request';
     return `${i + 1}. *${p.name}*\n    ${packs}`;
   });
-  const text = ['🌾 *Cholan Rice: our catalogue*', lines.join('\n'), `Photos and online orders: ${CATALOGUE.website}/products`, String(contact || '').trim()]
+  const text = ['🌾 *Cholan Rice: our catalogue*', lines.join('\n'), `Photos and details: ${CATALOGUE.website}/products`, String(contact || '').trim()]
     .filter(Boolean)
     .join('\n\n');
   return text.length > 4000 ? `${text.slice(0, 3990)}…` : text;
@@ -848,7 +848,7 @@ export const DEFAULT_BOT = {
   options: [
     { id: 'catalogue', title: 'Our catalogue', description: 'Rice, pack sizes and prices', action: 'catalogue', reply: '' },
     { id: 'order', title: 'My order status', description: 'Where is my order?', action: 'order_status', reply: '' },
-    { id: 'buy', title: 'Place an order', description: 'Order on WhatsApp', action: 'reply', reply: 'Tell us the rice and pack size (for example: Moongil Ponni 26 kg × 2) and your area. Or order online: https://www.cholanrice.in/products' },
+    { id: 'buy', title: 'Place an order', description: 'Order on WhatsApp', action: 'reply', reply: 'Tell us the rice and pack size (for example: Moongil Poompuhar Ponni 26 kg × 2) and your area, and we will confirm the price and delivery.' },
     { id: 'bulk', title: 'Bulk / hotel rates', description: 'For hotels, caterers, shops', action: 'reply', reply: 'We supply hotels, caterers and shops across Coimbatore. Tell us the rice and how many bags a month, and we’ll send you our best rate.' },
     { id: 'human', title: 'Talk to us', description: 'A person replies', action: 'handoff', reply: 'Thank you! Someone from our team will reply shortly (9 am to 8 pm).' },
   ],
@@ -909,7 +909,7 @@ async function botAnswer(option, { wa, name, bot }) {
        WHERE i.kind = 'finished' AND i.active AND p.active ORDER BY p.name, i.net_weight_g LIMIT 40`,
     );
     if (!rows.length) return option.reply || 'Please call us for today’s prices.';
-    return `Today’s prices at Cholan Rice:\n${rows.map((r) => `• ${r.product} ${r.pack_label}: ₹${(r.price_paise / 100).toLocaleString('en-IN')}`).join('\n')}\n\nReply with what you need, or order online: https://www.cholanrice.in/products`;
+    return `Today’s prices at Cholan Rice:\n${rows.map((r) => `• ${r.product} ${r.pack_label}: ₹${(r.price_paise / 100).toLocaleString('en-IN')}`).join('\n')}\n\nReply with what you need, and we will confirm the price and delivery.`;
   }
   if (option.action === 'order_status') {
     if (!dbEnabled()) return option.reply || 'Please call us and we will check your order.';

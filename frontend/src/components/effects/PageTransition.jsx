@@ -3,6 +3,22 @@ import { useLocation } from 'react-router-dom';
 import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { prefersReducedMotion } from '../../lib/motion.js';
 
+const SPLASH_KEY = 'cholan-splash';
+const splashSeen = () => {
+  try {
+    return sessionStorage.getItem(SPLASH_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+const markSplashSeen = () => {
+  try {
+    sessionStorage.setItem(SPLASH_KEY, '1');
+  } catch {
+    /* no storage: it plays again next load */
+  }
+};
+
 // Sections with their own bespoke animation: excluded from the generic reveals.
 const OWN_ANIMATION = '.ab, .curtain, .rs';
 
@@ -54,11 +70,16 @@ export default function PageTransition() {
   useLayoutEffect(() => {
     if (lastPathRef.current === pathname) return;
     lastPathRef.current = pathname;
-    if (!wipeRef.current || prefersReducedMotion()) {
+    // The logo splash plays once per visit (the audit: it ran ~2 s on every
+    // page load). A later page load in the same visit opens at once.
+    const seen = splashSeen();
+    if (!wipeRef.current || prefersReducedMotion() || (firstLoadRef.current && seen)) {
       firstLoadRef.current = false;
+      if (wipeRef.current) gsap.set(wipeRef.current, { autoAlpha: 0 });
       window.dispatchEvent(new Event('fx:reveal'));
       return;
     }
+    if (firstLoadRef.current) markSplashSeen();
     const withLogo = firstLoadRef.current || homeViaLogoRef.current;
     const hold = firstLoadRef.current ? 0.6 : 0.35;
     firstLoadRef.current = false;

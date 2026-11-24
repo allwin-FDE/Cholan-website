@@ -1,6 +1,7 @@
 .card {
-  --card-serif: "DM Serif Display", var(--font-display);
-  --card-sans: "Manrope", var(--font-body);
+  /* The site's own two fonts (2026-11-24: 6 web fonts down to 3 for speed). */
+  --card-serif: var(--font-display);
+  --card-sans: var(--font-body);
   --tint-a: #fcf1d6;
   --tint-b: #f2d9a0;
   --glow: #fffaebf2;
@@ -436,4 +437,36 @@
   color: #6b6b6b;
   font-size: 0.82rem;
   font-weight: 600;
+}
+
+/* Readable and tappable (2026-11-24 audit): text at least 12 px, Tamil 14 px,
+   size chips and buttons at least 40-44 px tall on touch screens. */
+.card__badge {
+  font-size: 0.75rem;
+}
+.card__tagline:lang(ta),
+.card__tagline {
+  font-size: max(0.8rem, 12px);
+}
+@media (pointer: coarse) {
+  .card__packs .card__pack {
+    min-height: 40px;
+    min-width: 44px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+  }
+  .card__details,
+  .card__enquire {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+@media (width<=640px) {
+  .card__tagline {
+    font-size: 0.8rem;
+  }
+  .card__packs .card__pack {
+    font-size: 0.75rem;
+  }
 }

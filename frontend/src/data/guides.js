@@ -4,16 +4,17 @@
 // prices, stock or health claims beyond what the rest of the site already says.
 
 // Other names and spellings each product goes by, in English and Tamil.
-// Shown on the product page as "Also known as" and given to search engines.
+// Given to search engines (schema) and used by the product search; not shown
+// on the page (some are misspellings people type).
 export const aliases = {
-  'chennai-pattanam-rice': ['Chennai Pattanam Ponni', 'Chennai Pattinam rice', 'Ponni rice', 'பொன்னி அரிசி', 'everyday rice'],
-  'karikalan-rice': ['Karikalan rice', 'Karikalan arisi', 'கரிகாலன் அரிசி', 'premium Ponni rice', 'aged Ponni rice'],
-  'kettimelam-rice': ['Kettimelam rice', 'Gettimelam rice', 'Kettimelam arisi', 'கெட்டிமேளம் அரிசி'],
-  'moongil-ponni': ['Moongil Ponni rice', 'Moongil Poompuhar Ponni', 'Moongil rice', 'Ponni arisi', 'மூங்கில் அரிசி'],
-  senthoora: ['Senthoora rice', 'Senthura rice'],
-  'senthoora-half-boil': ['Senthoora half boiled rice', 'half boiled rice', 'half boil rice'],
-  'thooyamalli-ponni-raw-rice': ['Thooyamalli rice', 'Thuyamalli', 'Thooya malli', 'Thaymalli', 'தூயமல்லி அரிசி', 'Ponni raw rice', 'pachai arisi', 'பச்சரிசி', 'raw rice'],
-  'chennai-pattanam-idli-rice': ['Chennai Pattanam idli rice', 'idly rice', 'idli arisi', 'இட்லி அரிசி', 'dosa rice'],
+  'chennai-pattanam-rice': ['Chennai Pattinam Ponni', 'Chennai Pattanam rice', 'Chennai Pattinam rice', 'சென்னைப்பட்டிணம்', 'Ponni rice', 'பொன்னி அரிசி', 'everyday rice'],
+  'karikalan-rice': ['Karikalan rice', 'Ponni rice', 'பொன்னி அரிசி', 'Karikalan arisi', 'கரிகாலன் அரிசி', 'premium Ponni rice', 'aged Ponni rice'],
+  'kettimelam-rice': ['Kettimelam Ponni', 'Kettimelam rice', 'Ponni rice', 'பொன்னி அரிசி', 'Gettimelam rice', 'Kettimelam arisi', 'கெட்டிமேளம் அரிசி'],
+  'moongil-ponni': ['Moongil Ponni', 'Moongil Ponni rice', 'பொன்னி அரிசி', 'Moongil rice', 'Ponni arisi', 'மூங்கில் அரிசி'],
+  senthoora: ['Senthoora', 'Senthoora rice', 'Senthura rice', 'Sendhura rice', 'Ponni rice', 'பொன்னி அரிசி', 'செந்தூரா அரிசி'],
+  'senthoora-half-boil': ['Senthoora Half Boil', 'Senthura half boiled rice', 'Senthoora half boiled rice', 'half boiled rice', 'half boil rice'],
+  'thooyamalli-ponni-raw-rice': ['Thooyamalli', 'Thooyamalli rice', 'பொன்னி பச்சரிசி', 'Thuyamalli', 'Thooya malli', 'Thaymalli', 'தூயமல்லி அரிசி', 'Ponni raw rice', 'pachai arisi', 'பச்சரிசி', 'raw rice'],
+  'chennai-pattanam-idli-rice': ['Chennai Pattinam Idli Rice', 'Chennai Pattanam idly rice', 'idly rice', 'idli arisi', 'இட்லி அரிசி', 'dosa rice'],
   'kurunai-rice': ['broken rice', 'kurunai arisi', 'நொய் அரிசி', 'rice for kanji'],
   'basmati-rice': ['basmati arisi', 'biryani rice', 'பாஸ்மதி அரிசி'],
   'seeraga-samba': ['seeraga samba rice', 'jeeraga samba', 'jeera samba', 'biryani rice', 'சீரக சம்பா அரிசி'],
@@ -23,7 +24,7 @@ export const aliases = {
 export const guides = {
   rice: {
     path: '/rice',
-    seoTitle: 'Best Rice to Buy — Ponni, Idli Rice, Seeraga Samba, Basmati & Broken Rice',
+    seoTitle: 'Which Rice to Buy: Ponni, Idli & Biryani Rice',
     seoDescription:
       'Which rice is best? Our guide to Ponni rice for daily meals, raw rice, idli rice for soft idlis, seeraga samba and basmati for biryani, and broken rice for kanji — 1 kg to 26 kg bags from Coimbatore.',
     eyebrow: 'Rice guide',
@@ -34,17 +35,17 @@ export const guides = {
       {
         need: 'Everyday meals (sappadu)',
         products: ['chennai-pattanam-rice', 'karikalan-rice', 'moongil-ponni', 'senthoora'],
-        why: 'Ponni is the everyday table rice of Tamil Nadu. Karikalan is our well-aged premium Ponni, with good separation and a rich aroma; Chennai Pattinam Ponni, Moongil Ponni and Senthoora are dependable daily choices.',
+        why: 'Ponni is the everyday table rice of Tamil Nadu. Karikalan is our well-aged premium Ponni, with good separation and a rich aroma; Chennai Pattanam Ponni, Moongil Poompuhar Ponni and Senthura are dependable daily choices.',
       },
       {
         need: 'Raw rice and half-boiled rice',
         products: ['thooyamalli-ponni-raw-rice', 'senthoora-half-boil'],
-        why: 'Thooyamalli Ponni Raw Rice is pachai arisi, for dishes that call for raw rice. Senthoora Half Boil is half-boiled rice, in the 26 kg bag.',
+        why: 'Thooya Malli Ponni Raw Rice is pachai arisi, for dishes that call for raw rice. Senthura Half Boil is half-boiled rice, in the 26 kg bag.',
       },
       {
         need: 'Soft idli and crisp dosa',
         products: ['chennai-pattanam-idli-rice'],
-        why: 'Chennai Pattinam Idli Rice is milled for batter. Soak it before grinding, as you would any idli rice, for idlis that stay soft.',
+        why: 'Chennai Pattanam Idli Rice is milled for batter. Soak it before grinding, as you would any idli rice, for idlis that stay soft.',
       },
       {
         need: 'Biryani, pulao and ghee rice',
@@ -65,11 +66,11 @@ export const guides = {
     faq: [
       {
         q: 'Which is the best rice for daily use?',
-        a: 'For everyday sappadu, Ponni rice is the most popular choice in Tamil Nadu. Our Karikalan is a well-aged premium Ponni; Chennai Pattinam Ponni, Moongil Ponni and Senthoora are also made for daily meals.',
+        a: 'For everyday sappadu, Ponni rice is the most popular choice in Tamil Nadu. Our Karikalan is a well-aged premium Ponni; Chennai Pattanam Ponni, Moongil Poompuhar Ponni and Senthura are also made for daily meals.',
       },
       {
         q: 'Which rice is best for idli and dosa?',
-        a: 'Use a rice milled for batter. Our Chennai Pattinam Idli Rice is made for soft idlis and crisp dosas, in 5 kg and 26 kg bags.',
+        a: 'Use a rice milled for batter. Our Chennai Pattanam Idli Rice is made for soft idlis and crisp dosas, in 5 kg and 26 kg bags.',
       },
       {
         q: 'Which rice is best for biryani?',
@@ -77,11 +78,11 @@ export const guides = {
       },
       {
         q: 'Do you sell rice in 26 kg bags?',
-        a: 'Yes. Chennai Pattinam Ponni, Karikalan, Kettimelam, Moongil Ponni, Senthoora, Senthoora Half Boil, Thooyamalli Ponni Raw Rice, Chennai Pattinam Idli Rice and Kurunai Rice all come in 26 kg bags, and we quote standing rates for monthly bulk orders.',
+        a: 'Yes. Chennai Pattanam Ponni, Karikalan, Kettimelam, Moongil Poompuhar Ponni, Senthura, Senthura Half Boil, Thooya Malli Ponni Raw Rice, Chennai Pattanam Idli Rice and Kurunai Rice all come in 26 kg bags, and we quote standing rates for monthly bulk orders.',
       },
       {
         q: 'Where can I buy rice in Coimbatore?',
-        a: 'From Cholan Rice and Millet Shop, 32/A2, SP Kannusamy Gounder St, Sanganoor, Coimbatore – 641027. Call or WhatsApp +91 90922 66667, or send an enquiry from our Contact page. We deliver across India, subject to courier availability at your pin code.',
+        a: 'From Cholan Rice and Millet Shop, 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027. Call +91 90922 66667, WhatsApp +91 81483 13478, or send an enquiry from our Contact page. We deliver across India, subject to courier availability at your pin code.',
       },
     ],
   },

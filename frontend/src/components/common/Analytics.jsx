@@ -3,8 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { analyticsEnabled, initAnalytics, trackPageView } from '../../lib/analytics.js';
 
 // Visit counting on the site: a page view on every route change. Every visitor
-// is counted, with no notice or opt-out on the site (the owner's decision,
-// 2026-11-14); the privacy policy says so. Renders nothing.
+// is counted (the owner's decision, 2026-11-14); since 2026-11-24 a one-time
+// note says so (CookieNotice.jsx), as does the privacy policy. Renders nothing.
 export default function Analytics() {
   const { pathname } = useLocation();
 

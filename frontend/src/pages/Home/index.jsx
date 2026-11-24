@@ -8,15 +8,16 @@ import Seo from '../../components/common/Seo.jsx';
 import StoreFinderPopup from '../../components/stores/StoreFinderPopup.jsx';
 import { pages, businessSchema, websiteSchema } from '../../config/seo.js';
 
-// Home page (original `wf`).
+// Home page (original `wf`). The products come straight after the hero (the
+// audit of 2026-11-23: they sat seven screens down, after the train story).
 export default function Home() {
   return (
     <>
       <Seo {...pages.home} schema={[businessSchema, websiteSchema]} />
       <HeroCurtain />
+      <FeaturedProducts />
       <RailStory />
       <RiceHall />
-      <FeaturedProducts />
       <BulkSection />
       <Reviews />
       <StoreFinderPopup />

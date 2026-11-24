@@ -268,3 +268,12 @@
 .phone-field.is-disabled .phone-field__prefix {
   opacity: 0.6;
 }
+
+/* The enquiry form's spam trap: off screen, for robots only. */
+.form__trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

@@ -27,7 +27,7 @@
   --side-w: 268px;
   grid-template-columns: 268px minmax(0, 1fr);
   background: var(--d-bg);
-  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14.5px;
   letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import ProductCard from '../components/product/ProductCard';
+import ProductCard, { TamilAware } from '../components/product/ProductCard';
 import AddToCart from '../components/product/AddToCart';
 import { useStock } from '../context/StockContext';
 import { site } from '../config/site';
@@ -8,26 +8,39 @@ import { features } from '../config/features';
 import { categories } from '../data/categories';
 import { products } from '../data/products';
 import { formatPrice } from '../lib/format';
-import { getProduct, hasProductImage } from '../lib/products';
+import { getProduct, hasProductImage, relatedProducts } from '../lib/products';
+import { whatsappOrderLink } from '../lib/whatsapp';
+import { WhatsAppLogo } from '../components/common/Icon.jsx';
 import Seo from '../components/common/Seo.jsx';
 import { absoluteUrl } from '../config/seo.js';
 import { aliases } from '../data/guides.js';
 import { track } from '../lib/analytics.js';
 
-// Search details for a product page: a title that names the product, its
-// sizes and the town; and schema.org data describing the product and the
-// path to it (Home › Products › category › product).
+// "1–26 kg", "26 kg": the range of pack sizes, for the page title.
+function sizeRange(packs) {
+  const kg = packs.map((p) => parseFloat(p.size)).filter((n) => Number.isFinite(n));
+  if (!kg.length) return '';
+  const lo = Math.min(...kg);
+  const hi = Math.max(...kg);
+  return lo === hi ? `${hi} kg` : `${lo}–${hi} kg`;
+}
+
+// Search details for a product page: a short title that names the product and
+// its sizes; and schema.org data describing the product, its return policy
+// and the path to it (Home › Products › category › product).
 function productSeo(product, category) {
+  const name = product.fullName || product.name;
   const sizes = product.packs.map((p) => p.size).join(', ');
+  const range = sizeRange(product.packs);
   const path = `/products/${product.id}`;
   const tamil = product.tamil ? ` (${product.tamil})` : '';
-  const description = `${product.name}${tamil} from Cholan Rice and Millet Shop, Coimbatore. ${product.description}${
+  const description = `${name}${tamil} from Cholan Rice and Millet Shop. ${product.description}${
     sizes ? ` Available in ${sizes}.` : ''
   }`.slice(0, 300);
   const image = product.image ? absoluteUrl(product.image) : undefined;
   const prices = features.prices ? product.packs.map((p) => p.price).filter((price) => price != null) : [];
   return {
-    title: `${product.name}${sizes ? ` — ${sizes}` : ''}`,
+    title: `${name}${range ? `, ${range}` : ''}`,
     description,
     path,
     image,
@@ -36,8 +49,8 @@ function productSeo(product, category) {
       {
         '@context': 'https://schema.org',
         '@type': 'Product',
-        name: product.name,
-        alternateName: [product.tamil, ...(aliases[product.id] || [])].filter(Boolean),
+        name,
+        alternateName: [product.name !== name ? product.name : null, product.tamil, ...(aliases[product.id] || [])].filter(Boolean),
         description: product.description,
         image,
         sku: product.id,
@@ -52,6 +65,15 @@ function productSeo(product, category) {
               highPrice: Math.max(...prices),
               offerCount: prices.length,
               availability: 'https://schema.org/InStock',
+              // From the Return & Refund Policy: damaged or wrong items are
+              // reported within 48 hours of delivery.
+              hasMerchantReturnPolicy: {
+                '@type': 'MerchantReturnPolicy',
+                applicableCountry: 'IN',
+                returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                merchantReturnDays: 2,
+                merchantReturnLink: absoluteUrl('/policies/returns'),
+              },
             }
           : undefined,
       },
@@ -67,7 +89,7 @@ function productSeo(product, category) {
             name: category.name,
             item: absoluteUrl(`/${category.slug}`),
           },
-          { '@type': 'ListItem', position: category ? 4 : 3, name: product.name, item: absoluteUrl(path) },
+          { '@type': 'ListItem', position: category ? 4 : 3, name, item: absoluteUrl(path) },
         ].filter(Boolean),
       },
     ],
@@ -100,9 +122,11 @@ export default function ProductDetail() {
   // A pack with no stock takes an enquiry instead of going in the cart.
   const buyable = features.cart && Boolean(pack.size) && inStock(product.id, pack.size) !== false;
   const category = categories.find((c) => c.slug === product.category);
-  const related = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  const related = relatedProducts(product, products, 4);
+  const name = product.fullName || product.name;
+  const orderLink = whatsappOrderLink(product, pack);
+  const enquireLink = `/contact?product=${product.id}${pack.size ? `&size=${encodeURIComponent(pack.size)}` : ''}`;
+  const onOrder = () => track('whatsapp_order', { product: product.id, size: pack.size, value: pack.price ?? undefined });
 
   return (
     <>
@@ -124,7 +148,7 @@ export default function ProductDetail() {
                 <img
                   className="pdp__photo"
                   src={product.image}
-                  alt={product.name}
+                  alt={`${name} pack`}
                   fetchPriority="high"
                   decoding="async"
                 />
@@ -133,12 +157,11 @@ export default function ProductDetail() {
               )}
             </div>
             <div className="pdp__info">
-              {product.featured && <span className="pdp__badge">Bestseller</span>}
-              <h1>{product.name}</h1>
-              <p className="pdp__tagline">{product.tagline}</p>
-              {aliases[product.id] && (
-                <p className="pdp__aka">Also known as: {aliases[product.id].join(', ')}</p>
-              )}
+              {product.bestseller && <span className="pdp__badge">Bestseller</span>}
+              <h1>{name}</h1>
+              <p className="pdp__tagline">
+                <TamilAware text={product.tagline} />
+              </p>
               {features.prices && (
                 <div className="pdp__price">
                   {formatPrice(pack.price)}
@@ -168,14 +191,39 @@ export default function ProductDetail() {
               <div className="pdp__actions">
                 {buyable && <AddToCart key={pack.size} product={product} pack={pack} className="pdp__atc" />}
                 {!buyable && (
-                  <Link to={`/contact?product=${product.id}`} className="btn btn--primary">
+                  <a href={orderLink} target="_blank" rel="noopener" className="btn btn--primary pdp__wa" onClick={onOrder}>
+                    <WhatsAppLogo size={20} /> Order on WhatsApp
+                  </a>
+                )}
+                {!buyable && (
+                  <Link to={enquireLink} className="btn btn--ghost">
                     Enquire
                   </Link>
                 )}
-                <a href={`tel:${site.phoneRaw}`} className="btn btn--ghost">
+                <a href={`tel:+${site.phoneRaw}`} className="btn btn--ghost">
                   {buyable ? 'Call to order' : 'Call us'}
                 </a>
               </div>
+              <dl className="pdp__details">
+                <div>
+                  <dt>Net quantity</dt>
+                  <dd>{pack.size || '—'}</dd>
+                </div>
+                <div>
+                  <dt>Sold by</dt>
+                  <dd>
+                    {site.legalName}, {site.address.line1}, {site.address.line2} {site.address.pincode}
+                  </dd>
+                </div>
+                <div>
+                  <dt>FSSAI licence</dt>
+                  <dd>{site.fssai}</dd>
+                </div>
+                <div>
+                  <dt>Country of origin</dt>
+                  <dd>India</dd>
+                </div>
+              </dl>
               <ul className="pdp__assurance">
                 <li>Packed fresh after your order is confirmed</li>
                 <li>Delivery across India · bulk rates available</li>
@@ -185,6 +233,17 @@ export default function ProductDetail() {
           </div>
         </div>
       </section>
+      {!buyable && (
+        <div className="pdp__bar" role="region" aria-label="Order">
+          <span className="pdp__bar-what">
+            <strong>{pack.size}</strong>
+            {features.prices && pack.price != null && <span>{formatPrice(pack.price)}</span>}
+          </span>
+          <a href={orderLink} target="_blank" rel="noopener" className="btn btn--primary" onClick={onOrder}>
+            <WhatsAppLogo size={18} /> Order on WhatsApp
+          </a>
+        </div>
+      )}
       {related.length > 0 && (
         <section className="section section--alt">
           <div className="container">

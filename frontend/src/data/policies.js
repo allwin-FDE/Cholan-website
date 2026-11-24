@@ -13,9 +13,10 @@ const company =
 
 const contactList = {
   list: [
-    '**Address:** 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu',
+    '**Address:** 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu',
     '**Email:** info@cholanrice.in',
-    '**Phone / WhatsApp:** +91 90922 66667',
+    '**Phone:** +91 90922 66667',
+    '**WhatsApp:** +91 81483 13478',
   ],
 };
 
@@ -23,7 +24,7 @@ export const policies = {
   shipping: {
     title: 'Shipping Policy',
     lede: 'How we pack and deliver your order.',
-    updated: '26 October 2026',
+    updated: '24 November 2026',
     intro: [
       `This policy explains how Cholan Rice and Millet Shop packs and delivers orders placed through www.cholanrice.in, by phone, WhatsApp or email. It does not cover purchases at our physical stores. ${company}`,
     ],
@@ -109,7 +110,7 @@ export const policies = {
   returns: {
     title: 'Return & Refund Policy',
     lede: 'What happens if something is not right.',
-    updated: '26 October 2026',
+    updated: '24 November 2026',
     intro: [
       `This policy applies to orders placed with Cholan Rice and Millet Shop through www.cholanrice.in, by phone, WhatsApp or email. It does not cover purchases at our physical stores. ${company}`,
     ],
@@ -145,8 +146,9 @@ export const policies = {
           {
             list: [
               '**Email:** info@cholanrice.in',
-              '**Phone / WhatsApp:** +91 90922 66667',
-              '**Address:** 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu',
+              '**Phone:** +91 90922 66667',
+    '**WhatsApp:** +91 81483 13478',
+              '**Address:** 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu',
             ],
           },
           'We reply within **48 hours** and share a decision within **3 working days**.',
@@ -211,7 +213,7 @@ export const policies = {
   privacy: {
     title: 'Privacy Policy',
     lede: 'What we collect and what we do with it.',
-    updated: '23 November 2026',
+    updated: '24 November 2026',
     intro: [
       'This policy explains how Cholan Rice and Millet Shop collects, uses and protects your personal information. By using www.cholanrice.in or sharing your details with us, you agree to this policy.',
     ],
@@ -219,7 +221,7 @@ export const policies = {
       {
         h: '1. Who we are',
         body: [
-          'Cholan Rice and Millet Shop (“Cholan”, “we”, “us”) is a brand of **Cholan Rice and Millet Shops Private Limited**, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India.',
+          'Cholan Rice and Millet Shop (“Cholan”, “we”, “us”) is a brand of **Cholan Rice and Millet Shops Private Limited**, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India.',
           'This policy covers information collected through our website, phone, WhatsApp, email, enquiry forms and social media pages. It does not cover purchases at our physical stores.',
         ],
       },
@@ -300,7 +302,7 @@ export const policies = {
   terms: {
     title: 'Terms & Conditions',
     lede: 'The basis on which we sell.',
-    updated: '26 October 2026',
+    updated: '24 November 2026',
     intro: [
       'These Terms and Conditions (“Terms”) are a legal agreement between you and **Cholan Rice and Millet Shops Private Limited**, which owns and operates the Cholan Rice and Millet Shop brand and the website www.cholanrice.in. Please read them carefully. By using our website or placing an order with us online, by phone, WhatsApp or email, you agree to these Terms. Purchases made at our physical stores are not covered by these Terms. If you do not agree, please do not use the website or place an order.',
     ],
@@ -308,7 +310,7 @@ export const policies = {
       {
         h: '1. Who we are',
         body: [
-          'Cholan Rice and Millet Shop (“Cholan”, “we”, “us”, “our”) is a brand of **Cholan Rice and Millet Shops Private Limited**, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India. Phone / WhatsApp: +91 90922 66667. Email: info@cholanrice.in.',
+          'Cholan Rice and Millet Shop (“Cholan”, “we”, “us”, “our”) is a brand of **Cholan Rice and Millet Shops Private Limited**, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India. Phone: +91 90922 66667. WhatsApp: +91 81483 13478. Email: info@cholanrice.in.',
           'These Terms apply together with our [Privacy Policy](/policies/privacy), [Shipping Policy](/policies/shipping) and [Refund & Return Policy](/policies/returns).',
         ],
       },
@@ -378,7 +380,7 @@ export const policies = {
       {
         h: '7. Orders',
         body: [
-          'You can order by calling or messaging us on WhatsApp at +91 90922 66667, by email, or through the enquiry form on our website.',
+          'You can order by calling us on +91 90922 66667, by messaging us on WhatsApp at +91 81483 13478, by email, or through the enquiry form on our website.',
           {
             steps: [
               'Tell us the product, pack size, quantity and delivery address.',

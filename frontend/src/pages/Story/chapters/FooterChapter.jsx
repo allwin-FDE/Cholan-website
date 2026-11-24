@@ -44,7 +44,7 @@ export default function FooterChapter() {
             <h3>Reach us</h3>
             <ul>
               <li>
-                <a href={`tel:${site.phoneRaw}`}>{site.phone}</a>
+                <a href={`tel:+${site.phoneRaw}`}>{site.phone}</a>
               </li>
               <li>
                 <a href={whatsappLink()} target="_blank" rel="noreferrer">

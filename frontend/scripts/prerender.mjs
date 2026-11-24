@@ -18,6 +18,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { preview } from 'vite';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -31,20 +32,48 @@ const { policies } = await load('data/policies.js');
 
 // Every page worth a search result. Checkout (switched off) and the 404 page
 // are left out on purpose.
+// The date the files behind a page last changed, from git (so the sitemap
+// tells search engines what really changed, not "everything, today").
+const today = new Date().toISOString().slice(0, 10);
+function changed(...files) {
+  try {
+    const out = execFileSync('git', ['log', '-1', '--format=%cs', '--', ...files.map((f) => path.join(root, f))], { cwd: root, encoding: 'utf8' }).trim();
+    return out || today;
+  } catch {
+    return today;
+  }
+}
+const PRODUCTS = ['src/data/products.js', 'src/pages/ProductDetail.jsx', 'src/components/product'];
 const routes = [
-  { path: '/', priority: '1.0', changefreq: 'weekly' },
-  { path: '/products', priority: '0.9', changefreq: 'weekly' },
+  { path: '/', priority: '1.0', changefreq: 'weekly', lastmod: changed('src/pages/Home', 'src/data/products.js') },
+  { path: '/products', priority: '0.9', changefreq: 'weekly', lastmod: changed('src/pages/Products', ...PRODUCTS) },
   // The buying guide: the page meant for "best rice" and the like.
-  { path: '/rice', priority: '0.9', changefreq: 'monthly' },
-  ...products.map((p) => ({ path: `/products/${p.id}`, priority: '0.8', changefreq: 'monthly' })),
-  { path: '/about', priority: '0.7', changefreq: 'monthly' },
-  { path: '/contact', priority: '0.7', changefreq: 'monthly' },
-  { path: '/stores', priority: '0.8', changefreq: 'weekly' },
-  { path: '/story', priority: '0.5', changefreq: 'monthly' },
-  { path: '/blog', priority: '0.3', changefreq: 'weekly' },
-  ...Object.keys(policies).map((slug) => ({ path: `/policies/${slug}`, priority: '0.2', changefreq: 'yearly' })),
+  { path: '/rice', priority: '0.9', changefreq: 'monthly', lastmod: changed('src/data/guides.js', 'src/pages/Guide.jsx') },
+  ...products.map((p) => ({ path: `/products/${p.id}`, priority: '0.8', changefreq: 'monthly', lastmod: changed(...PRODUCTS) })),
+  { path: '/about', priority: '0.7', changefreq: 'monthly', lastmod: changed('src/pages/About') },
+  { path: '/contact', priority: '0.7', changefreq: 'monthly', lastmod: changed('src/pages/Contact', 'src/config/site.js') },
+  { path: '/stores', priority: '0.8', changefreq: 'weekly', lastmod: changed('src/pages/Stores') },
+  { path: '/story', priority: '0.5', changefreq: 'monthly', lastmod: changed('src/pages/Story') },
+  { path: '/blog', priority: '0.3', changefreq: 'weekly', lastmod: changed('src/pages/Blog') },
+  ...Object.keys(policies).map((slug) => ({ path: `/policies/${slug}`, priority: '0.2', changefreq: 'yearly', lastmod: changed('src/data/policies.js') })),
   ...(await blogRoutes()),
+  ...(await districtRoutes()),
 ];
+
+// One page per district with shops (/stores/coimbatore …), from the live list.
+async function districtRoutes() {
+  const api = process.env.VITE_API_URL;
+  if (!api) return [];
+  try {
+    const { stores } = await (await fetch(`${api.replace(/\/$/, '')}/api/stores`)).json();
+    const names = [...new Set(stores.map((s) => s.district).filter(Boolean))];
+    const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return names.map((n) => ({ path: `/stores/${slug(n)}`, priority: '0.7', changefreq: 'weekly', lastmod: today }));
+  } catch (error) {
+    console.warn(`[prerender] district pages not listed: ${error.message}`);
+    return [];
+  }
+}
 
 // Blog posts published from the dashboard, read from the backend the build
 // talks to. A post published after the build still shows on the site; it
@@ -55,7 +84,12 @@ async function blogRoutes() {
   try {
     const response = await fetch(`${api.replace(/\/$/, '')}/api/posts`);
     const { posts } = await response.json();
-    return posts.map((p) => ({ path: `/blog/${p.slug}`, priority: '0.6', changefreq: 'monthly' }));
+    return posts.map((p) => ({
+      path: `/blog/${p.slug}`,
+      priority: '0.6',
+      changefreq: 'monthly',
+      lastmod: String(p.updatedAt || p.publishedAt || today).slice(0, 10),
+    }));
   } catch (error) {
     console.warn(`[prerender] blog posts not listed: ${error.message}`);
     return [];
@@ -63,14 +97,13 @@ async function blogRoutes() {
 }
 
 // ---- sitemap.xml and robots.txt ----
-const today = new Date().toISOString().slice(0, 10);
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${routes
   .map(
     (r) => `  <url>
     <loc>${new URL(r.path, SITE_URL).href}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${r.lastmod || today}</lastmod>
     <changefreq>${r.changefreq}</changefreq>
     <priority>${r.priority}</priority>
   </url>`,
@@ -81,7 +114,7 @@ ${routes
 fs.writeFileSync(path.join(dist, 'sitemap.xml'), sitemap);
 fs.writeFileSync(
   path.join(dist, 'robots.txt'),
-  `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /dashboard\nDisallow: /admin\nDisallow: /warehouse\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
+  `User-agent: *\nAllow: /\nDisallow: /checkout\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
 );
 console.log(`[prerender] sitemap.xml (${routes.length} pages) and robots.txt written`);
 
@@ -122,6 +155,7 @@ const context = await browser.newContext({ reducedMotion: 'reduce', viewport: { 
 await context.addInitScript(() => {
   try {
     localStorage.setItem('cholan-store-popup', String(Date.now()));
+    localStorage.setItem('cholan-cookie-notice', '1');
   } catch {
     /* no storage: the capture below still removes it */
   }
@@ -139,14 +173,15 @@ if (api) {
   });
 }
 const pages = [];
-for (const route of routes) {
+const capture = [...routes, { path: '/page-not-found-404', file: '404.html' }];
+for (const route of capture) {
   const page = await context.newPage();
   await page.goto(base + route.path, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
   const html = await page.evaluate(() => {
     // Anything that opened over the page (a popup, its scroll lock) is left
     // out, in case it opened anyway.
-    document.querySelectorAll('body > .storepop').forEach((el) => el.remove());
+    document.querySelectorAll('body > .storepop, .cookie-note').forEach((el) => el.remove());
     document.documentElement.style.removeProperty('overflow');
     // Head tags React placed for this page: marked so the app can remove them
     // before it renders its own (otherwise each would appear twice).
@@ -158,7 +193,7 @@ for (const route of routes) {
     return `<!doctype html>\n${document.documentElement.outerHTML}`;
   });
   const title = await page.title();
-  pages.push({ route: route.path, html, title });
+  pages.push({ route: route.path, file: route.file, html, title });
   await page.close();
 }
 await browser.close();
@@ -166,8 +201,8 @@ await server.close();
 
 // Written only after every page is captured, so no page is rendered from
 // another page's saved copy.
-for (const { route, html, title } of pages) {
-  const file = route === '/' ? path.join(dist, 'index.html') : path.join(dist, `${route.slice(1)}.html`);
+for (const { route, file: named, html, title } of pages) {
+  const file = named ? path.join(dist, named) : route === '/' ? path.join(dist, 'index.html') : path.join(dist, `${route.slice(1)}.html`);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, html);
   console.log(`[prerender] ${route.padEnd(42)} ${title}`);

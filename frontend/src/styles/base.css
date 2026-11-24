@@ -297,3 +297,34 @@ p {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* "Skip to content": hidden until a keyboard user tabs to it. */
+.skip-link {
+  position: absolute;
+  z-index: 2000;
+  top: 8px;
+  left: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-800);
+  color: #fff;
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 0.2s;
+}
+.skip-link:focus {
+  transform: none;
+}
+#main:focus {
+  outline: none;
+}
+/* Headings reached by a link (#section) aren't hidden under the floating header. */
+:where(h1, h2, h3, section)[id],
+:where(section) {
+  scroll-margin-top: calc(var(--header-h, 74px) + 12px);
+}
+
+/* The moment a page's own file is still loading. */
+.page-loading {
+  min-height: 70vh;
+}

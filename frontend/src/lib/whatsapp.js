@@ -28,3 +28,13 @@ export function whatsappEnquiryLink(form) {
     .join('\n');
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
+
+// "Order on WhatsApp" from a product: the product, the chosen size and its
+// price, and the page link, ready to send.
+export function whatsappOrderLink(product, pack) {
+  const name = product.fullName || product.name;
+  const price = pack?.price != null ? ` (₹${Number(pack.price).toLocaleString('en-IN')})` : '';
+  const size = pack?.size ? ` — ${pack.size}${price}` : '';
+  const message = `Hello Cholan Rice, I would like to order ${name}${size}.\nhttps://www.cholanrice.in/products/${product.id}`;
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+}

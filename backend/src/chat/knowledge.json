@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-11-24T05:20:28.565Z",
+  "builtAt": "2026-11-24T07:01:49.748Z",
   "chunks": [
     {
       "id": "business",
@@ -20,21 +20,21 @@
       "title": "Product range overview",
       "label": "Product range overview",
       "url": "/products",
-      "text": "The website lists 11 products in 1 categories.\nCholan sells rice only. Millets, pulses (such as kollu) and oils are not sold any more.\nRice (11): Chennai Pattinam Ponni, Karikalan, Kettimelam, Moongil Ponni, Senthoora, Senthoora Half Boil, Thooyamalli Ponni Raw Rice, Chennai Pattinam Idli Rice, Kurunai Rice, Basmati Rice, Seeraga Samba."
+      "text": "The website lists 11 products in 1 categories.\nCholan sells rice only. Millets, pulses (such as kollu) and oils are not sold any more.\nRice (11): Chennai Pattanam Ponni, Karikalan, Kettimelam, Moongil Poompuhar Ponni, Senthura, Senthura Half Boil, Thooya Malli Ponni Raw Rice, Chennai Pattanam Idli Rice, Kurunai Rice, Basmati Rice, Seeraga Samba."
     },
     {
       "id": "category-rice",
       "title": "Rice — category",
       "label": "All rice",
       "url": "/products?category=rice",
-      "text": "Rice: Chennai Pattinam, Karikalan, Moongil Ponni, Seeraga Samba, idli rice and more.\nProducts in Rice: Chennai Pattinam Ponni (1 kg, 5 kg, 10 kg, 26 kg); Karikalan (5 kg, 10 kg, 26 kg); Kettimelam (26 kg); Moongil Ponni (5 kg, 10 kg, 26 kg); Senthoora (26 kg); Senthoora Half Boil (26 kg); Thooyamalli Ponni Raw Rice (1 kg, 5 kg, 26 kg); Chennai Pattinam Idli Rice (5 kg, 26 kg); Kurunai Rice (26 kg); Basmati Rice (1 kg); Seeraga Samba (1 kg)."
+      "text": "Rice: Chennai Pattanam, Karikalan, Moongil Poompuhar Ponni, Seeraga Samba, idli rice and more.\nProducts in Rice: Chennai Pattanam Ponni (1 kg, 5 kg, 10 kg, 26 kg); Karikalan (5 kg, 10 kg, 26 kg); Kettimelam (26 kg); Moongil Poompuhar Ponni (5 kg, 10 kg, 26 kg); Senthura (26 kg); Senthura Half Boil (26 kg); Thooya Malli Ponni Raw Rice (1 kg, 5 kg, 26 kg); Chennai Pattanam Idli Rice (5 kg, 26 kg); Kurunai Rice (26 kg); Basmati Rice (1 kg); Seeraga Samba (1 kg)."
     },
     {
       "id": "product-chennai-pattanam-rice",
-      "title": "Chennai Pattinam Ponni",
-      "label": "Chennai Pattinam Ponni",
+      "title": "Chennai Pattanam Ponni",
+      "label": "Chennai Pattanam Ponni",
       "url": "/products/chennai-pattanam-rice",
-      "text": "Product: Chennai Pattinam Ponni (Tamil: சென்னைப்பட்டிணம் பொன்னி).\nCategory: Rice.\nTagline: சென்னைப்பட்டிணம் · Everyday Ponni rice.\nEveryday Ponni rice in the Chennai Pattinam pack, from the 1 kg pack up to the 26 kg sack.\nPack sizes: 1 kg, 5 kg, 10 kg, 26 kg.\nPrices: 1 kg ₹110; 5 kg ₹520; 10 kg ₹1,030; 26 kg ₹2,500.\nMarked as a bestseller on the website."
+      "text": "Product: Chennai Pattanam Ponni (Tamil: சென்னைப்பட்டினம் பொன்னி).\nCategory: Rice.\nTagline: சென்னைப்பட்டினம் · Everyday Ponni rice.\nEveryday Ponni rice in the Chennai Pattanam pack, from the 1 kg pack up to the 26 kg sack.\nPack sizes: 1 kg, 5 kg, 10 kg, 26 kg.\nPrices: 1 kg ₹110; 5 kg ₹520; 10 kg ₹1,030; 26 kg ₹2,500.\nMarked as a bestseller on the website."
     },
     {
       "id": "product-karikalan-rice",
@@ -52,38 +52,38 @@
     },
     {
       "id": "product-moongil-ponni",
-      "title": "Moongil Ponni",
-      "label": "Moongil Ponni",
+      "title": "Moongil Poompuhar Ponni",
+      "label": "Moongil Poompuhar Ponni",
       "url": "/products/moongil-ponni",
-      "text": "Product: Moongil Ponni (Tamil: மூங்கில் பொன்னி).\nCategory: Rice.\nTagline: மூங்கில் பொன்னி · Ponni rice.\nPonni rice in the Cholan Moongil pack, for daily meals.\nPack sizes: 5 kg, 10 kg, 26 kg.\nPrices: 5 kg ₹490; 10 kg ₹970; 26 kg ₹2,350.\nMarked as a bestseller on the website."
+      "text": "Product: Moongil Poompuhar Ponni (Tamil: மூங்கில் பூம்புகார் பொன்னி).\nCategory: Rice.\nTagline: மூங்கில் பூம்புகார் · Ponni rice.\nPonni rice in the Cholan Moongil Poompuhar pack, for daily meals.\nPack sizes: 5 kg, 10 kg, 26 kg.\nPrices: 5 kg ₹490; 10 kg ₹970; 26 kg ₹2,350.\nMarked as a bestseller on the website."
     },
     {
       "id": "product-senthoora",
-      "title": "Senthoora",
-      "label": "Senthoora",
+      "title": "Senthura",
+      "label": "Senthura",
       "url": "/products/senthoora",
-      "text": "Product: Senthoora.\nCategory: Rice.\nTagline: Senthoora rice · 26 kg bag.\nSenthoora rice, in the 26 kg bag for households, messes and caterers.\nPack sizes: 26 kg.\nPrices: 26 kg ₹2,300."
+      "text": "Product: Senthura (Tamil: செந்தூரா).\nCategory: Rice.\nTagline: செந்தூரா · 26 kg bag.\nSenthura rice, in the 26 kg bag for households, messes and caterers.\nPack sizes: 26 kg.\nPrices: 26 kg ₹2,300."
     },
     {
       "id": "product-senthoora-half-boil",
-      "title": "Senthoora Half Boil",
-      "label": "Senthoora Half Boil",
+      "title": "Senthura Half Boil",
+      "label": "Senthura Half Boil",
       "url": "/products/senthoora-half-boil",
-      "text": "Product: Senthoora Half Boil.\nCategory: Rice.\nTagline: Senthoora · Half-boiled rice.\nHalf-boiled Senthoora rice, in the 26 kg bag.\nPack sizes: 26 kg.\nPrices: 26 kg ₹1,950."
+      "text": "Product: Senthura Half Boil (Tamil: செந்தூரா).\nCategory: Rice.\nTagline: செந்தூரா · Half-boiled rice.\nHalf-boiled Senthura rice, in the 26 kg bag.\nPack sizes: 26 kg.\nPrices: 26 kg ₹1,950."
     },
     {
       "id": "product-thooyamalli-ponni-raw-rice",
-      "title": "Thooyamalli Ponni Raw Rice",
-      "label": "Thooyamalli Ponni Raw Rice",
+      "title": "Thooya Malli Ponni Raw Rice",
+      "label": "Thooya Malli Ponni Raw Rice",
       "url": "/products/thooyamalli-ponni-raw-rice",
-      "text": "Product: Thooyamalli Ponni Raw Rice (Tamil: தூயமல்லி).\nCategory: Rice.\nTagline: தூயமல்லி · Ponni raw rice (pachai arisi).\nPonni raw rice (pachai arisi) in the Thooyamalli pack, from the 1 kg pack up to the 26 kg sack.\nPack sizes: 1 kg, 5 kg, 26 kg.\nPrices: 1 kg ₹100; 5 kg ₹500; 26 kg ₹2,400."
+      "text": "Product: Thooya Malli Ponni Raw Rice (Tamil: தூயமல்லி).\nCategory: Rice.\nTagline: தூயமல்லி · Ponni raw rice (pachai arisi).\nPonni raw rice (pachai arisi) in the Thooya Malli pack, from the 1 kg pack up to the 26 kg sack.\nPack sizes: 1 kg, 5 kg, 26 kg.\nPrices: 1 kg ₹100; 5 kg ₹500; 26 kg ₹2,400."
     },
     {
       "id": "product-chennai-pattanam-idli-rice",
-      "title": "Chennai Pattinam Idli Rice",
-      "label": "Chennai Pattinam Idli Rice",
+      "title": "Chennai Pattanam Idli Rice",
+      "label": "Chennai Pattanam Idli Rice",
       "url": "/products/chennai-pattanam-idli-rice",
-      "text": "Product: Chennai Pattinam Idli Rice (Tamil: சென்னைப்பட்டிணம் இட்லி).\nCategory: Rice.\nTagline: சென்னைப்பட்டிணம் இட்லி · For idli and dosa.\nIdli rice in the Chennai Pattinam pack, milled for batter — for soft idlis and crisp dosas.\nPack sizes: 5 kg, 26 kg.\nPrices: 5 kg ₹320; 26 kg ₹1,500.\nMarked as a bestseller on the website."
+      "text": "Product: Chennai Pattanam Idli Rice (Tamil: சென்னைப்பட்டினம் இட்லி).\nCategory: Rice.\nTagline: சென்னைப்பட்டினம் இட்லி · For idli and dosa.\nIdli rice in the Chennai Pattanam pack, milled for batter — for soft idlis and crisp dosas.\nPack sizes: 5 kg, 26 kg.\nPrices: 5 kg ₹320; 26 kg ₹1,500.\nMarked as a bestseller on the website."
     },
     {
       "id": "product-kurunai-rice",
@@ -125,7 +125,7 @@
       "title": "What customers say (home page)",
       "label": "Customer reviews",
       "url": "/#reviews",
-      "text": "Lakshmi R., Chennai, about Idly Rice: \"The idly rice is exactly what my mother used to buy. Batter ferments beautifully and the idlis stay soft all day.\"\nAnand M., Bangalore, about Ponni · 26 kg: \"Ordered the 26 kg Ponni bag for our mess. Consistent quality every single time and the delivery is always on schedule.\""
+      "text": "Lakshmi R., Chennai, about Idli Rice: \"The idly rice is exactly what my mother used to buy. Batter ferments beautifully and the idlis stay soft all day.\"\nAnand M., Bangalore, about Ponni · 26 kg: \"Ordered the 26 kg Ponni bag for our mess. Consistent quality every single time and the delivery is always on schedule.\""
     },
     {
       "id": "policy-shipping-intro",
@@ -174,7 +174,7 @@
       "title": "Shipping Policy — 6. Help and contact",
       "label": "Shipping Policy",
       "url": "/policies/shipping",
-      "text": "Shipping Policy, 6. Help and contact:\nContact us with the phone number you ordered from:\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\nWe may update this policy from time to time. The version on our website when you place your order applies to that order. This policy follows the Consumer Protection Act, 2019 and the Consumer Protection (E-Commerce) Rules, 2020."
+      "text": "Shipping Policy, 6. Help and contact:\nContact us with the phone number you ordered from:\n- Address: 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone: +91 90922 66667\n- WhatsApp: +91 81483 13478\nWe may update this policy from time to time. The version on our website when you place your order applies to that order. This policy follows the Consumer Protection Act, 2019 and the Consumer Protection (E-Commerce) Rules, 2020."
     },
     {
       "id": "policy-returns-intro",
@@ -202,7 +202,7 @@
       "title": "Return & Refund Policy — 3. How to raise a request",
       "label": "Return & Refund Policy",
       "url": "/policies/returns",
-      "text": "Return & Refund Policy, 3. How to raise a request:\nWhatsApp or email us with your name, the phone number you ordered from, the batch number on the pack, photos, an unboxing video (for missing or short-weight items, recorded without a cut from the sealed parcel) and a one-line description of the problem.\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\nWe reply within 48 hours and share a decision within 3 working days."
+      "text": "Return & Refund Policy, 3. How to raise a request:\nWhatsApp or email us with your name, the phone number you ordered from, the batch number on the pack, photos, an unboxing video (for missing or short-weight items, recorded without a cut from the sealed parcel) and a one-line description of the problem.\n- Email: info@cholanrice.in\n- Phone: +91 90922 66667\n- WhatsApp: +91 81483 13478\n- Address: 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\nWe reply within 48 hours and share a decision within 3 working days."
     },
     {
       "id": "policy-returns-4",
@@ -237,7 +237,7 @@
       "title": "Privacy Policy — 1. Who we are",
       "label": "Privacy Policy",
       "url": "/policies/privacy",
-      "text": "Privacy Policy, 1. Who we are:\nCholan Rice and Millet Shop (“Cholan”, “we”, “us”) is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India.\nThis policy covers information collected through our website, phone, WhatsApp, email, enquiry forms and social media pages. It does not cover purchases at our physical stores."
+      "text": "Privacy Policy, 1. Who we are:\nCholan Rice and Millet Shop (“Cholan”, “we”, “us”) is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India.\nThis policy covers information collected through our website, phone, WhatsApp, email, enquiry forms and social media pages. It does not cover purchases at our physical stores."
     },
     {
       "id": "policy-privacy-2",
@@ -272,7 +272,7 @@
       "title": "Privacy Policy — 6. Your rights and contact",
       "label": "Privacy Policy",
       "url": "/policies/privacy",
-      "text": "Privacy Policy, 6. Your rights and contact:\nYou can ask us to see, correct or delete your information, stop marketing messages, withdraw your consent, or name a nominee to act for you. We may ask you to confirm your identity first.\nFor any request, question or complaint, contact us:\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\nWe reply within 48 hours and aim to resolve complaints within 30 days. If you are not satisfied, you can complain to the Data Protection Board of India.\nThis policy follows Indian law, including the Information Technology Act, 2000 and the Digital Personal Data Protection Act, 2023. Courts in Coimbatore, Tamil Nadu have jurisdiction. We may update this policy from time to time; the date at the top shows the latest version."
+      "text": "Privacy Policy, 6. Your rights and contact:\nYou can ask us to see, correct or delete your information, stop marketing messages, withdraw your consent, or name a nominee to act for you. We may ask you to confirm your identity first.\nFor any request, question or complaint, contact us:\n- Address: 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone: +91 90922 66667\n- WhatsApp: +91 81483 13478\nWe reply within 48 hours and aim to resolve complaints within 30 days. If you are not satisfied, you can complain to the Data Protection Board of India.\nThis policy follows Indian law, including the Information Technology Act, 2000 and the Digital Personal Data Protection Act, 2023. Courts in Coimbatore, Tamil Nadu have jurisdiction. We may update this policy from time to time; the date at the top shows the latest version."
     },
     {
       "id": "policy-terms-intro",
@@ -286,7 +286,7 @@
       "title": "Terms & Conditions — 1. Who we are",
       "label": "Terms & Conditions",
       "url": "/policies/terms",
-      "text": "Terms & Conditions, 1. Who we are:\nCholan Rice and Millet Shop (“Cholan”, “we”, “us”, “our”) is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India. Phone / WhatsApp: +91 90922 66667. Email: info@cholanrice.in.\nThese Terms apply together with our Privacy Policy, Shipping Policy and Refund & Return Policy."
+      "text": "Terms & Conditions, 1. Who we are:\nCholan Rice and Millet Shop (“Cholan”, “we”, “us”, “our”) is a brand of Cholan Rice and Millet Shops Private Limited, CIN U51211TZ2022PTC038064, GSTIN 33AAKCC0627N1ZL, FSSAI Licence No. 12422018001222, 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu, India. Phone: +91 90922 66667. WhatsApp: +91 81483 13478. Email: info@cholanrice.in.\nThese Terms apply together with our Privacy Policy, Shipping Policy and Refund & Return Policy."
     },
     {
       "id": "policy-terms-2",
@@ -328,7 +328,7 @@
       "title": "Terms & Conditions — 7. Orders",
       "label": "Terms & Conditions",
       "url": "/policies/terms",
-      "text": "Terms & Conditions, 7. Orders:\nYou can order by calling or messaging us on WhatsApp at +91 90922 66667, by email, or through the enquiry form on our website.\n- Tell us the product, pack size, quantity and delivery address.\n- We confirm availability, price, delivery charge and expected delivery date.\n- Your order is confirmed once we acknowledge it and payment terms are agreed.\n- We pack fresh after confirmation and dispatch as agreed.\nWe may refuse or cancel any order, in full or in part, if the product is out of stock, there is a quantity limit, no courier serves the delivery pin code, the address is incomplete, the price or product information was wrong, or we suspect fraud. We may ask for more details before accepting an order. If you have paid for a cancelled order, we will refund you in full."
+      "text": "Terms & Conditions, 7. Orders:\nYou can order by calling us on +91 90922 66667, by messaging us on WhatsApp at +91 81483 13478, by email, or through the enquiry form on our website.\n- Tell us the product, pack size, quantity and delivery address.\n- We confirm availability, price, delivery charge and expected delivery date.\n- Your order is confirmed once we acknowledge it and payment terms are agreed.\n- We pack fresh after confirmation and dispatch as agreed.\nWe may refuse or cancel any order, in full or in part, if the product is out of stock, there is a quantity limit, no courier serves the delivery pin code, the address is incomplete, the price or product information was wrong, or we suspect fraud. We may ask for more details before accepting an order. If you have paid for a cancelled order, we will refund you in full."
     },
     {
       "id": "policy-terms-8",
@@ -440,7 +440,7 @@
       "title": "Terms & Conditions — 23. Grievance Officer",
       "label": "Terms & Conditions",
       "url": "/policies/terms",
-      "text": "Terms & Conditions, 23. Grievance Officer:\nFor any complaint about our products, orders or these Terms:\n- Address: 32/A2, SP Kannusamy Gounder Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone / WhatsApp: +91 90922 66667\nWe will acknowledge your complaint within 48 hours and resolve it within 30 days."
+      "text": "Terms & Conditions, 23. Grievance Officer:\nFor any complaint about our products, orders or these Terms:\n- Address: 32/B2, SP Kannusamy Street, Sanganoor, Coimbatore – 641027, Tamil Nadu\n- Email: info@cholanrice.in\n- Phone: +91 90922 66667\n- WhatsApp: +91 81483 13478\nWe will acknowledge your complaint within 48 hours and resolve it within 30 days."
     },
     {
       "id": "policy-terms-24",
@@ -461,7 +461,7 @@
       "title": "Home page",
       "label": "Home page",
       "url": "/",
-      "text": "Rooted in the\ntimeless legacy of\nthe Chola land.\nTravels through a journey of care and quality.\nPonni and native paddy from the Cauvery delta, milled and packed for your kitchen.\nA Grain for Every Moment\nDiscover our range of premium rice, crafted for every home and every meal.\nView all products"
+      "text": "Shop rice\nFind nearest store\nRooted in the\ntimeless legacy of\nthe Chola land.\nTravels through a journey of care and quality.\nPonni and native paddy from the Cauvery delta, milled and packed for your kitchen.\nA Grain for Every Moment\nDiscover our range of premium rice, crafted for every home and every meal.\nView all products"
     },
     {
       "id": "page-bulk",
@@ -482,7 +482,7 @@
       "title": "Contact page",
       "label": "Contact page",
       "url": "/contact",
-      "text": "Talk to us\nHousehold orders, bulk quotes or a question about a variety — we are happy to help.\nSend an enquiry\nThanks — we have your enquiry and will get back to you shortly, usually within one working day.\nThanks — your enquiry opened in WhatsApp. Send the message there and we will reply shortly.\nYour name *\nPhone *\nEmail\nEnquiry type\nHousehold order\nBulk / wholesale\nDistributor enquiry\nProduct question\nOther\nMessage *\nWe reply by phone or email, usually within one working day.\nReach us directly\nThe fastest way to get a reply is WhatsApp or a phone call.\nPhone\nVisit / Warehouse\nMessage us on WhatsApp\nFind us\nOpen in Google Maps"
+      "text": "Talk to us\nHousehold orders, bulk quotes or a question about a variety — we are happy to help.\nSend an enquiry\nThanks — we have your enquiry and will get back to you shortly, usually within one working day.\nThanks — your enquiry opened in WhatsApp. Send the message there and we will reply shortly.\nYour name *\nMobile number *\nEmail\nEnquiry type\nHousehold order\nBulk / wholesale\nDistributor enquiry\nProduct question\nOther\nMessage *\nLeave this empty\nPrivacy Policy\nReach us directly\nThe fastest way to get a reply is WhatsApp or a phone call.\nPhone\nVisit / Warehouse\nMessage us on WhatsApp\nFind us\nOpen in Google Maps"
     },
     {
       "id": "page-blog",

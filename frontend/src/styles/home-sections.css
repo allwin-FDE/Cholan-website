@@ -528,3 +528,9 @@
 .showcase .atc__add svg {
   display: none;
 }
+
+/* The review avatar's letter comes from data-letter, so it isn't part of the
+   page text (screen readers and Google read the name alone). */
+.quote__avatar::before {
+  content: attr(data-letter);
+}

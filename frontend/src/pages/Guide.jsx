@@ -102,7 +102,7 @@ export default function Guide({ slug }) {
 
           <div className="guide__cta">
             <p>
-              Not sure which to pick? Call <a href={`tel:${site.phoneRaw}`}>{site.phone}</a>, WhatsApp{' '}
+              Not sure which to pick? Call <a href={`tel:+${site.phoneRaw}`}>{site.phone}</a>, WhatsApp{' '}
               <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer">
                 {site.whatsapp?.number || site.phone}
               </a>

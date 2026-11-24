@@ -621,3 +621,67 @@
   color: var(--ink-soft);
   font-size: 0.95rem;
 }
+
+/* /stores/<district>: the shops of one district, by town */
+.stores-all__page {
+  margin: 4px 0 10px;
+  font-size: 0.9rem;
+}
+.stores-all__page a {
+  color: var(--brand-700);
+  font-weight: 600;
+}
+.district__town {
+  margin-bottom: 28px;
+}
+.district__town h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+}
+.district__town h2 span {
+  color: var(--ink-mute);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.district__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.district__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.district__list li div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.district__list span {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+.district__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex: none;
+}
+.district__actions a {
+  color: var(--brand-700);
+  font-size: 0.9rem;
+  font-weight: 600;
+}

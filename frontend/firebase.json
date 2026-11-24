@@ -6,6 +6,18 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      { "source": "/products/thaymalli-ponni-raw-rice", "destination": "/products/thooyamalli-ponni-raw-rice", "type": 301 },
+      { "source": "/millets", "destination": "/products", "type": 301 },
+      { "source": "/pulses", "destination": "/products", "type": 301 },
+      { "source": "/process", "destination": "/about", "type": 301 },
+      { "source": "/store-locator", "destination": "/stores", "type": 301 },
+      { "source": "/images/products/ponni-rice.webp", "destination": "/images/products/chennai-pattanam-ponni-rice.webp", "type": 301 },
+      { "source": "/images/products/idly-rice.webp", "destination": "/images/products/chennai-pattanam-idli-rice.webp", "type": 301 },
+      { "source": "/images/products/gettimelam-ponni.webp", "destination": "/images/products/kettimelam-ponni-rice.webp", "type": 301 },
+      { "source": "/images/products/kurunai-rice-black-gold.webp", "destination": "/images/products/kurunai-broken-rice.webp", "type": 301 },
+      { "source": "/images/products/moongil-poompuhar.webp", "destination": "/images/products/moongil-poompuhar-ponni-rice.webp", "type": 301 }
+    ],
     "rewrites": [
       {
         "source": "/api/track{,/**}",
@@ -15,13 +27,41 @@
         }
       },
       {
-        "source": "**",
-        "destination": "/app.html"
-      }
+        "source": "/api/media/**",
+        "run": {
+          "serviceId": "cholan-backend",
+          "region": "asia-south1"
+        }
+      },
+      { "source": "/blog/**", "destination": "/app.html" },
+      { "source": "/checkout{,/**}", "destination": "/app.html" },
+      { "source": "/admin{,/**}", "destination": "/app.html" },
+      { "source": "/dashboard{,/**}", "destination": "/app.html" },
+      { "source": "/warehouse{,/**}", "destination": "/app.html" },
+      { "source": "/whatsapp{,/**}", "destination": "/app.html" }
     ],
     "cleanUrls": true,
     "trailingSlash": false,
     "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self), payment=(self \"https://checkout.razorpay.com\"), usb=()" },
+          {
+            "key": "Content-Security-Policy-Report-Only",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://maps.googleapis.com https://maps.gstatic.com https://checkout.razorpay.com https://apis.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.run.app https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.facebook.com https://*.razorpay.com https://*.firebaseapp.com wss://*.firebaseio.com; frame-src 'self' https://*.razorpay.com https://*.firebaseapp.com https://www.google.com https://accounts.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+          }
+        ]
+      },
+      {
+        "source": "/@(admin|dashboard|warehouse|whatsapp){,/**}",
+        "headers": [
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        ]
+      },
       {
         "source": "/assets/**",
         "headers": [

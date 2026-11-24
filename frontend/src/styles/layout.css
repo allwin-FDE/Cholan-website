@@ -520,3 +520,44 @@
     justify-content: center;
   }
 }
+
+/* The one-time cookie note, along the bottom. */
+.cookie-note {
+  position: fixed;
+  z-index: 120;
+  left: 50%;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(640px, calc(100% - 32px));
+  padding: 12px 14px 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+}
+.cookie-note p {
+  flex: 1;
+  margin: 0;
+  color: var(--ink-soft);
+}
+.cookie-note a {
+  color: var(--brand-700);
+  font-weight: 600;
+  text-decoration: underline;
+}
+.cookie-note .btn {
+  flex: none;
+  min-height: 40px;
+  padding-inline: 20px;
+}
+
+/* Product pages on phones: above the order bar */
+@media (width<=760px) {
+  body:has(.pdp__bar) .cookie-note {
+    bottom: 88px;
+  }
+}
