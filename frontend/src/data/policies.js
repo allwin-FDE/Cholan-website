@@ -211,7 +211,7 @@ export const policies = {
   privacy: {
     title: 'Privacy Policy',
     lede: 'What we collect and what we do with it.',
-    updated: '26 October 2026',
+    updated: '23 November 2026',
     intro: [
       'This policy explains how Cholan Rice and Millet Shop collects, uses and protects your personal information. By using www.cholanrice.in or sharing your details with us, you agree to this policy.',
     ],
@@ -229,6 +229,7 @@ export const policies = {
           {
             list: [
               '**Contact details** – name, phone or WhatsApp number and email.',
+              '**Store finder** – to find your nearest store on our website, you give your name and mobile number. We keep them, with the store we found for you, so our team can help you and so each number searches once. Your location is used only for that search and is not saved.',
               '**Order details** – delivery address, pin code, products ordered and order history.',
               '**Business details** – business name, GSTIN and billing address, for bulk buyers.',
               '**Payment records** – payment method, transaction reference and amount paid. **We never see or store your card number, CVV, UPI PIN, password or OTP.**',

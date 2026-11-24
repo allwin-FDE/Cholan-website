@@ -12,6 +12,9 @@
 //
 // Customers' locations are used for the search and never saved; road
 // distances are cached in memory for a few hours by a rounded point only.
+// A search needs the customer's name and mobile number; each number searches
+// once (store_finder_people, one document per number, with the stores found
+// then, shown again on a repeat without asking Google).
 import { createHash } from 'node:crypto';
 import { FieldValue } from '@google-cloud/firestore';
 import { config } from '../../config.js';
@@ -23,6 +26,8 @@ const col = {
   stores: () => collection('stores'),
   cache: () => collection('store_geo_cache'),
   usage: () => collection('maps_usage'),
+  people: () => collection('store_finder_people'),
+  devices: () => collection('store_finder_devices'),
 };
 const nowIso = () => new Date().toISOString();
 const PLACED = ['verified', 'address', 'approximate'];
@@ -251,6 +256,8 @@ export async function usageReport() {
     places: d.google?.places || 0,
     place: d.google?.place || 0,
     routeElements: d.google?.routeElements || 0,
+    people: d.people || 0,
+    repeats: d.repeats || 0,
   });
   const sum = (rows) => rows.reduce((t, r) => Object.fromEntries(Object.keys(r).map((k) => [k, (t[k] || 0) + r[k]])), flat());
   const monthRows = [...days].filter(([id]) => id.startsWith(month)).map(([, d]) => flat(d));
@@ -400,8 +407,10 @@ export async function locateBatch({ codes = null, limit = 12, actor = 'system' }
 }
 
 // Looks up again the stores whose Google data is older than Google lets us
-// keep (a scheduled job, a few a day). Staff pins are left alone.
+// keep (a scheduled job, a few a day). Staff pins are left alone. Also clears
+// the per-device counts of earlier days.
 export async function refreshStale({ limit = 25, actor = 'scheduler' } = {}) {
+  await clearOldDevices().catch((error) => console.error('[stores] clearing device counts failed:', error.message));
   const cutoff = Date.now() - (FRESH_DAYS - 3) * 86400_000;
   const stale = (await allStores()).filter((s) => s.active !== false && !locked(s) && s.geo?.fetchedAt && Date.parse(s.geo.fetchedAt) < cutoff).slice(0, limit);
   for (const s of stale) await col.stores().doc(s.code).set({ geo: await lookUp(s, { fresh: true }) }, { merge: true });
@@ -464,6 +473,98 @@ export async function nearest({ lat, lng, accuracy, q, limit = 20, from = 'page'
   const fallbackReason = ranked.method === 'road' ? null : routeError ? 'error' : routes === null ? 'limit' : 'no_routes';
   bump({ searches: 1, ...(from === 'popup' ? { searchesPopup: 1 } : {}), ...(fallbackReason ? { searchesNoRoad: 1 } : {}) });
   return { origin, ...ranked, fallbackReason, total: placed.length };
+}
+
+// ---- Name and mobile first, one search per number ----
+
+export function checkPerson({ name, phone } = {}) {
+  const n = tidy(name).replace(/[<>{}]/g, '').slice(0, 60);
+  const p = cleanPhone(phone);
+  const fields = {};
+  if (n.length < 2 || !/\p{L}/u.test(n)) fields.name = 'Please type your name.';
+  if (!p) fields.phone = 'Please type a 10-digit mobile number.';
+  if (Object.keys(fields).length) throw Object.assign(new Error(fields.name || fields.phone), { status: 400, fields });
+  return { name: n, phone: p };
+}
+
+// Without a code sent to the phone, anyone can type a made-up number; this
+// caps how many new numbers one device (by IP, stored only as a hash) can
+// use in a day.
+async function allowDevice(ip) {
+  const limit = config.maps.numbersPerDevice;
+  if (!ip || limit <= 0) return true;
+  const ref = col.devices().doc(`${today()}_${createHash('sha256').update(`cholan-store-finder:${ip}`).digest('hex').slice(0, 24)}`);
+  return firestore().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const used = snap.exists ? snap.data().numbers || 0 : 0;
+    if (used >= limit) return false;
+    tx.set(ref, { day: today(), numbers: FieldValue.increment(1) }, { merge: true });
+    return true;
+  });
+}
+
+async function clearOldDevices() {
+  const old = await col.devices().where('day', '<', today()).limit(400).get();
+  if (old.empty) return;
+  const batch = firestore().batch();
+  old.docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+}
+
+// What is kept of a search: the stores and distances, never the customer's
+// own point.
+const keepable = (r) => ({ ...r, origin: { label: r.origin.label || '', kind: r.origin.kind, accuracyM: r.origin.accuracyM ?? null } });
+
+// The nearest stores for a named customer. A number's first search asks
+// Google; later ones get that first answer again (no new Google calls).
+export async function nearestFor({ name, phone, ip, from = 'page', where }) {
+  const who = checkPerson({ name, phone });
+  const ref = col.people().doc(who.phone);
+  const now = nowIso();
+  const before = await ref.get();
+  const old = before.exists ? before.data() : null;
+  if (old?.result) {
+    await ref.update({ repeats: FieldValue.increment(1), lastSeenAt: now, ...(old.name !== who.name ? { otherNames: FieldValue.arrayUnion(who.name) } : {}) });
+    bump({ repeats: 1 });
+    return { ...old.result, repeat: true, person: { name: old.name, firstAt: old.createdAt } };
+  }
+  // Two searches for the same new number at once: the second waits.
+  if (old && Date.now() - Date.parse(old.claimedAt || 0) < 60_000) throw Object.assign(new Error('Your search is still running. Please wait a moment.'), { status: 409 });
+  if (!(await allowDevice(ip))) throw Object.assign(new Error('This phone or computer has used the store finder for several numbers today. Please call us on +91 90922 66667, or try again tomorrow.'), { status: 429 });
+  await ref.set({ phone: who.phone, name: who.name, claimedAt: now });
+  let result;
+  try {
+    result = await nearest({ ...where, from });
+  } catch (error) {
+    // Nothing found (a place Google can't place, a busy moment): the number
+    // is not used up.
+    await ref.delete().catch(() => {});
+    throw error;
+  }
+  // The first store on the customer's list (closest), as they saw it.
+  const top = result.results[0];
+  await ref.set({
+    phone: who.phone,
+    name: who.name,
+    createdAt: now,
+    lastSeenAt: now,
+    repeats: 0,
+    from,
+    how: where.q ? 'typed' : 'location',
+    query: where.q ? tidy(where.q).slice(0, 80) : '',
+    place: result.origin.kind === 'gps' ? '' : result.origin.label || '',
+    nearest: top ? { code: top.code, name: top.name, km: top.roadKm ?? top.straightKm ?? null, byRoad: top.roadKm != null } : null,
+    method: result.method,
+    result: keepable(result),
+  });
+  bump({ people: 1 });
+  return { ...result, repeat: false, person: { name: who.name, firstAt: now } };
+}
+
+// For staff: who used the finder, newest first (without the stored results).
+export async function people({ limit = 1000 } = {}) {
+  const snap = await col.people().orderBy('createdAt', 'desc').limit(Math.min(limit, 5000)).select('phone', 'name', 'otherNames', 'createdAt', 'lastSeenAt', 'repeats', 'from', 'how', 'query', 'place', 'nearest', 'method').get();
+  return snap.docs.map((d) => d.data());
 }
 
 // The order shown: stores reached by road first, nearest by road; then the

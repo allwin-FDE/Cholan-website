@@ -108,6 +108,9 @@ export const config = {
     // 380 a day, address lookups 320), set so Maps stays under ₹1,000 a month.
     routeDailyLimit: num(process.env.MAPS_ROUTE_DAILY_LIMIT, 38),
     geocodeDailyLimit: num(process.env.MAPS_GEOCODE_DAILY_LIMIT, 250),
+    // New mobile numbers one device (IP) can search with in a day; each number
+    // searches once (numbers aren't verified with a code).
+    numbersPerDevice: num(process.env.MAPS_NUMBERS_PER_DEVICE, 5),
     // Google's own daily quotas on the project (Cloud console > Quotas), shown
     // in the admin usage bar. Change them here too when they change there.
     googleDaily: {

@@ -5,8 +5,9 @@ import { Icon, iconPaths } from '../../components/common/Icon.jsx';
 import { pages } from '../../config/seo.js';
 import { hasBackend } from '../../lib/api.js';
 import { mapsAvailable } from '../../lib/googleMaps.js';
-import { currentPosition, fetchStores, findNearest, showKm, showMinutes } from '../../lib/stores.js';
+import { checkPerson, currentPosition, fetchStores, findNearest, rememberPerson, savedPerson, showDate, showKm, showMinutes } from '../../lib/stores.js';
 import { track } from '../../lib/analytics.js';
+import PersonFields from '../../components/stores/PersonFields.jsx';
 
 const StoreMap = lazy(() => import('./StoreMap.jsx'));
 
@@ -14,8 +15,10 @@ const LOCATE = 'M12 2v3M12 19v3M2 12h3M19 12h3M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-1
 const ROUTE = 'M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3ZM9 3v15M15 6v15';
 const PAGE = 5;
 
-// /stores: find the nearest Cholan store. "Find stores near me" asks for the
-// location only when pressed; a pincode, town or area works too. The nearest
+// /stores: find the nearest Cholan store. The visitor gives a name and mobile
+// number first (one search per number; a repeat shows the first answer).
+// "Find stores near me" asks for the location only when pressed; a pincode,
+// town or area works too. The nearest
 // are ranked by road distance (Google), with straight-line distance only as a
 // clearly marked fallback; pins Google could only place roughly say so.
 export default function Stores() {
@@ -29,6 +32,8 @@ export default function Stores() {
   const [state, setState] = useState(carried ? 'done' : 'idle'); // idle | locating | searching | done | error
   const [error, setError] = useState('');
   const [found, setFound] = useState(carried);
+  const [person, setPerson] = useState(savedPerson);
+  const [personErrors, setPersonErrors] = useState({});
   const [shown, setShown] = useState(PAGE);
   const [selected, setSelected] = useState(null);
   const resultsRef = useRef(null);
@@ -43,35 +48,52 @@ export default function Stores() {
   // A shared link with ?q=641402 runs that search.
   useEffect(() => {
     const q = params.get('q');
+    const known = checkPerson(savedPerson());
     if (carried) setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
-    else if (q && hasBackend) search({ q });
+    else if (q && hasBackend && !known.errors) search({ q }, known);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function search(where) {
+  // The name and number, or null (with the mistakes shown) when not right.
+  function who() {
+    const c = checkPerson(person);
+    setPersonErrors(c.errors || {});
+    if (c.errors) {
+      setError('');
+      document.getElementById(`store-who-${c.errors.name ? 'name' : 'phone'}`)?.focus();
+      return null;
+    }
+    return c;
+  }
+
+  async function search(where, me) {
     setError('');
     setState('searching');
     setSelected(null);
     try {
-      const data = await findNearest(where);
+      const data = await findNearest(where, me);
+      rememberPerson(me);
       setFound(data);
       setShown(PAGE);
       setState('done');
-      track('find_store', { method: where.q ? 'search' : 'location', results: data.results.length });
+      track('find_store', { method: where.q ? 'search' : 'location', results: data.results.length, repeat: Boolean(data.repeat) });
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
     } catch (e) {
-      setError(e.message);
+      if (e.fields) setPersonErrors(e.fields);
+      setError(e.fields ? '' : e.message);
       setState('error');
     }
   }
 
   async function nearMe() {
+    const me = who();
+    if (!me) return;
     setError('');
     setState('locating');
     try {
       const where = await currentPosition();
       if (params.get('q')) setParams({}, { replace: true });
-      await search(where);
+      await search(where, me);
     } catch (e) {
       setError(e.message);
       setState('error');
@@ -80,13 +102,15 @@ export default function Stores() {
 
   function submit(event) {
     event.preventDefault();
+    const me = who();
+    if (!me) return;
     const q = query.trim();
     if (q.length < 3) {
       setError('Type a 6-digit pincode, or the name of your town or area.');
       return;
     }
     setParams({ q }, { replace: true });
-    search({ q });
+    search({ q }, me);
   }
 
   const results = found?.results || [];
@@ -110,6 +134,10 @@ export default function Stores() {
       <section className="section stores">
         <div className="container">
           <div className="stores-search">
+            <div className="stores-search__who">
+              <p className="stores-search__intro">Enter your name and mobile number, then find your nearest store.</p>
+              <PersonFields id="store-who" person={person} onChange={setPerson} errors={personErrors} disabled={busy || !hasBackend} />
+            </div>
             <button type="button" className="btn btn--primary stores-search__near" onClick={nearMe} disabled={busy || !hasBackend}>
               <Icon d={LOCATE} />
               {state === 'locating' ? 'Finding your location…' : 'Find stores near me'}
@@ -133,7 +161,7 @@ export default function Stores() {
                 {state === 'searching' && !found ? 'Searching…' : 'Search'}
               </button>
             </form>
-            <p className="stores-search__privacy">Your location is used only to find nearby stores. It isn’t saved.</p>
+            <p className="stores-search__privacy">Each mobile number can search once. We keep your name and number so our team can help you. Your location is used only for the search and isn’t saved.</p>
             {error && (
               <p className="notice notice--error stores-search__error" role="alert">
                 {error}
@@ -197,6 +225,11 @@ function ResultsHeader({ found }) {
       <h2>{where}</h2>
       {o.kind !== 'gps' && <p className="stores-results__note">Distances are measured from the middle of this {o.kind === 'pincode' ? 'pincode area' : 'place'}. For the most accurate result, use “Find stores near me”.</p>}
       {o.kind === 'gps' && o.accuracyM > 2000 && <p className="stores-results__note">Your device gave only a rough location, so distances may be off by a little.</p>}
+      {found.repeat && (
+        <p className="stores-results__note stores-results__note--repeat">
+          This number has already been used to search{found.person?.firstAt ? ` (on ${showDate(found.person.firstAt)})` : ''}. Each number can search once, so these are the stores we found then. For help, call us on +91 90922 66667.
+        </p>
+      )}
       {found.method === 'straight_line' && <p className="stores-results__note stores-results__note--warn">Road distances aren’t available right now, so these are straight-line distances (as the crow flies). The road trip will be longer.</p>}
     </div>
   );

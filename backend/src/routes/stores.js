@@ -2,9 +2,12 @@
 //
 //   GET  /api/stores                   every open store (public: no manager names)
 //   GET  /api/stores/:code             one store
-//   POST /api/stores/nearest           { lat, lng, accuracy } or { q: pincode/place }
-//                                      → nearest stores by road distance
+//   POST /api/stores/nearest           { name, phone } and { lat, lng, accuracy } or
+//                                      { q: pincode/place } → nearest stores by road
+//                                      distance; one search per mobile number, a
+//                                      repeat gets the first answer again
 //   GET  /api/admin/stores/usage       Google Maps use today against the limits
+//   GET  /api/admin/stores/people      who used the finder (name, mobile, nearest)
 //   /api/admin/stores/*                website staff (Settings → Website app):
 //                                      viewer looks; editor fixes addresses and
 //                                      pins and places stores; admin imports sheets
@@ -60,9 +63,11 @@ storesPublic.post(
     const b = req.body || {};
     const limit = Math.min(30, Math.max(5, Number(b.limit) || 20));
     const from = b.from === 'popup' ? 'popup' : 'page';
-    if (b.q) return stores.nearest({ q: String(b.q), limit, from });
+    const person = { name: String(b.name || ''), phone: String(b.phone || ''), ip: req.ip, from };
+    if (b.q) return stores.nearestFor({ ...person, where: { q: String(b.q), limit } });
+    stores.checkPerson(person);
     if (b.lat == null || b.lng == null) throw Object.assign(new Error('Share your location or type a pincode.'), { status: 400 });
-    return stores.nearest({ lat: b.lat, lng: b.lng, accuracy: b.accuracy, limit, from });
+    return stores.nearestFor({ ...person, where: { lat: b.lat, lng: b.lng, accuracy: b.accuracy, limit } });
   }),
 );
 storesPublic.get(
@@ -91,6 +96,16 @@ storesAdmin.get(
   ...guarded('viewer', async (req, res) => {
     res.set('Cache-Control', 'no-store');
     return stores.usageReport();
+  }),
+);
+
+// Who used the store finder (name, mobile, their nearest store): editors,
+// as for enquiries.
+storesAdmin.get(
+  '/people',
+  ...guarded('editor', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    return { people: await stores.people({ limit: Number(req.query.limit) || 1000 }) };
   }),
 );
 

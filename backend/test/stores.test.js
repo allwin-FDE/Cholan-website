@@ -8,7 +8,7 @@ import { deflateRawSync } from 'node:zlib';
 import { addressLine, cleanDoor, diffStores, geocodeQuery, mapColumns, prettify, storesFromRows } from '../src/lib/stores/sheet.js';
 import { readXlsx } from '../src/lib/stores/xlsx.js';
 import { classifyGeocode, haversineKm, isCholanShop, localityNamesStore, matchListings, parseLocation } from '../src/lib/stores/geo.js';
-import { rank } from '../src/lib/stores/service.js';
+import { checkPerson, rank } from '../src/lib/stores/service.js';
 
 // A tiny real .xlsx (zip of XML), built here.
 function zip(files) {
@@ -289,4 +289,22 @@ test('a sheet without some columns leaves those fields alone', () => {
   const saved = [{ code: 'CHO1', name: 'Sulur', street: 'Old Road', landmark: 'Opp temple', manager: 'MOHAN', pincode: '641402', active: true }];
   const d = diffStores(stores, saved, present);
   assert.deepEqual(d.changed.map((c) => [c.fields, c.moved]), [[['street'], true]]); // not landmark or manager
+});
+
+test('a search needs a name and a 10-digit Indian mobile number', () => {
+  assert.deepEqual(checkPerson({ name: '  Ravi   Kumar ', phone: '+91 98765 43210' }), { name: 'Ravi Kumar', phone: '9876543210' });
+  assert.deepEqual(checkPerson({ name: 'முருகன்', phone: '09876543210' }), { name: 'முருகன்', phone: '9876543210' });
+  const bad = (person) => {
+    try {
+      checkPerson(person);
+    } catch (error) {
+      return { status: error.status, fields: Object.keys(error.fields) };
+    }
+    return null;
+  };
+  assert.deepEqual(bad({ name: '', phone: '9876543210' }), { status: 400, fields: ['name'] });
+  assert.deepEqual(bad({ name: '12', phone: '9876543210' }), { status: 400, fields: ['name'] });
+  assert.deepEqual(bad({ name: 'Ravi', phone: '12345' }), { status: 400, fields: ['phone'] });
+  assert.deepEqual(bad({ name: 'Ravi', phone: '5876543210' }), { status: 400, fields: ['phone'] });
+  assert.deepEqual(bad({}), { status: 400, fields: ['name', 'phone'] });
 });

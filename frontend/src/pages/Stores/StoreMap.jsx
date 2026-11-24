@@ -86,7 +86,8 @@ export default function StoreMap({ results, others = [], origin, selected, neare
       drawn.current.push(m);
       if (i < 5) bounds.extend(m.getPosition());
     });
-    if (origin) {
+    // A repeat search's saved answer has no customer point (it's never kept).
+    if (origin && origin.lat != null && origin.lng != null) {
       const me = new maps.Marker({
         map: map.current,
         position: { lat: origin.lat, lng: origin.lng },

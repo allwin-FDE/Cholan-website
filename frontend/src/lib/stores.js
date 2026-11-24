@@ -16,10 +16,51 @@ async function call(path, init) {
 // Every open store (for the list and the map).
 export const fetchStores = () => call('');
 
-// The nearest stores to a point ({ lat, lng, accuracy }) or a typed place ({ q }).
-// from: 'popup' for the home page popup (counted apart in /admin).
-export const findNearest = (where, { from = 'page' } = {}) =>
-  call('/nearest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...where, limit: 20, from }) });
+// The nearest stores to a point ({ lat, lng, accuracy }) or a typed place ({ q }),
+// for a customer's name and mobile number (one search per number; a repeat
+// gets the first answer again, with repeat: true). from: 'popup' for the
+// home page popup (counted apart in /admin).
+export const findNearest = (where, { from = 'page', name, phone } = {}) =>
+  call('/nearest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...where, name, phone, limit: 20, from }) });
+
+// A 10-digit Indian mobile number from what was typed (+91, 0 and spaces
+// allowed), or '' when it isn't one. The server checks the same way.
+export function cleanMobile(value) {
+  const d = String(value ?? '').replace(/\D/g, '');
+  const ten = d.length === 12 && d.startsWith('91') ? d.slice(2) : d.length === 11 && d.startsWith('0') ? d.slice(1) : d;
+  return /^[6-9]\d{9}$/.test(ten) ? ten : '';
+}
+
+// The name and number, checked: { name, phone } or { errors }.
+export function checkPerson({ name, phone }) {
+  const errors = {};
+  const n = String(name || '').trim().replace(/\s+/g, ' ');
+  if (n.length < 2 || !/\p{L}/u.test(n)) errors.name = 'Please type your name.';
+  const p = cleanMobile(phone);
+  if (!p) errors.phone = 'Please type a 10-digit mobile number.';
+  return Object.keys(errors).length ? { errors } : { name: n, phone: p };
+}
+
+// Kept on this browser so the visitor types them once (popup and /stores).
+const PERSON_KEY = 'cholan-store-person';
+export function savedPerson() {
+  try {
+    const p = JSON.parse(localStorage.getItem(PERSON_KEY) || 'null');
+    return { name: p?.name || '', phone: p?.phone || '' };
+  } catch {
+    return { name: '', phone: '' };
+  }
+}
+export function rememberPerson(person) {
+  try {
+    localStorage.setItem(PERSON_KEY, JSON.stringify({ name: person.name, phone: person.phone }));
+  } catch {
+    /* private window: they type it again next time */
+  }
+}
+
+// "23 Nov 2026"
+export const showDate = (iso) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 
 // The browser's location, asked only when the visitor presses the button.
 export function currentPosition() {

@@ -109,6 +109,7 @@ export default function Stores() {
         <>
           {!data.mapsConfigured && <div className="dash-error">Google Maps is not set up on the server, so stores can’t be placed yet.</div>}
           <MapsUsage tick={run ? run.done : 0} />
+          {allowed('editor') && <FinderPeople />}
           <div className="dash-stats">
             <Stat label="Stores shown" value={num(c.active)} sub={c.total > c.active ? `${num(c.total - c.active)} hidden` : 'all shown'} icon="pin" />
             <Stat label="Verified" value={num(c.verified)} sub="exact shop location" icon="check" />
@@ -276,7 +277,8 @@ function MapsUsage({ tick }) {
           <Meter used={L.routes - left} limit={L.routes} label={`${num(left)} customer searches with road distance left`} big />
           <p className="dash-muted dash-small">
             {num(t.searches)} searches today
-            {t.searchesPopup ? ` (${num(t.searchesPopup)} from the home page popup)` : ''}. A repeat search from the same spot within 6 hours is free.
+            {t.searchesPopup ? ` (${num(t.searchesPopup)} from the home page popup)` : ''}, by {num(t.people)} new {t.people === 1 ? 'number' : 'numbers'}
+            {t.repeats ? `; ${num(t.repeats)} repeat ${t.repeats === 1 ? 'visit' : 'visits'} by numbers that had already searched (shown their first answer, free)` : ''}. A repeat search from the same spot within 6 hours is free.
             {left === 0 ? ' The limit is reached: searches still work, but show straight-line distances until midnight.' : ' After the limit, searches still work, with straight-line distances.'}
             {t.searchesNoRoad ? ` ${num(t.searchesNoRoad)} got straight-line distances today.` : ''}
           </p>
@@ -288,7 +290,7 @@ function MapsUsage({ tick }) {
         <MeterRow title="Shop listing searches" hint="Google’s daily quota, used only when placing stores on the map" used={t.places} limit={L.places} />
       </div>
       <p className="dash-muted dash-small maps-usage__month">
-        This month so far: {num(m.searches)} customer searches ({num(m.searchesPopup)} from the popup), {num(m.routes)} road-distance checks, {num(m.geocode)} address lookups, {num(m.places)} listing searches. The map on /stores also has its own limit of {num(L.mapLoads)} views a day.
+        This month so far: {num(m.searches)} customer searches ({num(m.searchesPopup)} from the popup) by {num(m.people)} new numbers, {num(m.routes)} road-distance checks, {num(m.geocode)} address lookups, {num(m.places)} listing searches. The map on /stores also has its own limit of {num(L.mapLoads)} views a day.
       </p>
     </Card>
   );
@@ -318,6 +320,111 @@ function Meter({ used, limit, label, big = false }) {
     <div className={`maps-meter maps-meter--${tone}${big ? ' maps-meter--big' : ''}`} role="meter" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={Math.max(0, limit - used)} aria-label={label}>
       <span style={{ width: `${share * 100}%` }} />
     </div>
+  );
+}
+
+// ---- Who used the store finder ----
+
+// Each search needs a name and mobile number (one search per number). Listed
+// for staff to follow up, newest first, with their nearest store.
+function FinderPeople() {
+  const { data, error, loading, reload } = useLoad(() => api.stores.people(), []);
+  const [filter, setFilter] = useState('');
+  const [all, setAll] = useState(false);
+  const list = useMemo(() => {
+    const f = filter.trim().toLowerCase();
+    return (data?.people || []).filter((p) => !f || `${p.name} ${p.phone} ${p.query} ${p.place} ${p.nearest?.name || ''}`.toLowerCase().includes(f));
+  }, [data, filter]);
+  const shown = all ? list : list.slice(0, 10);
+  const local = (iso) => (iso ? new Date(iso).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '');
+  const how = (p) => (p.how === 'typed' ? `Typed “${p.query}”` : 'Their location');
+  const exportCsv = () =>
+    downloadCsv('cholan-store-finder-people.csv', [
+      ['Name', 'Mobile', 'Searched on', 'Last seen', 'Repeat visits', 'How', 'Place', 'Nearest store', 'Store code', 'Distance (km)', 'By road', 'From'],
+      ...list.map((p) => [p.name, p.phone, local(p.createdAt), local(p.lastSeenAt), p.repeats || 0, p.how === 'typed' ? `Typed: ${p.query}` : 'Location', p.place || '', p.nearest?.name || '', p.nearest?.code || '', p.nearest?.km ?? '', p.nearest?.byRoad ? 'Yes' : 'No', p.from === 'popup' ? 'Home page popup' : 'Stores page']),
+    ]);
+  return (
+    <Card
+      title={`People who used the store finder${data ? ` (${num(data.people.length)})` : ''}`}
+      hint="Each search needs a name and mobile number, and each number can search once. Their location is never saved, only the store found."
+      action={
+        <div className="finder-people__actions">
+          <div className="dash-search">
+            <Icon name="search" />
+            <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Name, number, store" aria-label="Search people" />
+          </div>
+          <button type="button" className="dash-btn dash-btn--ghost dash-btn--sm" onClick={exportCsv} disabled={!list.length}>
+            <Icon name="download" /> Export
+          </button>
+        </div>
+      }
+    >
+      {error && <ErrorNote error={error} onRetry={reload} />}
+      {loading && !data && <Loading />}
+      {data && !list.length && <Empty title={filter ? 'No one matches that search.' : 'No one has searched yet.'} />}
+      {shown.length > 0 && (
+        <div className="dash-table-wrap">
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Searched</th>
+                <th>How</th>
+                <th>Nearest store</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((p) => (
+                <tr key={p.phone}>
+                  <td>
+                    <strong>{p.name}</strong>
+                    {p.otherNames?.length > 0 && <div className="dash-muted dash-small">Also typed: {p.otherNames.join(', ')}</div>}
+                  </td>
+                  <td>
+                    <a className="finder-people__phone" href={`tel:+91${p.phone}`}>+91 {p.phone.slice(0, 5)} {p.phone.slice(5)}</a>
+                    <div className="dash-small">
+                      <a href={`https://wa.me/91${p.phone}`} target="_blank" rel="noopener">
+                        WhatsApp
+                      </a>
+                    </div>
+                  </td>
+                  <td>
+                    {when(p.createdAt)}
+                    <div className="dash-muted dash-small">
+                      {p.from === 'popup' ? 'Home page popup' : 'Stores page'}
+                      {p.repeats ? ` · came back ${num(p.repeats)}×` : ''}
+                    </div>
+                  </td>
+                  <td>
+                    {how(p)}
+                    {p.place && <div className="dash-muted dash-small">{p.place}</div>}
+                  </td>
+                  <td>
+                    {p.nearest ? (
+                      <>
+                        {p.nearest.name}
+                        <div className="dash-muted dash-small">
+                          {p.nearest.code}
+                          {p.nearest.km != null && ` · ${p.nearest.km < 1 ? `${Math.round(p.nearest.km * 1000)} m` : `${p.nearest.km.toFixed(1)} km`}${p.nearest.byRoad ? ' by road' : ' straight line'}`}
+                        </div>
+                      </>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {list.length > 10 && (
+        <button type="button" className="dash-btn dash-btn--ghost dash-btn--sm finder-people__more" onClick={() => setAll((v) => !v)}>
+          {all ? 'Show the latest 10' : `Show all ${num(list.length)}`}
+        </button>
+      )}
+    </Card>
   );
 }
 

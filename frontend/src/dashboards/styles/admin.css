@@ -1227,3 +1227,20 @@
 .maps-usage__month {
   margin: 16px 0 0;
 }
+
+/* Stores: people who used the store finder */
+.finder-people__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.finder-people__actions .dash-search {
+  flex: 0 1 240px;
+}
+.finder-people__more {
+  margin-top: 12px;
+}
+.finder-people__phone {
+  white-space: nowrap;
+}

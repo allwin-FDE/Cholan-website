@@ -216,6 +216,18 @@
 }
 
 /* The WhatsApp number under the call number. */
+/* The call number with a phone icon, lined up with the WhatsApp row below. */
+.infocard__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.infocard__phone svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--brand-700);
+}
 .infocard__whatsapp {
   display: inline-flex;
   align-items: center;

@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Icon, iconPaths } from '../common/Icon.jsx';
 import { hasBackend } from '../../lib/api.js';
-import { currentPosition, findNearest, showKm, showMinutes } from '../../lib/stores.js';
+import { checkPerson, currentPosition, findNearest, rememberPerson, savedPerson, showDate, showKm, showMinutes } from '../../lib/stores.js';
 import { track } from '../../lib/analytics.js';
+import PersonFields from './PersonFields.jsx';
 
 const LOCATE = 'M12 2v3M12 19v3M2 12h3M19 12h3M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z';
 const ROUTE = 'M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3ZM9 3v15M15 6v15';
@@ -31,8 +32,9 @@ function markSeen() {
   }
 }
 
-// The store finder in a popup on the home page: "Find stores near me" or a
-// pincode, and the three nearest by road with directions. No map here (each
+// The store finder in a popup on the home page: name and mobile number, then
+// "Find stores near me" or a pincode, and the three nearest by road with
+// directions. Each number searches once; a repeat shows the first answer. No map here (each
 // map costs a Google map load); "See all on the map" carries the results to
 // /stores without searching again.
 export default function StoreFinderPopup() {
@@ -41,9 +43,12 @@ export default function StoreFinderPopup() {
   const [state, setState] = useState('idle'); // idle | locating | searching | done | error
   const [error, setError] = useState('');
   const [found, setFound] = useState(null);
+  const [person, setPerson] = useState(savedPerson);
+  const [personErrors, setPersonErrors] = useState({});
   const dialogRef = useRef(null);
   const overlayRef = useRef(null);
   const openerRef = useRef(null);
+  const autoRef = useRef(false); // opened by itself (not by the button)
   const navigate = useNavigate();
 
   // Once, a few seconds in, unless a cart or chat is already open.
@@ -53,6 +58,7 @@ export default function StoreFinderPopup() {
       if (document.querySelector('.cart--open, .chatx--open')) return;
       markSeen();
       openerRef.current = document.activeElement;
+      autoRef.current = true;
       setOpen(true);
       track('store_popup_open', { how: 'auto' });
     }, AUTO_DELAY_MS);
@@ -68,7 +74,12 @@ export default function StoreFinderPopup() {
     const root = document.documentElement;
     const before = root.style.overflow;
     root.style.overflow = 'hidden';
-    dialogRef.current?.querySelector('button.storepop__near')?.focus();
+    // Opened by itself: the popup (a text box would pop up a phone's keyboard
+    // unasked). Opened by the button: the name box when it's empty, else
+    // straight to "Find stores near me".
+    const nameBox = dialogRef.current?.querySelector('#storepop-who-name');
+    if (autoRef.current) dialogRef.current?.focus({ preventScroll: true });
+    else (nameBox && !nameBox.value ? nameBox : dialogRef.current?.querySelector('button.storepop__near'))?.focus();
     const stop = (e) => e.stopPropagation();
     // On the window, first (capture): keys reach here even when focus has
     // dropped to the page, and go no further (the snap scroll, the chat).
@@ -108,22 +119,37 @@ export default function StoreFinderPopup() {
 
   function show() {
     openerRef.current = document.activeElement;
+    autoRef.current = false;
     markSeen();
     setOpen(true);
     track('store_popup_open', { how: 'button' });
   }
 
-  async function search(where) {
+  // The name and number, or null (with the mistakes shown) when not right.
+  function who() {
+    const c = checkPerson(person);
+    setPersonErrors(c.errors || {});
+    if (c.errors) {
+      setError('');
+      dialogRef.current?.querySelector(`#storepop-who-${c.errors.name ? 'name' : 'phone'}`)?.focus();
+      return null;
+    }
+    return c;
+  }
+
+  async function search(where, me) {
     setError('');
     setFound(null);
     setState('searching');
     try {
-      const data = await findNearest(where, { from: 'popup' });
+      const data = await findNearest(where, { from: 'popup', ...me });
+      rememberPerson(me);
       setFound(data);
       setState('done');
-      track('find_store', { method: where.q ? 'search' : 'location', results: data.results.length, from: 'popup' });
+      track('find_store', { method: where.q ? 'search' : 'location', results: data.results.length, from: 'popup', repeat: Boolean(data.repeat) });
     } catch (e) {
-      setError(e.message);
+      if (e.fields) setPersonErrors(e.fields);
+      setError(e.fields ? '' : e.message);
       setState('error');
     }
     // The button pressed was disabled while searching, which drops focus to
@@ -135,11 +161,13 @@ export default function StoreFinderPopup() {
   }
 
   async function nearMe() {
+    const me = who();
+    if (!me) return;
     setError('');
     setFound(null);
     setState('locating');
     try {
-      await search(await currentPosition());
+      await search(await currentPosition(), me);
     } catch (e) {
       setError(e.message);
       setState('error');
@@ -148,12 +176,14 @@ export default function StoreFinderPopup() {
 
   function submit(event) {
     event.preventDefault();
+    const me = who();
+    if (!me) return;
     const q = query.trim();
     if (q.length < 3) {
       setError('Type a 6-digit pincode, or the name of your town or area.');
       return;
     }
-    search({ q });
+    search({ q }, me);
   }
 
   function seeAll() {
@@ -182,7 +212,8 @@ export default function StoreFinderPopup() {
               </button>
               <span className="eyebrow storepop__eyebrow">Store finder</span>
               <h2 id="storepop-title">Find your nearest Cholan store</h2>
-              <p className="storepop__lede">Over 270 Cholan rice shops across Coimbatore, Tiruppur, Erode, Salem, Namakkal and Hosur.</p>
+              <p className="storepop__lede">Over 270 Cholan rice shops across Coimbatore, Tiruppur, Erode, Salem, Namakkal and Hosur. Enter your name and mobile number to search.</p>
+              <PersonFields id="storepop-who" person={person} onChange={setPerson} errors={personErrors} disabled={busy} />
 
               <button type="button" className="btn btn--primary storepop__near" onClick={nearMe} disabled={busy}>
                 <Icon d={LOCATE} />
@@ -218,6 +249,11 @@ export default function StoreFinderPopup() {
                   <h3>
                     {found.origin.kind === 'gps' ? 'Nearest to you' : <>Nearest to {found.origin.label}</>}
                   </h3>
+                  {found.repeat && (
+                    <p className="storepop__note storepop__note--repeat">
+                      This number has already been used to search{found.person?.firstAt ? ` (on ${showDate(found.person.firstAt)})` : ''}. Each number can search once, so these are the stores we found then. For help, call us on +91 90922 66667.
+                    </p>
+                  )}
                   {found.method === 'straight_line' && <p className="storepop__note">Road distances aren’t available right now, so these are straight-line distances.</p>}
                   {results.length === 0 ? (
                     <p className="storepop__note">No stores could be found near there. Please call us on +91 90922 66667.</p>
@@ -260,7 +296,7 @@ export default function StoreFinderPopup() {
                   </button>
                 </div>
               )}
-              <p className="storepop__privacy">Your location is used only to find nearby stores. It isn’t saved.</p>
+              <p className="storepop__privacy">Each mobile number can search once. We keep your name and number so our team can help you. Your location is used only for the search and isn’t saved.</p>
             </div>
           </div>,
           document.body,

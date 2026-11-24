@@ -594,3 +594,30 @@
     bottom: 128px;
   }
 }
+
+/* Name and mobile number before the store search */
+.storeperson {
+  margin-bottom: 4px;
+}
+.storeperson .field {
+  margin-bottom: 12px;
+}
+.storepop .storeperson .input {
+  min-height: 46px;
+}
+.storepop__note--repeat,
+.stores-results__note--repeat {
+  padding: 10px 12px;
+  border: 1px solid var(--gold-100);
+  border-radius: var(--radius-sm);
+  background: #fffaf0;
+  color: var(--ink-soft);
+}
+.stores-search__who {
+  grid-column: 1 / -1;
+}
+.stores-search__intro {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
