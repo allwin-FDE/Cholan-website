@@ -8,9 +8,9 @@ import { createDust } from './hallDust.js';
 // The hall is one picture wrapped around them (scripts/build-rice-hall.py), so
 // its strip is a slot of 120 degrees per bag, with the bag's courtyard centred.
 const STOPS = [
-  { id: 'chennai-pattanam-rice', bag: '/images/stage-chennai-pattanam.webp' },
-  { id: 'moongil-ponni', bag: '/images/stage-moongil-poompuhar.webp' },
-  { id: 'karikalan-rice', bag: '/images/stage-karikalan.webp' },
+  { id: 'chennai-pattanam-rice', bag: '/images/hero-chennai-pattanam-white-ponni.webp' },
+  { id: 'moongil-ponni', bag: '/images/hero-moongil-poompuhar-ponni.webp' },
+  { id: 'karikalan-rice', bag: '/images/hero-karikalan-super-ponni.webp' },
 ].map((stop) => ({ ...stop, product: products.find((p) => p.id === stop.id) }));
 
 const TURN = (Math.PI * 2) / STOPS.length;

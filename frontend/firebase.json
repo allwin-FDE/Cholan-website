@@ -12,11 +12,21 @@
       { "source": "/pulses", "destination": "/products", "type": 301 },
       { "source": "/process", "destination": "/about", "type": 301 },
       { "source": "/store-locator", "destination": "/stores", "type": 301 },
-      { "source": "/images/products/ponni-rice.webp", "destination": "/images/products/chennai-pattanam-ponni-rice.webp", "type": 301 },
-      { "source": "/images/products/idly-rice.webp", "destination": "/images/products/chennai-pattanam-idli-rice.webp", "type": 301 },
-      { "source": "/images/products/gettimelam-ponni.webp", "destination": "/images/products/kettimelam-ponni-rice.webp", "type": 301 },
+      { "source": "/images/products/ponni-rice.webp", "destination": "/images/products/chennai-pattanam-white-ponni-rice.webp", "type": 301 },
+      { "source": "/images/products/idly-rice.webp", "destination": "/images/products/chennai-pattinam-special-idli-rice.webp", "type": 301 },
+      { "source": "/images/products/gettimelam-ponni.webp", "destination": "/images/products/kettimelam-special-ponni-rice-old.webp", "type": 301 },
       { "source": "/images/products/kurunai-rice-black-gold.webp", "destination": "/images/products/kurunai-broken-rice.webp", "type": 301 },
-      { "source": "/images/products/moongil-poompuhar.webp", "destination": "/images/products/moongil-poompuhar-ponni-rice.webp", "type": 301 }
+      { "source": "/images/products/moongil-poompuhar.webp", "destination": "/images/products/moongil-poompuhar-ponni-rice-bag.webp", "type": 301 },
+      { "source": "/images/products/chennai-pattanam-ponni-rice.webp", "destination": "/images/products/chennai-pattanam-white-ponni-rice.webp", "type": 301 },
+      { "source": "/images/products/karikalan-rice.webp", "destination": "/images/products/karikalan-super-ponni-rice.webp", "type": 301 },
+      { "source": "/images/products/kettimelam-ponni-rice.webp", "destination": "/images/products/kettimelam-special-ponni-rice-old.webp", "type": 301 },
+      { "source": "/images/products/moongil-poompuhar-ponni-rice.webp", "destination": "/images/products/moongil-poompuhar-ponni-rice-bag.webp", "type": 301 },
+      { "source": "/images/products/thooyamalli-ponni-raw-rice.webp", "destination": "/images/products/thooya-malli-ponni-raw-rice.webp", "type": 301 },
+      { "source": "/images/products/chennai-pattanam-idli-rice.webp", "destination": "/images/products/chennai-pattinam-special-idli-rice.webp", "type": 301 },
+      { "source": "/images/products/basmati-rice.webp", "destination": "/images/products/great-emperor-basmati-rice.webp", "type": 301 },
+      { "source": "/images/products/seeraga-samba.webp", "destination": "/images/products/mappillai-seeraga-samba-rice.webp", "type": 301 },
+      { "source": "/images/stage-chennai-pattanam.webp", "destination": "/images/hero-chennai-pattanam-white-ponni.webp", "type": 301 },
+      { "source": "/images/stage-moongil-poompuhar.webp", "destination": "/images/hero-moongil-poompuhar-ponni.webp", "type": 301 }
     ],
     "rewrites": [
       {

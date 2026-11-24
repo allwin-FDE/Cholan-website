@@ -19,7 +19,7 @@ export const products = [
     tagline: 'சென்னைப்பட்டினம் · Everyday Ponni rice',
     description: 'Everyday Ponni rice in the Chennai Pattanam pack, from the 1 kg pack up to the 26 kg sack.',
     packs: makePacks(['1 kg', 110], ['5 kg', 520], ['10 kg', 1030], ['26 kg', 2500]),
-    image: '/images/products/chennai-pattanam-ponni-rice.webp',
+    image: '/images/products/chennai-pattanam-white-ponni-rice.webp',
     featured: true,
   },
   {
@@ -31,7 +31,7 @@ export const products = [
     tagline: 'கரிகாலன் · Premium Ponni',
     description: 'Our Karikalan grade — a well-aged premium Ponni with good separation and a rich aroma when cooked. Sold from the 5 kg family bag up to the 26 kg sack.',
     packs: makePacks(['5 kg', 510], ['10 kg', 1010], ['26 kg', 2450]),
-    image: '/images/products/karikalan-rice.webp',
+    image: '/images/products/karikalan-super-ponni-rice.webp',
     featured: true,
   },
   {
@@ -43,7 +43,7 @@ export const products = [
     tagline: 'கெட்டிமேளம் · 26 kg bag',
     description: 'Kettimelam rice, in the 26 kg bag for larger households and messes.',
     packs: makePacks(['26 kg', 2400]),
-    image: '/images/products/kettimelam-ponni-rice.webp',
+    image: '/images/products/kettimelam-special-ponni-rice-old.webp',
   },
   {
     id: 'moongil-ponni',
@@ -54,7 +54,7 @@ export const products = [
     tagline: 'மூங்கில் பூம்புகார் · Ponni rice',
     description: 'Ponni rice in the Cholan Moongil Poompuhar pack, for daily meals.',
     packs: makePacks(['5 kg', 490], ['10 kg', 970], ['26 kg', 2350]),
-    image: '/images/products/moongil-poompuhar-ponni-rice.webp',
+    image: '/images/products/moongil-poompuhar-ponni-rice-bag.webp',
     featured: true,
   },
   {
@@ -87,7 +87,7 @@ export const products = [
     tagline: 'தூயமல்லி · Ponni raw rice (pachai arisi)',
     description: 'Ponni raw rice (pachai arisi) in the Thooya Malli pack, from the 1 kg pack up to the 26 kg sack.',
     packs: makePacks(['1 kg', 100], ['5 kg', 500], ['26 kg', 2400]),
-    image: '/images/products/thooyamalli-ponni-raw-rice.webp',
+    image: '/images/products/thooya-malli-ponni-raw-rice.webp',
   },
   {
     id: 'chennai-pattanam-idli-rice',
@@ -97,7 +97,7 @@ export const products = [
     tagline: 'சென்னைப்பட்டினம் இட்லி · For idli and dosa',
     description: 'Idli rice in the Chennai Pattanam pack, milled for batter — for soft idlis and crisp dosas.',
     packs: makePacks(['5 kg', 320], ['26 kg', 1500]),
-    image: '/images/products/chennai-pattanam-idli-rice.webp',
+    image: '/images/products/chennai-pattinam-special-idli-rice.webp',
     featured: true,
   },
   {
@@ -118,7 +118,7 @@ export const products = [
     tagline: 'பாசுமதி · For biryani and pulao',
     description: 'Long-grain basmati that stays separate when cooked — for biryani, pulao and ghee rice. Sold in the 1 kg pack.',
     packs: makePacks(['1 kg', 130]),
-    image: '/images/products/basmati-rice.webp',
+    image: '/images/products/great-emperor-basmati-rice.webp',
   },
   {
     id: 'seeraga-samba',
@@ -129,6 +129,6 @@ export const products = [
     tagline: 'சீரக சம்பா · Small-grain rice for biryani',
     description: 'Seeraga samba, the small-grain rice of the Tamil biryani. Sold in the 1 kg pack.',
     packs: makePacks(['1 kg', 230]),
-    image: '/images/products/seeraga-samba.webp',
+    image: '/images/products/mappillai-seeraga-samba-rice.webp',
   },
 ];

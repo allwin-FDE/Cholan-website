@@ -5,12 +5,12 @@ import { getSectionTop, useSnapScroll } from '../../hooks/useSnapScroll.js';
 
 const packs = [
   {
-    src: '/images/stage-chennai-pattanam.webp',
-    alt: 'Chennai Pattanam Gottalady Ponni 25 kg rice pack',
+    src: '/images/hero-chennai-pattanam-white-ponni.webp',
+    alt: 'Chennai Pattanam Special Rajabhogam White Ponni rice bag',
     cls: 'side-l',
   },
-  { src: '/images/stage-karikalan.webp', alt: 'Karikalan 25 kg bulk pack', cls: 'hero' },
-  { src: '/images/stage-moongil-poompuhar.webp', alt: 'Cholan Moongil Poompuhar Ponni 26 kg pack', cls: 'side-r' },
+  { src: '/images/hero-karikalan-super-ponni.webp', alt: 'Karikalan Super Ponni Rice bag', cls: 'hero' },
+  { src: '/images/hero-moongil-poompuhar-ponni.webp', alt: 'Cholan Moongil Poompuhar Ponni rice bag', cls: 'side-r' },
 ];
 
 const lede = 'Carefully selected grains, packed with purpose.';
