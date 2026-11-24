@@ -1,14 +1,8 @@
-// Name and mobile number, asked before the store search (popup and /stores).
-// errors: { name, phone } from checkPerson or the server.
+import { tenDigits } from '../../lib/phone.js';
 
-// The mobile box takes digits only, at most 10, with +91 shown in front.
-// A pasted "+91 98765 43210" or "098765 43210" keeps just the 10 digits.
-export function tenDigits(value) {
-  let d = String(value ?? '').replace(/\D/g, '');
-  if (d.length === 12 && d.startsWith('91')) d = d.slice(2);
-  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
-  return d.slice(0, 10);
-}
+// Name and mobile number, asked before the store search (popup and /stores).
+// errors: { name, phone } from checkPerson or the server. The mobile box
+// takes 10 digits, with +91 shown in front.
 
 export default function PersonFields({ id, person, onChange, errors = {}, disabled }) {
   const phone = tenDigits(person.phone);
@@ -35,8 +29,8 @@ export default function PersonFields({ id, person, onChange, errors = {}, disabl
       </div>
       <div className="field">
         <label htmlFor={`${id}-phone`}>Mobile number</label>
-        <div className={`storeperson__phone${disabled ? ' is-disabled' : ''}`}>
-          <span className="storeperson__prefix" aria-hidden="true">
+        <div className={`phone-field${disabled ? ' is-disabled' : ''}`}>
+          <span className="phone-field__prefix" aria-hidden="true">
             +91
           </span>
           <input

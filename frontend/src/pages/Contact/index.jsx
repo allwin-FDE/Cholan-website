@@ -10,6 +10,7 @@ import Seo from '../../components/common/Seo.jsx';
 import { pages, businessSchema } from '../../config/seo.js';
 import { track } from '../../lib/analytics.js';
 import { enquiryContext } from '../../lib/tracker.js';
+import { isMobile, tenDigits } from '../../lib/phone.js';
 
 const fullAddress = `${site.address.line1}, ${site.address.line2} ${site.address.pincode}, ${site.address.state}`;
 
@@ -53,7 +54,9 @@ export default function Contact() {
   }, [product]);
 
   const updateField = (field) => (event) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
+    // The phone box takes a 10-digit mobile number only.
+    const value = field === 'phone' ? tenDigits(event.target.value) : event.target.value;
+    setForm((current) => ({ ...current, [field]: value }));
     // Clear this field's error as soon as it is edited, so a correction does
     // not sit next to a stale complaint.
     setFieldErrors((current) => {
@@ -66,6 +69,11 @@ export default function Contact() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (status === 'sending') return;
+    if (!isMobile(form.phone)) {
+      setFieldErrors((current) => ({ ...current, phone: 'Please type a 10-digit mobile number.' }));
+      document.getElementById('phone')?.focus();
+      return;
+    }
 
     // No backend online yet: send the enquiry through WhatsApp instead.
     if (!hasBackend) {
@@ -141,17 +149,25 @@ export default function Contact() {
               </div>
               <div className="field-row">
                 <div className="field">
-                  <label htmlFor="phone">Phone *</label>
-                  <input
-                    id="phone"
-                    className="input"
-                    type="tel"
-                    required
-                    value={form.phone}
-                    onChange={updateField('phone')}
-                    aria-invalid={fieldErrors.phone ? 'true' : undefined}
-                    aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}
-                  />
+                  <label htmlFor="phone">Mobile number *</label>
+                  <div className="phone-field">
+                    <span className="phone-field__prefix" aria-hidden="true">
+                      +91
+                    </span>
+                    <input
+                      id="phone"
+                      className="input"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      placeholder="10-digit number"
+                      required
+                      value={form.phone}
+                      onChange={updateField('phone')}
+                      aria-invalid={fieldErrors.phone ? 'true' : undefined}
+                      aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}
+                    />
+                  </div>
                   {fieldErrors.phone && (
                     <p className="field__error" id="phone-error">
                       {fieldErrors.phone}

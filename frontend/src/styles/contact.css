@@ -242,3 +242,29 @@
 .footer__contact .footer__whatsapp svg.wa-logo {
   flex: none;
 }
+
+/* A mobile number box: +91 shown in front, 10 digits typed (the enquiry
+   form and the store finder). */
+.phone-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.phone-field__prefix {
+  position: absolute;
+  left: 14px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  pointer-events: none;
+}
+.phone-field .input {
+  width: 100%;
+  padding-left: 52px;
+  letter-spacing: 0.02em;
+}
+.phone-field .input:focus {
+  transform: none;
+}
+.phone-field.is-disabled .phone-field__prefix {
+  opacity: 0.6;
+}

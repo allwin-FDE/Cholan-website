@@ -621,26 +621,3 @@
   color: var(--ink-soft);
   font-size: 0.95rem;
 }
-/* The mobile box: +91 in front, 10 digits typed */
-.storeperson__phone {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.storeperson__prefix {
-  position: absolute;
-  left: 14px;
-  color: var(--ink-soft);
-  font-weight: 600;
-  pointer-events: none;
-}
-.storeperson__phone .input {
-  padding-left: 52px;
-  letter-spacing: 0.02em;
-}
-.storeperson__phone.is-disabled .storeperson__prefix {
-  opacity: 0.6;
-}
-.storeperson__phone .input:focus {
-  transform: none;
-}
