@@ -35,7 +35,7 @@ function MenuPreview({ bot }) {
         <div className="wa-bubble wa-bubble--in-demo">
           <p className="wa-bubble__body">Hi</p>
         </div>
-        {(bot.showCatalogue || String(bot.contact || '').trim()) && (
+        {bot.showCatalogue && (
           <div className="wa-bubble">
             <p className="wa-bubble__body">
               {bot.showCatalogue && (
@@ -126,7 +126,7 @@ export default function Bot() {
     <div className="dash-page">
       <PageHead
         title="Bot"
-        intro="Answers by itself when someone says hi: your catalogue and contact number, then a menu: the catalogue, today’s prices, their order’s status, or a hand-over to your team."
+        intro="Answers by itself when someone says hi with a menu: the catalogue, today’s prices, their order’s status, or a hand-over to your team."
         range={false}
         actions={
           <label className="wa-switch-row">
@@ -154,7 +154,7 @@ export default function Bot() {
                 <input type="checkbox" checked={bot.showCatalogue !== false} onChange={(e) => set({ showCatalogue: e.target.checked })} disabled={!editor} /> First send our catalogue (every product with pack sizes and prices, as on the website)
               </label>
               <label className="dash-field biz-wide">
-                <span className="dash-field__label">Contact details (sent with the catalogue, before the menu)</span>
+                <span className="dash-field__label">Contact details (sent with the catalogue)</span>
                 <textarea className="dash-textarea" rows={3} value={bot.contact || ''} onChange={(e) => set({ contact: e.target.value })} disabled={!editor} placeholder={'📞 Call us: +91 90922 66667'} />
               </label>
               <label className="dash-field biz-wide">

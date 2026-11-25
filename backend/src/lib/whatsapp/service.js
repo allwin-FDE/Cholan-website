@@ -844,7 +844,7 @@ const DEFAULT_CONTACT = `📞 Call us: ${CATALOGUE.phone || '+91 90922 66667'}\n
 export const DEFAULT_BOT = {
   enabled: false,
   onFirstMessage: true,
-  // On hi: the contact details, then the menu (the catalogue only when chosen).
+  // On hi: only the menu (the catalogue, with the contact details, when chosen).
   showCatalogue: false,
   contact: DEFAULT_CONTACT,
   triggerWords: ['hi', 'hello', 'hai', 'vanakkam', 'menu', 'help'],
@@ -1040,9 +1040,9 @@ export async function runBot(g, { wa, name, text, replyId, location, first, cont
   }
   if (bot.triggerWords.includes(t) || (first && bot.onFirstMessage)) {
     const welcome = bot.welcome.replace(/\{name\}/g, String(name || '').split(' ')[0] || 'there');
-    // The catalogue and contact details first, then the menu to choose from.
+    // Only the menu (owner, 2026-11-25); the catalogue first only if switched
+    // on. The contact details go with the catalogue when someone picks it.
     if (bot.showCatalogue) await sendNow(g, { wa, kind: 'text', text: catalogueText(bot.contact), by: 'bot' });
-    else if (String(bot.contact || '').trim()) await sendNow(g, { wa, kind: 'text', text: bot.contact, by: 'bot' });
     await sendNow(g, { wa, kind: 'menu', menu: { text: welcome, button: bot.button, options: bot.options }, by: 'bot' });
     await col.contacts().doc(wa).set({ botMenuAt: now() }, { merge: true });
     await col.settings().doc('bot').set({ 'runs.menu': FieldValue.increment(1) }, { merge: true });
