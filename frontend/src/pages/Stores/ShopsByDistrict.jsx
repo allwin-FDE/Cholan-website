@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TN_PATH, TN_VIEWBOX, project } from '../../data/tamilNaduMap.js';
 import { districtSlug } from './District.jsx';
@@ -25,7 +25,6 @@ const [VW, VH] = TN_VIEWBOX.split(' ').slice(2).map(Number);
 export default function ShopsByDistrict({ data }) {
   const [picked, setPicked] = useState(null);
   const [filter, setFilter] = useState('');
-  const listRef = useRef(null);
 
   const districts = useMemo(() => {
     const m = new Map();
@@ -56,8 +55,8 @@ export default function ShopsByDistrict({ data }) {
   const choose = (name) => {
     setPicked((p) => (p === name ? null : name));
     setFilter('');
-    // On a phone the list sits under the map: bring it into view.
-    if (window.matchMedia('(max-width: 900px)').matches) requestAnimationFrame(() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    // The page stays where it is, so on a phone the map's change stays in
+    // view; the list below changes with it (owner, 2026-11-25).
   };
 
   return (
@@ -102,7 +101,7 @@ export default function ShopsByDistrict({ data }) {
           )}
         </div>
 
-        <div className="tnshops__panel" ref={listRef}>
+        <div className="tnshops__panel">
           <div className="tnshops__chips" role="group" aria-label="Districts">
             {districts.map((d) => (
               <button key={d.name} type="button" className={`tnshops__chip${picked === d.name ? ' is-on' : ''}`} onClick={() => choose(d.name)} aria-pressed={picked === d.name}>
