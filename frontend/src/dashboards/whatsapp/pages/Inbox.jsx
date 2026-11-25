@@ -29,6 +29,29 @@ function CampaignMark({ c }) {
   return <Badge tone="neutral">Sent</Badge>;
 }
 const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '');
+const IST = { timeZone: 'Asia/Kolkata' };
+const dayKey = (iso) => new Date(iso).toLocaleDateString('en-CA', IST);
+// "Today", "Yesterday", or the date, for the line between days.
+function dayLabel(iso) {
+  const key = dayKey(iso);
+  const today = dayKey(new Date().toISOString());
+  const yesterday = dayKey(new Date(Date.now() - 86_400_000).toISOString());
+  if (key === today) return 'Today';
+  if (key === yesterday) return 'Yesterday';
+  return new Date(iso).toLocaleDateString('en-IN', { ...IST, weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+const clock = (iso) => new Date(iso).toLocaleTimeString('en-IN', { ...IST, hour: 'numeric', minute: '2-digit' });
+// Who sent a message, as a label and a colour: the customer, or on our side the
+// bot, an automatic reply, a broadcast or bulk message, an automation, or a person.
+function senderOf(m, contactName) {
+  if (m.direction === 'in') return { label: contactName || 'Customer', tone: 'customer' };
+  if (m.by === 'bot') return { label: 'Bot', tone: 'bot' };
+  if (m.by === 'auto') return { label: 'Auto reply', tone: 'auto' };
+  if (m.campaignId) return { label: 'Broadcast', tone: 'auto' };
+  if (m.automationId) return { label: 'Automation', tone: 'auto' };
+  if (m.by && String(m.by).includes('@')) return { label: String(m.by).split('@')[0], tone: 'staff' };
+  return { label: 'You', tone: 'staff' };
+}
 
 export default function Inbox() {
   const { get, patch } = useUrl();
@@ -111,7 +134,7 @@ export default function Inbox() {
                       {c.name || showNumber(c.id)} {c.needsHuman && <span className="wa-human">Needs a person</span>}
                     </strong>
                     <span className="wa-clip">
-                      {c.lastDirection === 'out' ? 'You: ' : ''}
+                      {c.lastDirection === 'out' ? 'Reply: ' : ''}
                       {c.lastMessageText}
                     </span>
                   </span>
@@ -146,7 +169,7 @@ function Thread({ id, onBack, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState(null);
   const [useTemplate, setUseTemplate] = useState(false);
-  const end = useRef(null);
+  const body = useRef(null);
   const d = c.data;
   useEffect(() => {
     const t = setInterval(() => document.visibilityState === 'visible' && c.reload(), 15_000);
@@ -155,9 +178,11 @@ function Thread({ id, onBack, onChanged }) {
   useEffect(() => {
     if (d?.contact?.unread && allowed('editor')) wa.markRead(id).then(onChanged).catch(() => {});
   }, [d?.contact?.unread, id, allowed, onChanged]);
+  // The newest message in view when the chat opens or a message arrives. Only the
+  // message area scrolls (scrollIntoView would scroll the page and the chat list too).
   useEffect(() => {
-    // Newer browsers return a promise from scrollIntoView; an effect must return nothing.
-    end.current?.scrollIntoView({ block: 'end' });
+    const el = body.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [d?.messages?.length]);
 
   const send = async (body) => {
@@ -195,20 +220,52 @@ function Thread({ id, onBack, onChanged }) {
           Contact
         </Link>
       </header>
-      <div className="wa-thread__body">
-        {d.messages.map((m) => (
-          <div key={m.id} className={`wa-msg wa-msg--${m.direction}`}>
-            {m.kind === 'template' && <span className="wa-msg__tag">Template {m.template?.name}</span>}
-            {m.media && <span className="wa-msg__tag">[{m.media.kind}{m.media.filename ? `: ${m.media.filename}` : ''}]</span>}
-            <p>{m.text || (m.media ? '' : `[${m.kind}]`)}</p>
-            <span className="wa-msg__meta">
-              {new Date(m.at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
-              {m.direction === 'out' && <span className={`wa-tick wa-tick--${m.status}`}> {TICKS[m.status] || ''}</span>}
-            </span>
-            {m.status === 'failed' && <span className="wa-msg__error">{m.error}</span>}
-          </div>
+      <div className="wa-thread__legend" aria-hidden="true">
+        {[
+          ['customer', 'Customer (left)'],
+          ['bot', 'Bot'],
+          ['staff', 'Staff reply'],
+          ['auto', 'Automatic / broadcast'],
+        ].map(([tone, label]) => (
+          <span key={tone}>
+            <i className={`wa-dot wa-dot--${tone}`} /> {label}
+          </span>
         ))}
-        <div ref={end} />
+      </div>
+      <div className="wa-thread__body" ref={body}>
+        {!d.messages.length && <p className="wa-thread__none">No messages in this chat yet.</p>}
+        {d.messages.map((m, i) => {
+          const prev = d.messages[i - 1];
+          const newDay = !prev || dayKey(prev.at) !== dayKey(m.at);
+          const who = senderOf(m, contact.name);
+          const prevWho = prev && senderOf(prev, contact.name);
+          // The sender's name on the first message of each run from them.
+          const showWho = newDay || !prevWho || prevWho.label !== who.label || prev.direction !== m.direction;
+          return (
+            <div key={m.id} className="wa-msg-row-wrap">
+              {newDay && (
+                <div className="wa-day" role="separator">
+                  <span>{dayLabel(m.at)}</span>
+                </div>
+              )}
+              <div className={`wa-msg-row wa-msg-row--${m.direction}${showWho ? ' is-first' : ''}`}>
+                <div className={`wa-msg wa-msg--${m.direction} wa-msg--${who.tone}`}>
+                  {showWho && <span className={`wa-msg__who wa-msg__who--${who.tone}`}>{who.label}</span>}
+                  {m.kind === 'template' && <span className="wa-msg__tag">Template: {m.template?.name}</span>}
+                  {m.kind === 'menu' && <span className="wa-msg__tag">Menu with buttons</span>}
+                  {m.kind === 'interactive' && m.direction === 'in' && <span className="wa-msg__tag">Tapped a button</span>}
+                  {m.media && <span className="wa-msg__tag">[{m.media.kind}{m.media.filename ? `: ${m.media.filename}` : ''}]</span>}
+                  <p>{m.text || (m.media ? '' : `[${m.kind}]`)}</p>
+                  <span className="wa-msg__meta">
+                    {clock(m.at)}
+                    {m.direction === 'out' && <span className={`wa-tick wa-tick--${m.status}`} title={m.status}> {TICKS[m.status] || ''}</span>}
+                  </span>
+                  {m.status === 'failed' && <span className="wa-msg__error">{m.error}</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
       {allowed('editor') && (
         <footer className="wa-thread__compose">

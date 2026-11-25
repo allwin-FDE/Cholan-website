@@ -391,35 +391,49 @@
   }
 }
 
-/* The inbox. */
+/* The inbox: chat list on the left, the conversation on the right. The box
+   fills the screen; only the chat list and the message area scroll, so the
+   chat header and the reply box stay in place. */
 .wa-inbox {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
-  height: calc(100vh - 190px);
-  min-height: 460px;
+  height: max(520px, calc(100dvh - 210px));
   border: 1px solid var(--d-line);
   border-radius: 14px;
   background: var(--d-card);
 }
 .wa-convos {
-  overflow-y: auto;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   border-right: 1px solid var(--d-line);
 }
+.wa-convos > .dash-search {
+  flex: none;
+  margin: 12px;
+}
+.wa-convos > .dash-muted,
+.wa-convos > .dash-loading {
+  margin: 8px 16px;
+}
 .wa-convos ul {
-  margin: 8px 0 0;
-  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 8px 12px;
   list-style: none;
 }
 .wa-convo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 12px;
   background: none;
   color: inherit;
   font: inherit;
@@ -434,8 +448,8 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: #dfe5e7;
   color: #54656f;
@@ -444,13 +458,20 @@
 .wa-convo__text {
   flex: 1;
   min-width: 0;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
 }
 .wa-convo__text strong {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .wa-convo__text .wa-clip {
+  display: block;
+  overflow: hidden;
   color: var(--d-ink-2, #5d6b62);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .wa-convo.is-unread .wa-convo__text strong,
 .wa-convo.is-unread .wa-clip {
@@ -459,6 +480,7 @@
 }
 .wa-convo__meta {
   display: flex;
+  flex: none;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
@@ -468,6 +490,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   background: var(--wa-chat, #efeae2);
 }
 .wa-thread > .dash-empty {
@@ -475,44 +498,150 @@
 }
 .wa-thread__head {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 12px;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--d-line);
   background: var(--d-card);
 }
 .wa-back {
   display: none;
 }
-.wa-thread__body {
+.wa-thread__legend {
   display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 6px 18px;
+  border-bottom: 1px solid var(--d-line);
+  background: #f7f8fa;
+  color: var(--d-mute);
+  font-size: 0.75rem;
+}
+.wa-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 2px;
+  border-radius: 50%;
+  vertical-align: -1px;
+}
+.wa-dot--customer {
+  border: 1px solid #c9d1d6;
+  background: #fff;
+}
+.wa-dot--bot {
+  background: #d9fdd3;
+  box-shadow: inset 0 0 0 2px #25a35a;
+}
+.wa-dot--staff {
+  background: #dcecff;
+  box-shadow: inset 0 0 0 2px #2f6fd6;
+}
+.wa-dot--auto {
+  background: #fff4d6;
+  box-shadow: inset 0 0 0 2px #c48a12;
+}
+.wa-thread__body {
   flex: 1;
-  flex-direction: column;
-  gap: 6px;
+  min-height: 0;
   overflow-y: auto;
-  padding: 14px;
+  overscroll-behavior: contain;
+  padding: 16px clamp(12px, 3vw, 36px) 20px;
+}
+.wa-thread__none {
+  margin: 40px auto;
+  color: var(--d-mute);
+  text-align: center;
+}
+.wa-day {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  margin: 14px 0 8px;
+  pointer-events: none;
+}
+.wa-day span {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+  color: #54656f;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+.wa-msg-row {
+  display: flex;
+  margin-top: 3px;
+}
+.wa-msg-row.is-first {
+  margin-top: 12px;
+}
+.wa-msg-row--in {
+  justify-content: flex-start;
+}
+.wa-msg-row--out {
+  justify-content: flex-end;
 }
 .wa-msg {
-  max-width: 72%;
-  padding: 6px 9px;
+  position: relative;
+  max-width: min(68%, 560px);
+  padding: 7px 10px 6px;
   border-radius: 10px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
-  font-size: 0.88rem;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 .wa-msg p {
   margin: 0;
   white-space: pre-wrap;
-  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 .wa-msg--in {
-  align-self: flex-start;
-  border-top-left-radius: 0;
+  border-left: 3px solid #c9d1d6;
   background: #fff;
 }
-.wa-msg--out {
-  align-self: flex-end;
+.wa-msg--bot {
+  border-right: 3px solid #25a35a;
+  background: #d9fdd3;
+}
+.wa-msg--staff {
+  border-right: 3px solid #2f6fd6;
+  background: #dcecff;
+}
+.wa-msg--auto {
+  border-right: 3px solid #c48a12;
+  background: #fff4d6;
+}
+.wa-msg-row.is-first .wa-msg--in {
+  border-top-left-radius: 0;
+}
+.wa-msg-row.is-first .wa-msg--out {
   border-top-right-radius: 0;
-  background: var(--wa-out, #d9fdd3);
+}
+.wa-msg__who {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.wa-msg__who--customer {
+  color: #0b7a5b;
+}
+.wa-msg__who--bot {
+  color: #1d7a42;
+}
+.wa-msg__who--staff {
+  color: #2459b3;
+  text-transform: capitalize;
+}
+.wa-msg__who--auto {
+  color: #946510;
 }
 .wa-msg__tag {
   display: block;
@@ -522,9 +651,9 @@
 }
 .wa-msg__meta {
   display: block;
-  margin-top: 2px;
+  margin-top: 3px;
   color: #667781;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   text-align: right;
 }
 .wa-msg__error {
@@ -540,7 +669,8 @@
   font-weight: 700;
 }
 .wa-thread__compose {
-  padding: 10px 14px;
+  flex: none;
+  padding: 10px 18px 12px;
   border-top: 1px solid var(--d-line);
   background: var(--d-card);
 }
@@ -553,6 +683,7 @@
 .wa-compose textarea {
   flex: 1 1 260px;
   min-height: 44px;
+  max-height: 160px;
   resize: vertical;
 }
 .wa-template-reply {
@@ -562,7 +693,7 @@
 @media (max-width: 800px) {
   .wa-inbox {
     grid-template-columns: 1fr;
-    height: calc(100vh - 170px);
+    height: max(480px, calc(100dvh - 170px));
   }
   .wa-inbox.has-chat .wa-convos {
     display: none;
@@ -572,6 +703,9 @@
   }
   .wa-back {
     display: inline-grid;
+  }
+  .wa-msg {
+    max-width: 86%;
   }
 }
 
