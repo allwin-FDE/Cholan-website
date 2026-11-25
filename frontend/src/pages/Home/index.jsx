@@ -2,7 +2,7 @@ import HeroCurtain from './HeroCurtain.jsx';
 import RailStory from './RailStory.jsx';
 import RiceHall from './RiceHall.jsx';
 import FeaturedProducts from './FeaturedProducts.jsx';
-import BulkSection from './BulkSection.jsx';
+import ShopsMapSection from './ShopsMapSection.jsx';
 import Reviews from './Reviews.jsx';
 import Seo from '../../components/common/Seo.jsx';
 import StoreFinderPopup from '../../components/stores/StoreFinderPopup.jsx';
@@ -18,7 +18,7 @@ export default function Home() {
       <FeaturedProducts />
       <RailStory />
       <RiceHall />
-      <BulkSection />
+      <ShopsMapSection />
       <Reviews />
       <StoreFinderPopup />
     </>

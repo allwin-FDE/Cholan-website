@@ -894,3 +894,16 @@
     max-height: none;
   }
 }
+/* The same map on the home page, where the bulk-supply section was. */
+.home-shops .tnshops {
+  margin-top: 0;
+}
+.home-shops__more {
+  max-width: 962px;
+  margin: 14px auto 0;
+  font-size: 0.9rem;
+}
+.home-shops__more a {
+  color: var(--brand-700);
+  font-weight: 600;
+}
