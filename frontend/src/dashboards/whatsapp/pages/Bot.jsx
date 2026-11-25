@@ -10,7 +10,7 @@ import { useWa } from '../shared.jsx';
 // hands the chat to a person (the bot then stays quiet with them for a while).
 const ACTION_HELP = {
   reply: 'Sends the message you type.',
-  catalogue: 'Sends the catalogue: every product with its pack sizes and prices, as on the website, and your contact details.',
+  catalogue: 'Sends the list of products with their pack sizes (no prices).',
   prices: 'Sends today’s website prices for every pack, from the plant’s price list.',
   order_status: 'Finds their latest orders by their number and sends where each one is.',
   handoff: 'Sends your message, marks the chat “needs a person” in the Inbox, and the bot stays quiet with them.',
@@ -40,11 +40,11 @@ function MenuPreview({ bot }) {
             <p className="wa-bubble__body">
               {bot.showCatalogue && (
                 <>
-                  🌾 <strong>Cholan Rice: our catalogue</strong>
+                  🌾 <strong>Cholan Rice: our products</strong>
                   <br />
-                  1. Chennai Pattanam Ponni · 1 kg ₹110 · 5 kg ₹520…
+                  1. Chennai Pattanam Ponni · 1 kg · 5 kg · 10 kg…
                   <br />
-                  2. Karikalan · 5 kg ₹510…
+                  2. Karikalan · 5 kg…
                   <br />…
                   <br />
                 </>
@@ -151,7 +151,7 @@ export default function Bot() {
                 <input type="checkbox" checked={bot.onFirstMessage} onChange={(e) => set({ onFirstMessage: e.target.checked })} disabled={!editor} /> Also when someone writes for the first time
               </label>
               <label className="dash-check biz-wide">
-                <input type="checkbox" checked={bot.showCatalogue !== false} onChange={(e) => set({ showCatalogue: e.target.checked })} disabled={!editor} /> First send our catalogue (every product with pack sizes and prices, as on the website)
+                <input type="checkbox" checked={bot.showCatalogue !== false} onChange={(e) => set({ showCatalogue: e.target.checked })} disabled={!editor} /> First send our products list (every product with its pack sizes)
               </label>
               <label className="dash-field biz-wide">
                 <span className="dash-field__label">Contact details (sent with the catalogue)</span>

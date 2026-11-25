@@ -829,22 +829,18 @@ try {
 } catch {
   // No catalogue file: the catalogue message is just the website link.
 }
-const rupees = (n) => `₹${Number(n).toLocaleString('en-IN')}`;
-export function catalogueText(contact = '') {
-  const lines = CATALOGUE.products.map((p, i) => {
-    const packs = p.packs.length ? p.packs.map((k) => (k.price != null ? `${k.size} ${rupees(k.price)}` : `${k.size} (ask us)`)).join(' · ') : 'sizes on request';
-    return `${i + 1}. *${p.name}*\n    ${packs}`;
-  });
-  const text = ['🌾 *Cholan Rice: our catalogue*', lines.join('\n'), `Photos and details: ${CATALOGUE.website}/products`, String(contact || '').trim()]
-    .filter(Boolean)
-    .join('\n\n');
+// The products and their pack sizes only: no prices and nothing else
+// (owner, 2026-11-25).
+export function catalogueText() {
+  const lines = CATALOGUE.products.map((p, i) => `${i + 1}. *${p.name}*\n    ${p.packs.length ? p.packs.map((k) => k.size).join(' · ') : 'sizes on request'}`);
+  const text = ['🌾 *Cholan Rice: our products*', lines.join('\n')].join('\n\n');
   return text.length > 4000 ? `${text.slice(0, 3990)}…` : text;
 }
 const DEFAULT_CONTACT = `📞 Call us: ${CATALOGUE.phone || '+91 90922 66667'}\n💬 Or reply here on WhatsApp\n🌐 www.cholanrice.in`;
 export const DEFAULT_BOT = {
   enabled: false,
   onFirstMessage: true,
-  // On hi: only the menu (the catalogue, with the contact details, when chosen).
+  // On hi: only the menu (the products list when chosen).
   showCatalogue: false,
   contact: DEFAULT_CONTACT,
   triggerWords: ['hi', 'hello', 'hai', 'vanakkam', 'menu', 'help'],
@@ -904,7 +900,7 @@ export async function saveBot(body, by) {
 const ORDER_WORDS = { awaiting_payment: 'waiting for payment', new: 'received, we will confirm it shortly', confirmed: 'confirmed', packing: 'being packed', packed: 'packed and ready to go', dispatched: 'on its way', delivered: 'delivered', cancelled: 'cancelled', returned: 'returned' };
 async function botAnswer(option, { wa, name, bot }) {
   const first = String(name || '').split(' ')[0] || 'there';
-  if (option.action === 'catalogue') return catalogueText(bot?.contact);
+  if (option.action === 'catalogue') return catalogueText();
   if (option.action === 'prices') {
     if (!dbEnabled()) return option.reply || 'Please call us for today’s prices.';
     const { rows } = await query(
@@ -1042,7 +1038,7 @@ export async function runBot(g, { wa, name, text, replyId, location, first, cont
     const welcome = bot.welcome.replace(/\{name\}/g, String(name || '').split(' ')[0] || 'there');
     // Only the menu (owner, 2026-11-25); the catalogue first only if switched
     // on. The contact details go with the catalogue when someone picks it.
-    if (bot.showCatalogue) await sendNow(g, { wa, kind: 'text', text: catalogueText(bot.contact), by: 'bot' });
+    if (bot.showCatalogue) await sendNow(g, { wa, kind: 'text', text: catalogueText(), by: 'bot' });
     await sendNow(g, { wa, kind: 'menu', menu: { text: welcome, button: bot.button, options: bot.options }, by: 'bot' });
     await col.contacts().doc(wa).set({ botMenuAt: now() }, { merge: true });
     await col.settings().doc('bot').set({ 'runs.menu': FieldValue.increment(1) }, { merge: true });
