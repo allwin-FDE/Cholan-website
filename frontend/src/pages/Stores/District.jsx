@@ -5,13 +5,14 @@ import { absoluteUrl } from '../../config/seo.js';
 import { hasBackend } from '../../lib/api.js';
 import { fetchStores } from '../../lib/stores.js';
 import NotFound from '../NotFound.jsx';
+import Directions from './Directions.jsx';
 
 // "coimbatore" <-> "Coimbatore": the district's address on the site.
 export const districtSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-// /stores/<district>: every Cholan shop in one district with its address
-// (no directions or call links, owner 2026-11-25), for people searching
-// "Cholan rice shop Erode". Each shop is described to Google as a grocery store.
+// /stores/<district>: every Cholan shop in one district, with addresses and
+// directions, for people searching "Cholan rice shop Erode" (the audit:
+// local search pages). Each shop is described to Google as a grocery store.
 export default function District() {
   const { district: slug } = useParams();
   const [data, setData] = useState(null);
@@ -61,6 +62,7 @@ export default function District() {
         },
         ...(s.lat != null && s.precision !== 'approximate' ? { geo: { '@type': 'GeoCoordinates', latitude: s.lat, longitude: s.lng } } : {}),
         ...(s.phone ? { telephone: `+91${s.phone}` } : {}),
+        hasMap: s.directionsUrl,
       },
     })),
   };
@@ -69,7 +71,7 @@ export default function District() {
     <>
       <Seo
         title={title}
-        description={name ? `${shops.length} Cholan rice shops in ${name} district, with their addresses. Ponni, idli rice, seeraga samba and more.` : undefined}
+        description={name ? `${shops.length} Cholan rice shops in ${name} district: addresses, directions and the nearest shop to you. Ponni, idli rice, seeraga samba and more.` : undefined}
         path={path}
         schema={schema || undefined}
       />
@@ -83,7 +85,10 @@ export default function District() {
             <strong>{name || '…'}</strong>
           </nav>
           <h1>{title}</h1>
-          <p className="lede pagehero__lede">{name ? `${shops.length} Cholan ${shops.length === 1 ? 'shop' : 'shops'} in ${name} district.` : 'Loading the shops…'}</p>
+          <p className="lede pagehero__lede">
+            {name ? `${shops.length} Cholan ${shops.length === 1 ? 'shop' : 'shops'} in ${name} district.` : 'Loading the shops…'} Find the nearest one by road from your location on the{' '}
+            <Link to="/stores">store finder</Link>.
+          </p>
         </div>
       </section>
       <section className="section stores">
@@ -100,6 +105,10 @@ export default function District() {
                     <div>
                       <strong>Cholan Rice, {s.name}</strong>
                       <span>{s.address}</span>
+                    </div>
+                    <div className="district__actions">
+                      {s.phone && <a href={`tel:+91${s.phone}`}>Call</a>}
+                      <Directions store={s} from="district" />
                     </div>
                   </li>
                 ))}

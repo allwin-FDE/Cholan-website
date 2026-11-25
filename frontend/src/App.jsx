@@ -95,7 +95,7 @@ function AppShell() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<Post />} />
           <Route path="/contact" element={<Contact />} />
-          {/* Every Cholan shop's address, by district. */}
+          {/* The store finder: the nearest Cholan shop by road distance. */}
           <Route path="/stores" element={<Stores />} />
           {/* One page per district: "Cholan rice shops in Erode". */}
           <Route path="/stores/:district" element={<District />} />

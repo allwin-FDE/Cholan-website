@@ -20,7 +20,9 @@ import { config } from '../../config.js';
 import { collection } from '../firestore.js';
 import { dbEnabled, query } from '../../db/pool.js';
 import { buildTemplate, renderText, slotsOf } from './templates.js';
-import { isStart, isStop, menuMessage, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber } from './messages.js';
+import { isStart, isStop, locationRequestMessage, menuMessage, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber } from './messages.js';
+import { ASK_NAME, ASK_WHERE, activeAsk, mobileOf, placeFrom, storesReply, usableName, WEBSITE_STORES } from './storefinder.js';
+import { nearestFor, savedSearch } from '../stores/service.js';
 
 export class WaError extends Error {
   constructor(message, { status = 400, fields, code } = {}) {
@@ -472,6 +474,9 @@ async function sendNow(g, { wa, kind, template, values, text, menu, campaignId =
   if (kind === 'menu') {
     message = menuMessage(wa, menu);
     shown = `${menu.text}\n${menu.options.map((o, i) => `${i + 1}. ${o.title}`).join('\n')}`;
+  } else if (kind === 'location_request') {
+    message = locationRequestMessage(wa, text);
+    shown = `${text}\n[Send location button]`;
   } else if (kind === 'template') {
     const t = await getTemplate(template.name, template.language);
     message = templateMessage(wa, t, values);
@@ -740,7 +745,7 @@ export async function handleNotification(g, { incoming, statuses, templates }) {
       else if (isStart(m.text)) await sendNow(g, { wa: m.from, kind: 'text', text: settings.optInReply, by: 'auto' });
       else {
         const name = cur.data()?.name || m.name;
-        const handled = await runBot(g, { wa: m.from, name, text: m.text, replyId: m.replyId, first, contact: cur.data() || {} });
+        const handled = await runBot(g, { wa: m.from, name, text: m.text, replyId: m.replyId, location: m.location, first, contact: cur.data() || {} });
         if (!handled) {
           if (first) await runAutomations('new_contact', { wa: m.from, name, text: m.text });
           if (m.text) await runAutomations('keyword', { wa: m.from, name, text: m.text });
@@ -814,7 +819,7 @@ export { showNumber };
 // A menu that answers by itself: someone says hi (or writes for the first
 // time) and gets buttons or a list; a tap (or the option's number) gets the
 // answer: a message, today's prices, their order's status, or a person.
-export const BOT_ACTIONS = { reply: 'Send a message', catalogue: 'Our catalogue (products, packs and prices)', prices: 'Today’s prices (from the plant)', order_status: 'Their latest order’s status', handoff: 'Hand over to a person' };
+export const BOT_ACTIONS = { reply: 'Send a message', catalogue: 'Our catalogue (products, packs and prices)', prices: 'Today’s prices (from the plant)', order_status: 'Their latest order’s status', handoff: 'Hand over to a person', stores: 'Find the nearest store' };
 
 // The website's products, pack sizes and prices (npm run knowledge writes
 // catalogue.json from the frontend's data), sent as the bot's catalogue.
@@ -850,6 +855,7 @@ export const DEFAULT_BOT = {
     { id: 'order', title: 'My order status', description: 'Where is my order?', action: 'order_status', reply: '' },
     { id: 'buy', title: 'Place an order', description: 'Order on WhatsApp', action: 'reply', reply: 'Tell us the rice and pack size (for example: Moongil Poompuhar Ponni 26 kg × 2) and your area, and we will confirm the price and delivery.' },
     { id: 'bulk', title: 'Bulk / hotel rates', description: 'For hotels, caterers, shops', action: 'reply', reply: 'We supply hotels, caterers and shops across Coimbatore. Tell us the rice and how many bags a month, and we’ll send you our best rate.' },
+    { id: 'stores', title: 'Find nearest store', description: 'Cholan shops near you', action: 'stores', reply: '' },
     { id: 'human', title: 'Talk to us', description: 'A person replies', action: 'handoff', reply: 'Thank you! Someone from our team will reply shortly (9 am to 8 pm).' },
   ],
   fallback: 'Sorry, I didn’t get that. Reply MENU to see the options.',
@@ -924,8 +930,88 @@ async function botAnswer(option, { wa, name, bot }) {
   return String(option.reply || '').replace(/\{name\}/g, first);
 }
 
+// ---- The bot's store finder (same search and records as the website's) ----
+
+// Chosen from the menu: a number that already searched (here or on the
+// website) gets its first answer again; otherwise the bot asks for the name
+// (only when the WhatsApp name won't do) and then the place.
+async function startStoreSearch(g, { wa, name }) {
+  const mobile = mobileOf(wa);
+  if (!mobile) {
+    await sendNow(g, { wa, kind: 'text', text: `The store finder works for Indian mobile numbers. See all our shops here: ${WEBSITE_STORES}`, by: 'bot' });
+    return true;
+  }
+  const saved = await savedSearch(mobile);
+  if (saved) {
+    await sendNow(g, { wa, kind: 'text', text: storesReply(saved, { repeat: true, firstAt: saved.person?.firstAt }), by: 'bot' });
+    return true;
+  }
+  const n = usableName(name);
+  if (!n) {
+    await col.contacts().doc(wa).set({ storeAsk: { stage: 'name', at: now() } }, { merge: true });
+    await sendNow(g, { wa, kind: 'text', text: ASK_NAME, by: 'bot' });
+    return true;
+  }
+  await col.contacts().doc(wa).set({ storeAsk: { stage: 'where', name: n, at: now() } }, { merge: true });
+  await sendNow(g, { wa, kind: 'location_request', text: ASK_WHERE, by: 'bot' });
+  return true;
+}
+
+// Their answer to the bot's question: the name, then the place; then the search.
+async function storeStep(g, { wa, name, text, location, ask }) {
+  const ref = col.contacts().doc(wa);
+  const mobile = mobileOf(wa);
+  if (!mobile) return startStoreSearch(g, { wa, name });
+  if (ask.stage === 'name') {
+    const n = usableName(text);
+    if (!n) {
+      await ref.set({ storeAsk: { stage: 'name', at: now() } }, { merge: true });
+      await sendNow(g, { wa, kind: 'text', text: 'Please type your name using letters only (for example: Lakshmi R).', by: 'bot' });
+      return true;
+    }
+    await ref.set({ storeAsk: { stage: 'where', name: n, at: now() } }, { merge: true });
+    await sendNow(g, { wa, kind: 'location_request', text: `Thank you, ${n.split(' ')[0]}! ${ASK_WHERE}`, by: 'bot' });
+    return true;
+  }
+  const where = placeFrom({ text, location });
+  if (!where) {
+    await ref.set({ storeAsk: { ...ask, at: now() } }, { merge: true });
+    await sendNow(g, { wa, kind: 'location_request', text: ASK_WHERE, by: 'bot' });
+    return true;
+  }
+  const who = ask.name || usableName(name);
+  if (!who) {
+    // A location shared out of the blue by someone whose WhatsApp name won't do.
+    const saved = await savedSearch(mobile);
+    if (saved) {
+      await sendNow(g, { wa, kind: 'text', text: storesReply(saved, { repeat: true, firstAt: saved.person?.firstAt }), by: 'bot' });
+      return true;
+    }
+    await ref.set({ storeAsk: { stage: 'name', at: now() } }, { merge: true });
+    await sendNow(g, { wa, kind: 'text', text: ASK_NAME, by: 'bot' });
+    return true;
+  }
+  try {
+    const found = await nearestFor({ name: who, phone: mobile, from: 'whatsapp', where: { ...where, limit: 20 } });
+    await ref.set({ storeAsk: FieldValue.delete() }, { merge: true });
+    await sendNow(g, { wa, kind: 'text', text: storesReply(found, { repeat: found.repeat, firstAt: found.person?.firstAt }), by: 'bot' });
+  } catch (error) {
+    // A place Google can't find: ask again. Anything else: say so and stop.
+    const again = error.status === 400 && !error.fields;
+    await ref.set({ storeAsk: again ? { ...ask, at: now() } : FieldValue.delete() }, { merge: true });
+    const msg = again
+      ? `${error.message} Please share your location with the button below, or type a 6-digit pincode.`
+      : error.status && error.status < 500
+        ? error.message
+        : `Sorry, the store finder isn’t working right now. See all our shops: ${WEBSITE_STORES} or call +91 90922 66667.`;
+    await sendNow(g, { wa, kind: again ? 'location_request' : 'text', text: msg, by: 'bot' });
+    if (!error.status || error.status >= 500) console.error('[whatsapp] store finder failed:', error.message);
+  }
+  return true;
+}
+
 // Returns true when the bot answered (so the keyword automations stay quiet).
-export async function runBot(g, { wa, name, text, replyId, first, contact }) {
+export async function runBot(g, { wa, name, text, replyId, location, first, contact }) {
   const bot = await getBot();
   if (!bot.enabled || !bot.options.length) return false;
   if (contact.botPausedUntil && contact.botPausedUntil > now()) return false;
@@ -934,6 +1020,18 @@ export async function runBot(g, { wa, name, text, replyId, first, contact }) {
   const byNumber = /^\d{1,2}$/.test(t) && contact.botMenuAt && Date.now() - Date.parse(contact.botMenuAt) < 30 * 60_000 ? bot.options[Number(t) - 1] : null;
   const byTitle = bot.options.find((o) => o.title.toLowerCase() === t);
   const option = byTap || byNumber || byTitle;
+  const storesOn = bot.options.some((o) => o.action === 'stores');
+  // Waiting for the store finder's name or place: the answer goes there,
+  // unless they chose something from the menu or asked for the menu again.
+  const ask = storesOn ? activeAsk(contact) : null;
+  if (ask && !option && !bot.triggerWords.includes(t)) return storeStep(g, { wa, name, text, location, ask });
+  if (ask) await col.contacts().doc(wa).set({ storeAsk: FieldValue.delete() }, { merge: true });
+  // A location shared out of the blue: look for the nearest shops too.
+  if (!option && storesOn && location) return storeStep(g, { wa, name, text, location, ask: { stage: 'where', name: usableName(name) } });
+  if (option?.action === 'stores') {
+    await col.settings().doc('bot').set({ [`runs.${option.id}`]: FieldValue.increment(1) }, { merge: true });
+    return startStoreSearch(g, { wa, name });
+  }
   if (option) {
     await sendNow(g, { wa, kind: 'text', text: await botAnswer(option, { wa, name, bot }), by: 'bot' });
     if (option.action === 'handoff') await col.contacts().doc(wa).set({ needsHuman: true, botPausedUntil: new Date(Date.now() + bot.pauseHours * 3600_000).toISOString() }, { merge: true });

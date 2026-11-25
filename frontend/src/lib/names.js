@@ -1,6 +1,6 @@
 // Name boxes take letters only (any language, Tamil included), with spaces
 // and the dot of an initial ("S. Ravi"). Digits and other symbols are
-// dropped as they're typed (the enquiry form).
+// dropped as they're typed (the enquiry form and the store finder).
 export function lettersOnly(value) {
   return String(value ?? '')
     .replace(/[^\p{L}\p{M} .]/gu, '')
