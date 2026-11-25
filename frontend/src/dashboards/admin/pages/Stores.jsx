@@ -327,6 +327,7 @@ function Meter({ used, limit, label, big = false }) {
 
 // Each search needs a name and mobile number (one search per number). Listed
 // for staff to follow up, newest first, with their nearest store.
+const fromLabel = (from) => ({ popup: 'Home page popup', whatsapp: 'WhatsApp bot' })[from] || 'Stores page';
 function FinderPeople() {
   const { data, error, loading, reload } = useLoad(() => api.stores.people(), []);
   const [filter, setFilter] = useState('');
@@ -349,7 +350,7 @@ function FinderPeople() {
   const exportCsv = () =>
     downloadCsv('cholan-store-finder-people.csv', [
       ['Name', 'Mobile', 'Searched on', 'Last seen', 'Repeat visits', 'How', 'Place', 'Nearest store', 'Store code', 'Distance (km)', 'By road', 'From', 'Sales Daddy'],
-      ...list.map((p) => [p.name, p.phone, local(p.createdAt), local(p.lastSeenAt), p.repeats || 0, p.how === 'typed' ? `Typed: ${p.query}` : 'Location', p.place || '', p.nearest?.name || '', p.nearest?.code || '', p.nearest?.km ?? '', p.nearest?.byRoad ? 'Yes' : 'No', p.from === 'popup' ? 'Home page popup' : 'Stores page', crm(p).label]),
+      ...list.map((p) => [p.name, p.phone, local(p.createdAt), local(p.lastSeenAt), p.repeats || 0, p.how === 'typed' ? `Typed: ${p.query}` : 'Location', p.place || '', p.nearest?.name || '', p.nearest?.code || '', p.nearest?.km ?? '', p.nearest?.byRoad ? 'Yes' : 'No', fromLabel(p.from), crm(p).label]),
     ]);
   return (
     <Card
@@ -401,7 +402,7 @@ function FinderPeople() {
                   <td>
                     {when(p.createdAt)}
                     <div className="dash-muted dash-small">
-                      {p.from === 'popup' ? 'Home page popup' : 'Stores page'}
+                      {fromLabel(p.from)}
                       {p.repeats ? ` · came back ${num(p.repeats)}×` : ''}
                     </div>
                   </td>

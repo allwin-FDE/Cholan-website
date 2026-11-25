@@ -477,7 +477,7 @@ export async function nearest({ lat, lng, accuracy, q, limit = 20, from = 'page'
   }
   const ranked = rank(byLine, short.length, routes, limit);
   const fallbackReason = ranked.method === 'road' ? null : routeError ? 'error' : routes === null ? 'limit' : 'no_routes';
-  bump({ searches: 1, ...(from === 'popup' ? { searchesPopup: 1 } : {}), ...(fallbackReason ? { searchesNoRoad: 1 } : {}) });
+  bump({ searches: 1, ...(from === 'popup' ? { searchesPopup: 1 } : {}), ...(from === 'whatsapp' ? { searchesWhatsapp: 1 } : {}), ...(fallbackReason ? { searchesNoRoad: 1 } : {}) });
   return { origin, ...ranked, fallbackReason, total: placed.length };
 }
 
@@ -526,6 +526,26 @@ async function clearOldDevices() {
 // own point.
 const keepable = (r) => ({ ...r, origin: { label: r.origin.label || '', kind: r.origin.kind, accuracyM: r.origin.accuracyM ?? null } });
 
+// A number that already searched gets its first answer again (no Google calls).
+async function repeatAnswer(ref, old, name) {
+  await ref.update({ repeats: FieldValue.increment(1), lastSeenAt: nowIso(), ...(name && old.name !== name ? { otherNames: FieldValue.arrayUnion(name) } : {}) });
+  bump({ repeats: 1 });
+  // A lead that didn't reach Sales Daddy the first time gets another go.
+  if (salesDaddyEnabled && !['sent', 'skipped'].includes(old.crm?.state)) await toSalesDaddy(ref, old);
+  return { ...old.result, repeat: true, person: { name: old.name, firstAt: old.createdAt } };
+}
+
+// The WhatsApp bot asks first, before any name or place: has this mobile
+// number already searched (on the website or WhatsApp)? Its answer, or null.
+export async function savedSearch(phone) {
+  const p = cleanPhone(phone);
+  if (!p) return null;
+  const ref = col.people().doc(p);
+  const snap = await ref.get();
+  const old = snap.exists ? snap.data() : null;
+  return old?.result ? repeatAnswer(ref, old, '') : null;
+}
+
 // The nearest stores for a named customer. A number's first search asks
 // Google; later ones get that first answer again (no new Google calls).
 export async function nearestFor({ name, phone, ip, from = 'page', where }) {
@@ -534,13 +554,7 @@ export async function nearestFor({ name, phone, ip, from = 'page', where }) {
   const now = nowIso();
   const before = await ref.get();
   const old = before.exists ? before.data() : null;
-  if (old?.result) {
-    await ref.update({ repeats: FieldValue.increment(1), lastSeenAt: now, ...(old.name !== who.name ? { otherNames: FieldValue.arrayUnion(who.name) } : {}) });
-    bump({ repeats: 1 });
-    // A lead that didn't reach Sales Daddy the first time gets another go.
-    if (salesDaddyEnabled && old.crm?.state !== 'sent') await toSalesDaddy(ref, old);
-    return { ...old.result, repeat: true, person: { name: old.name, firstAt: old.createdAt } };
-  }
+  if (old?.result) return repeatAnswer(ref, old, who.name);
   // Two searches for the same new number at once: the second waits.
   if (old && Date.now() - Date.parse(old.claimedAt || 0) < 60_000) throw Object.assign(new Error('Your search is still running. Please wait a moment.'), { status: 409 });
   if (!(await allowDevice(ip))) throw Object.assign(new Error('This phone or computer has used the store finder for several numbers today. Please call us on +91 90922 66667, or try again tomorrow.'), { status: 429 });
@@ -584,7 +598,7 @@ export function finderLeadNote(p) {
   const where = p.how === 'typed' ? `typed "${p.query}"${p.place && p.place !== p.query ? ` (${p.place})` : ''}` : 'their phone’s location';
   const shop = p.nearest ? `${p.nearest.name} (${p.nearest.code})${p.nearest.km != null ? `, ${p.nearest.km} km${p.nearest.byRoad ? ' by road' : ' in a straight line'}` : ''}` : 'none found';
   return [
-    `Used the store finder on cholanrice.in (${p.from === 'popup' ? 'home page popup' : 'Stores page'}).`,
+    p.from === 'whatsapp' ? 'Used the store finder in the WhatsApp bot.' : `Used the store finder on cholanrice.in (${p.from === 'popup' ? 'home page popup' : 'Stores page'}).`,
     `Searched from: ${where}`,
     `Nearest shop shown: ${shop}`,
   ].join('\n');
@@ -596,11 +610,15 @@ export function finderLeadNote(p) {
 async function toSalesDaddy(ref, p) {
   const at = nowIso();
   try {
-    const { leadId, duplicate } = await pushFinderLead({ name: p.name, phone: p.phone, city: p.nearest?.city || '', note: finderLeadNote(p) });
+    const { leadId, duplicate } = await pushFinderLead({ name: p.name, phone: p.phone, city: p.nearest?.city || '', note: finderLeadNote(p), source: p.from === 'whatsapp' ? 'whatsapp' : undefined });
     await ref.set({ crm: { state: 'sent', leadId, duplicate, at, tries: (p.crm?.tries || 0) + 1 } }, { merge: true });
   } catch (error) {
-    console.error(`[stores] Sales Daddy lead for ${p.phone.slice(0, 2)}…${p.phone.slice(-2)} failed:`, error?.message || error);
-    await ref.set({ crm: { state: 'failed', error: String(error?.message || error).slice(0, 200), at, tries: (p.crm?.tries || 0) + 1 } }, { merge: true }).catch(() => {});
+    const message = String(error?.message || error).slice(0, 200);
+    // Numbers Sales Daddy will never take (the business's own, a bad number)
+    // aren't tried again.
+    const never = /own_number_not_allowed|invalid_number/.test(message);
+    console.error(`[stores] Sales Daddy lead for ${p.phone.slice(0, 2)}…${p.phone.slice(-2)} ${never ? 'refused' : 'failed'}:`, message);
+    await ref.set({ crm: { state: never ? 'skipped' : 'failed', error: message, at, tries: (p.crm?.tries || 0) + 1 } }, { merge: true }).catch(() => {});
   }
 }
 

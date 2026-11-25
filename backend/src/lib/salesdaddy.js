@@ -62,8 +62,10 @@ export async function pushLead(row) {
 // search is added as a note and the tag added to its own. The customer's
 // search waits on this, so each call gives up after a few seconds (a failed
 // one is retried later, see stores/service.js).
-export async function pushFinderLead({ name, phone, city, note }) {
-  const { source, finderTag: tag } = config.salesDaddy;
+export async function pushFinderLead({ name, phone, city, note, source: from }) {
+  const { finderTag: tag } = config.salesDaddy;
+  // The website's source key unless told otherwise (WhatsApp bot searches: 'whatsapp').
+  const source = from || config.salesDaddy.source;
   const quick = { timeoutMs: 5000 };
   const lead = await call(
     '/leads',
