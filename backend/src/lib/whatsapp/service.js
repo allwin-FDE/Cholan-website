@@ -844,8 +844,8 @@ const DEFAULT_CONTACT = `📞 Call us: ${CATALOGUE.phone || '+91 90922 66667'}\n
 export const DEFAULT_BOT = {
   enabled: false,
   onFirstMessage: true,
-  // On hi: the catalogue and the contact details first, then the menu.
-  showCatalogue: true,
+  // On hi: the contact details, then the menu (the catalogue only when chosen).
+  showCatalogue: false,
   contact: DEFAULT_CONTACT,
   triggerWords: ['hi', 'hello', 'hai', 'vanakkam', 'menu', 'help'],
   welcome: 'Vanakkam {name}! Welcome to Cholan Rice. What would you like to do?',

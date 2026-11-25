@@ -54,11 +54,10 @@ export async function allStores() {
 
 export function directionsUrl(s) {
   if (s.lat == null) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`Cholan Rice ${addressLine(s)}`)}`;
-  // A pin placed only by road, area or pincode can be shared by several shops,
-  // so directions go to the shop's own address and Google Maps finds it.
-  if (!TRUSTED.includes(s.location?.status)) {
-    return `https://www.google.com/maps/dir/?${new URLSearchParams({ api: '1', destination: addressLine(s) })}`;
-  }
+  // Always the map pin: Google Maps can't find many of the shops' typed
+  // addresses ("343a/1,343a/1b, Velliangadu Road…"), so a link to the address
+  // often opened nowhere (owner, 2026-11-25). An approximate pin still routes
+  // the customer to the right area.
   const q = new URLSearchParams({ api: '1', destination: `${s.lat},${s.lng}` });
   if (s.location?.placeId) q.set('destination_place_id', s.location.placeId);
   return `https://www.google.com/maps/dir/?${q}`;
@@ -532,7 +531,9 @@ async function repeatAnswer(ref, old, name) {
   bump({ repeats: 1 });
   // A lead that didn't reach Sales Daddy the first time gets another go.
   if (salesDaddyEnabled && !['sent', 'skipped'].includes(old.crm?.state)) await toSalesDaddy(ref, old);
-  return { ...old.result, repeat: true, person: { name: old.name, firstAt: old.createdAt } };
+  // Directions from the saved pin (answers saved before 25 Nov held address links).
+  const results = (old.result.results || []).map((r) => (r.lat != null ? { ...r, directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${r.lat}%2C${r.lng}` } : r));
+  return { ...old.result, results, repeat: true, person: { name: old.name, firstAt: old.createdAt } };
 }
 
 // The WhatsApp bot asks first, before any name or place: has this mobile
