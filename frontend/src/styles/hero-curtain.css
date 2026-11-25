@@ -241,3 +241,9 @@
     will-change: auto;
   }
 }
+
+/* The section after the hero is scrolled to the very top (HeroCurtain's snap),
+   so its heading sits below the floating header. */
+.curtain + .section {
+  padding-top: max(var(--section-y), calc(var(--header-h, 74px) + 24px));
+}

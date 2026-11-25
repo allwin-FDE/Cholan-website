@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { site } from '../../config/site.js';
-import { getSectionTop, useSnapScroll } from '../../hooks/useSnapScroll.js';
+import { useSnapScroll } from '../../hooks/useSnapScroll.js';
 
 const packs = [
   {
@@ -82,9 +82,10 @@ export default function HeroCurtain() {
   useSnapScroll(ref, (direction, scrollY) => {
     const next = ref.current?.nextElementSibling;
     if (!next) return null;
-    // The rail stage reaches up behind the header, so it lands at the very
-    // top; any other section lands just below the header.
-    const nextTop = next.classList.contains('rs') ? Math.round(next.getBoundingClientRect().top + scrollY) : getSectionTop(next);
+    // The next section lands at the very top, so none of the hero is left
+    // showing behind the floating header (owner, 2026-11-25); its own top
+    // padding keeps its heading clear of the header (hero-curtain.css).
+    const nextTop = Math.round(next.getBoundingClientRect().top + scrollY);
     return direction > 0
       ? scrollY < nextTop - 2
         ? nextTop
