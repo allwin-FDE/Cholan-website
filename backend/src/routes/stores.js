@@ -2,10 +2,7 @@
 //
 //   GET  /api/stores                   every open store (public: no manager names)
 //   GET  /api/stores/:code             one store
-//   POST /api/stores/nearest           { name, phone } and { lat, lng, accuracy } or
-//                                      { q: pincode/place } → nearest stores by road
-//                                      distance; one search per mobile number, a
-//                                      repeat gets the first answer again
+//   POST /api/stores/nearest           switched off (2026-11-25): answers 410
 //   GET  /api/admin/stores/usage       Google Maps use today against the limits
 //   GET  /api/admin/stores/people      who used the finder (name, mobile, nearest)
 //   /api/admin/stores/*                website staff (Settings → Website app):
@@ -55,21 +52,10 @@ storesPublic.get(
     return { stores: list, count: list.length };
   }),
 );
-storesPublic.post(
-  '/nearest',
-  searchLimit,
-  run(async (req, res) => {
-    res.set('Cache-Control', 'no-store');
-    const b = req.body || {};
-    const limit = Math.min(30, Math.max(5, Number(b.limit) || 20));
-    const from = b.from === 'popup' ? 'popup' : 'page';
-    const person = { name: String(b.name || ''), phone: String(b.phone || ''), ip: req.ip, from };
-    if (b.q) return stores.nearestFor({ ...person, where: { q: String(b.q), limit } });
-    stores.checkPerson(person);
-    if (b.lat == null || b.lng == null) throw Object.assign(new Error('Share your location or type a pincode.'), { status: 400 });
-    return stores.nearestFor({ ...person, where: { lat: b.lat, lng: b.lng, accuracy: b.accuracy, limit } });
-  }),
-);
+// The nearest-store search was taken off the website and WhatsApp at the
+// owner's request (2026-11-25); the Stores page lists every shop's address.
+// Old pages or links that still call it get a plain answer, and no Google call.
+storesPublic.post('/nearest', searchLimit, (req, res) => res.status(410).json({ error: 'The store finder is no longer available. See all our shops at https://www.cholanrice.in/stores or call +91 90922 66667.' }));
 storesPublic.get(
   '/:code',
   run(async (req) => {

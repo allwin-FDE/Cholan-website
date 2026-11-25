@@ -154,10 +154,6 @@ export function menuMessage(to, { text, button = 'Choose', options }) {
   };
 }
 
-// A message with WhatsApp's "Send location" button (the customer shares where
-// they are with one tap).
-export const locationRequestMessage = (to, body) => ({ to, type: 'interactive', interactive: { type: 'location_request_message', body: { text: String(body).slice(0, 1024) }, action: { name: 'send_location' } } });
-
 export const textMessage = (to, body) => ({ to, type: 'text', text: { body: String(body).slice(0, 4096), preview_url: /https?:\/\//.test(body) } });
 
 // Meta signs each notification with the app secret (X-Hub-Signature-256).
@@ -202,7 +198,7 @@ export function readNotification(payload = {}) {
           text,
           media: m.image || m.video || m.audio || m.document || m.sticker ? { kind: m.type, id: (m.image || m.video || m.audio || m.document || m.sticker).id, mime: (m.image || m.video || m.audio || m.document || m.sticker).mime_type, filename: m.document?.filename } : null,
           replyTo: m.context?.id || null,
-          // A shared location (the store finder uses it).
+          // A shared location.
           location: m.location ? { lat: Number(m.location.latitude), lng: Number(m.location.longitude), name: m.location.name || '', address: m.location.address || '' } : null,
           // A tap on a bot's button or list row, or a template's quick reply.
           replyId: m.interactive?.button_reply?.id || m.interactive?.list_reply?.id || m.button?.payload || null,

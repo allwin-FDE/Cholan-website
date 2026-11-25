@@ -16,7 +16,7 @@ export const footerNav = [
   { to: '/products', label: 'Products' },
   { to: '/about', label: 'About Us' },
   { to: '/blog', label: 'Blog' },
-  { to: '/stores', label: 'Find a Store' },
+  { to: '/stores', label: 'Our Stores' },
   { to: '/contact', label: 'Contact Us' },
 ];
 

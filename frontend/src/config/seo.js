@@ -45,9 +45,9 @@ export const pages = {
   },
   stores: {
     path: '/stores',
-    title: 'Find Your Nearest Cholan Store',
+    title: 'Cholan Rice Shops: All Store Addresses',
     description:
-      'Find the nearest Cholan rice shop: over 270 stores across Coimbatore, Erode, Salem, Namakkal, Tiruppur, Krishnagiri (Hosur), Karur and Dindigul. Road distance and directions.',
+      'Addresses of over 270 Cholan rice shops across Coimbatore, Erode, Salem, Namakkal, Tiruppur, Krishnagiri (Hosur), Karur and Dindigul.',
   },
   blog: {
     path: '/blog',

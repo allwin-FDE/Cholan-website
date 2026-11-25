@@ -14,7 +14,6 @@ const ACTION_HELP = {
   prices: 'Sends today’s website prices for every pack, from the plant’s price list.',
   order_status: 'Finds their latest orders by their number and sends where each one is.',
   handoff: 'Sends your message, marks the chat “needs a person” in the Inbox, and the bot stays quiet with them.',
-  stores: 'The website’s store finder in chat: asks them to share their location (or type a pincode or area) and sends the 3 nearest shops with directions. One search per mobile number, shared with the website; their WhatsApp name is used (the bot asks if it isn’t a real name). They go to Sales Daddy tagged Store. No message needed here.',
 };
 
 function MenuPreview({ bot }) {
@@ -205,7 +204,7 @@ export default function Bot() {
                     )}
                   </div>
                   {bot.options.length > 3 && <input value={o.description || ''} maxLength={72} onChange={(e) => setOpt(i, { description: e.target.value })} placeholder="A line under it (optional)" aria-label="Description" disabled={!editor} />}
-                  {o.action !== 'stores' && <textarea
+                  <textarea
                     className="dash-textarea"
                     rows={2}
                     value={o.reply}
@@ -213,7 +212,7 @@ export default function Bot() {
                     disabled={!editor}
                     placeholder={o.action === 'reply' ? 'The message it sends' : o.action === 'handoff' ? 'What it says before a person takes over' : 'Sent if the plant’s data can’t be reached (optional)'}
                     aria-label="Message"
-                  />}
+                  />
                   <span className="dash-field__hint">
                     {ACTION_HELP[o.action]} {runs[o.id] ? `Chosen ${runs[o.id]} times.` : ''}
                   </span>

@@ -5,7 +5,6 @@ import FeaturedProducts from './FeaturedProducts.jsx';
 import BulkSection from './BulkSection.jsx';
 import Reviews from './Reviews.jsx';
 import Seo from '../../components/common/Seo.jsx';
-import StoreFinderPopup from '../../components/stores/StoreFinderPopup.jsx';
 import { pages, businessSchema, websiteSchema } from '../../config/seo.js';
 
 // Home page (original `wf`). The products come straight after the hero (the
@@ -20,7 +19,6 @@ export default function Home() {
       <RiceHall />
       <BulkSection />
       <Reviews />
-      <StoreFinderPopup />
     </>
   );
 }

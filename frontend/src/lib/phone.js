@@ -1,5 +1,5 @@
 // Phone boxes that take an Indian mobile number: digits only, at most 10,
-// with +91 shown in front of the box (the store finder and the enquiry form).
+// with +91 shown in front of the box (the enquiry form).
 // A pasted "+91 98765 43210" or "098765 43210" keeps just the 10 digits.
 export function tenDigits(value) {
   let d = String(value ?? '').replace(/\D/g, '');
