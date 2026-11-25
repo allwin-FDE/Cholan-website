@@ -14,6 +14,9 @@ let lastWheelAt = 0;
 let lastWheelSize = 0;
 const GESTURE_GAP_MS = 90;
 const FADE_WINDOW_MS = 300;
+// How far a trackpad swipe must travel before the page snaps.
+const SNAP_PUSH = 40;
+let pending = 0;
 
 const getHeaderHeight = () =>
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 74;
@@ -33,14 +36,14 @@ export function useSnapScroll(ref, resolveTarget) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let touchStartY = null;
 
-    // Short and decisive: moving the instant the wheel turns and arriving
-    // without a long crawl at the end, which read as the page sticking.
+    // Calmer than before (owner, 2026-11-25: it felt very fast on a
+    // trackpad): a full second, easing in and out.
     const animateTo = (top) => {
       const state = { y: window.scrollY };
       activeSnap = gsap.to(state, {
         y: top,
-        duration: reduced ? 0 : 0.7,
-        ease: 'power2.out',
+        duration: reduced ? 0 : 1.05,
+        ease: 'power2.inOut',
         onUpdate: () => window.scrollTo({ top: state.y, behavior: 'instant' }),
         onComplete: () => {
           activeSnap = null;
@@ -67,7 +70,21 @@ export function useSnapScroll(ref, resolveTarget) {
         return;
       }
       settling = false;
-      !e.ctrlKey && e.deltaY && trySnap(e.deltaY > 0 ? 1 : -1) && e.preventDefault();
+      if (e.ctrlKey || !e.deltaY) return;
+      // A trackpad sends many small steps: only a deliberate swipe (about
+      // 40 px in one direction) snaps; a mouse wheel's notch does at once.
+      const lines = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;
+      const step = e.deltaY * lines;
+      if (!sameGesture || Math.sign(step) !== Math.sign(pending)) pending = 0;
+      pending += step;
+      if (Math.abs(pending) < SNAP_PUSH) {
+        // Hold the page still while the swipe builds, if a snap could follow.
+        if (resolveTarget(pending > 0 ? 1 : -1, window.scrollY) != null) e.preventDefault();
+        return;
+      }
+      const dir = pending > 0 ? 1 : -1;
+      pending = 0;
+      trySnap(dir) && e.preventDefault();
     };
     const onTouchStart = (e) => {
       touchStartY = e.touches[0]?.clientY ?? null;

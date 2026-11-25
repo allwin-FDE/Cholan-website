@@ -84,7 +84,7 @@ export default function RailStory() {
           start: 'top top',
           end: () => `+=${window.innerHeight * SCROLL_SCREENS}`,
           pin: '.rs__stage',
-          scrub: 0.6,
+          scrub: 1.2, // smoother on a trackpad (owner, 2026-11-25)
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onRefresh: () => {
