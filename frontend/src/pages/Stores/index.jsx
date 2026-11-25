@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { districtSlug } from './District.jsx';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import Seo from '../../components/common/Seo.jsx';
 import { Icon, iconPaths } from '../../components/common/Icon.jsx';
 import { pages } from '../../config/seo.js';
@@ -9,7 +8,7 @@ import { mapsAvailable } from '../../lib/googleMaps.js';
 import { checkPerson, currentPosition, fetchStores, findNearest, rememberPerson, savedPerson, showDate, showKm, showMinutes } from '../../lib/stores.js';
 import { track } from '../../lib/analytics.js';
 import PersonFields from '../../components/stores/PersonFields.jsx';
-import Directions from './Directions.jsx';
+import ShopsByDistrict from './ShopsByDistrict.jsx';
 
 const StoreMap = lazy(() => import('./StoreMap.jsx'));
 
@@ -210,7 +209,7 @@ export default function Stores() {
             </div>
           )}
 
-          <AllStores data={all} error={listError} />
+          {!listError && <ShopsByDistrict data={all} />}
         </div>
       </section>
     </>
@@ -292,55 +291,5 @@ function StoreCard({ store: s, rank, nearest, method, selected, onShow }) {
         </div>
       </div>
     </li>
-  );
-}
-
-// Every store, by district, with a filter: for browsing, and for search engines.
-function AllStores({ data, error }) {
-  const [filter, setFilter] = useState('');
-  const groups = useMemo(() => {
-    const f = filter.trim().toLowerCase();
-    const map = new Map();
-    for (const s of data?.stores || []) {
-      if (f && !`${s.name} ${s.address} ${s.pincode}`.toLowerCase().includes(f)) continue;
-      const g = s.district || 'Other';
-      if (!map.has(g)) map.set(g, []);
-      map.get(g).push(s);
-    }
-    return [...map].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [data, filter]);
-  if (error) return null;
-  if (!data) return null;
-  return (
-    <div className="stores-all">
-      <div className="stores-all__head">
-        <h2>All {data.count} stores</h2>
-        <input className="input" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter by name, area or pincode" aria-label="Filter stores" />
-      </div>
-      {groups.length === 0 && <p className="stores-results__note">No store matches “{filter}”.</p>}
-      {groups.map(([zone, list]) => (
-        <details key={zone} className="stores-all__zone" open={Boolean(filter)}>
-          <summary>
-            {zone} <span>{list.length}</span>
-          </summary>
-          {zone !== 'Other' && (
-            <p className="stores-all__page">
-              <Link to={`/stores/${districtSlug(zone)}`}>All Cholan shops in {zone} →</Link>
-            </p>
-          )}
-          <ul>
-            {list.map((s) => (
-              <li key={s.code}>
-                <div>
-                  <strong>{s.name}</strong>
-                  <span>{s.address}</span>
-                </div>
-                <Directions store={s} from="list" />
-              </li>
-            ))}
-          </ul>
-        </details>
-      ))}
-    </div>
   );
 }
