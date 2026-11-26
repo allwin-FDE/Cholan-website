@@ -6,7 +6,7 @@ import { Icon, iconPaths } from '../../components/common/Icon.jsx';
 import { pages } from '../../config/seo.js';
 import { hasBackend } from '../../lib/api.js';
 import { mapsAvailable } from '../../lib/googleMaps.js';
-import { checkPerson, currentPosition, fetchStores, findNearest, rememberPerson, savedPerson, showDate, showKm, showMinutes } from '../../lib/stores.js';
+import { checkPerson, currentPosition, fetchStores, shopPath, findNearest, rememberPerson, savedPerson, showDate, showKm, showMinutes } from '../../lib/stores.js';
 import { track } from '../../lib/analytics.js';
 import PersonFields from '../../components/stores/PersonFields.jsx';
 import Directions from './Directions.jsx';
@@ -332,7 +332,9 @@ function AllStores({ data, error }) {
             {list.map((s) => (
               <li key={s.code}>
                 <div>
-                  <strong>{s.name}</strong>
+                  <strong>
+                    <Link to={shopPath(s)}>{s.name}</Link>
+                  </strong>
                   <span>{s.address}</span>
                 </div>
                 <Directions store={s} from="list" />

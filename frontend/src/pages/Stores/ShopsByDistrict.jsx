@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { TN_PATH, TN_VIEWBOX, project } from '../../data/tamilNaduMap.js';
 import { districtSlug } from './District.jsx';
 import Directions from './Directions.jsx';
+import { shopPath } from '../../lib/stores.js';
 
 // Where each district's name sits on the map (units of the 640 × 850 map),
 // picked by eye so the names stay apart in the crowded west, even on a
@@ -125,7 +126,9 @@ export default function ShopsByDistrict({ data }) {
               {shown.map((s) => (
                 <li key={s.code}>
                   <div>
-                    <strong>{s.name}</strong>
+                    <strong>
+                      <Link to={shopPath(s)}>{s.name}</Link>
+                    </strong>
                     <span>{s.address}</span>
                   </div>
                   <Directions store={s} from="map-list" />

@@ -3,12 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import Seo from '../../components/common/Seo.jsx';
 import { absoluteUrl } from '../../config/seo.js';
 import { hasBackend } from '../../lib/api.js';
-import { fetchStores } from '../../lib/stores.js';
+import { fetchStores, shopPath, slugify } from '../../lib/stores.js';
 import NotFound from '../NotFound.jsx';
 import Directions from './Directions.jsx';
 
 // "coimbatore" <-> "Coimbatore": the district's address on the site.
-export const districtSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+export const districtSlug = slugify;
 
 // /stores/<district>: every Cholan shop in one district, with addresses and
 // directions, for people searching "Cholan rice shop Erode" (the audit:
@@ -51,6 +51,7 @@ export default function District() {
       item: {
         '@type': 'GroceryStore',
         name: `Cholan Rice, ${s.name}`,
+        url: absoluteUrl(shopPath(s)),
         parentOrganization: { '@id': `${absoluteUrl('/')}#business` },
         address: {
           '@type': 'PostalAddress',
@@ -103,7 +104,9 @@ export default function District() {
                 {list.map((s) => (
                   <li key={s.code}>
                     <div>
-                      <strong>Cholan Rice, {s.name}</strong>
+                      <strong>
+                        <Link to={shopPath(s)}>Cholan Rice, {s.name}</Link>
+                      </strong>
                       <span>{s.address}</span>
                     </div>
                     <div className="district__actions">

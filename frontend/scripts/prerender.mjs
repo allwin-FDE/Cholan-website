@@ -60,7 +60,8 @@ const routes = [
   ...(await districtRoutes()),
 ];
 
-// One page per district with shops (/stores/coimbatore …), from the live list.
+// One page per district with shops (/stores/coimbatore …) and one per shop
+// (/stores/coimbatore/sulur …), from the live list.
 async function districtRoutes() {
   const api = process.env.VITE_API_URL;
   if (!api) return [];
@@ -68,7 +69,10 @@ async function districtRoutes() {
     const { stores } = await (await fetch(`${api.replace(/\/$/, '')}/api/stores`)).json();
     const names = [...new Set(stores.map((s) => s.district).filter(Boolean))];
     const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    return names.map((n) => ({ path: `/stores/${slug(n)}`, priority: '0.7', changefreq: 'weekly', lastmod: today }));
+    return [
+      ...names.map((n) => ({ path: `/stores/${slug(n)}`, priority: '0.7', changefreq: 'weekly', lastmod: today })),
+      ...stores.map((s) => ({ path: `/stores/${slug(s.district || 'other')}/${slug(s.name)}`, priority: '0.6', changefreq: 'monthly', lastmod: today })),
+    ];
   } catch (error) {
     console.warn(`[prerender] district pages not listed: ${error.message}`);
     return [];
@@ -174,7 +178,17 @@ if (api) {
 }
 const pages = [];
 const capture = [...routes, { path: '/page-not-found-404', file: '404.html' }];
-for (const route of capture) {
+// Several pages at once: with a page per shop there are about 300.
+let next = 0;
+const worker = async () => {
+  while (next < capture.length) {
+    const route = capture[next];
+    next += 1;
+    await capturePage(route);
+  }
+};
+await Promise.all(Array.from({ length: 6 }, worker));
+async function capturePage(route) {
   const page = await context.newPage();
   await page.goto(base + route.path, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
@@ -196,6 +210,7 @@ for (const route of capture) {
   pages.push({ route: route.path, file: route.file, html, title });
   await page.close();
 }
+pages.sort((a, b) => capture.findIndex((r) => r.path === a.route) - capture.findIndex((r) => r.path === b.route));
 await browser.close();
 await server.close();
 

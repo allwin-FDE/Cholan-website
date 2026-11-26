@@ -907,3 +907,142 @@
   color: var(--brand-700);
   font-weight: 600;
 }
+
+/* ---- One shop's page (/stores/<district>/<shop>) ---- */
+.shop-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 28px);
+  align-items: start;
+}
+.shop-page__main,
+.shop-page__side {
+  display: grid;
+  gap: 16px;
+}
+.shop-page__card {
+  padding: clamp(16px, 2.4vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.shop-page__card h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+.shop-page__address {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+}
+.shop-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.shop-page__sub {
+  margin: -4px 0 10px;
+  color: var(--ink-mute);
+  font-size: 0.9rem;
+}
+.shop-page__note {
+  margin: 12px 0 0;
+  color: var(--ink-mute);
+  font-size: 0.85rem;
+}
+.shop-page__rice {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 0 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.shop-page__rice li {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.shop-page__rice a {
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+}
+.shop-page__rice a span {
+  color: var(--brand-700);
+  font-size: 0.88rem;
+}
+.shop-page__rice small {
+  color: var(--ink-mute);
+}
+.shop-page__map {
+  border-radius: var(--radius-lg);
+  background: radial-gradient(120% 90% at 0% 0%, var(--brand-500) 0%, var(--brand-700) 45%, var(--brand-900) 100%);
+  overflow: hidden;
+}
+.shop-page__map svg {
+  display: block;
+  width: 70%;
+  height: auto;
+  margin: 0 auto;
+}
+.shop-page__land {
+  fill: #fff;
+}
+.shop-page__dot {
+  fill: var(--gold-500);
+  stroke: #fff;
+  stroke-width: 2;
+}
+.shop-page__halo {
+  fill: var(--gold-400);
+  opacity: 0.35;
+}
+.shop-page__near {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.shop-page__near li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.shop-page__near li > a:first-child {
+  flex: 1;
+  color: var(--ink);
+  font-weight: 600;
+}
+.shop-page__near li span {
+  color: var(--ink-mute);
+  font-size: 0.85rem;
+}
+.shop-page__near li > a:last-child {
+  color: var(--brand-700);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.shop-page__more {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+}
+.shop-page__more a,
+.district__list strong a,
+.stores-all__zone li strong a,
+.tnshops__list li strong a {
+  color: inherit;
+}
+.district__list strong a:hover,
+.stores-all__zone li strong a:hover,
+.tnshops__list li strong a:hover {
+  color: var(--brand-700);
+  text-decoration: underline;
+}
+@media (max-width: 900px) {
+  .shop-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .shop-page__map svg {
+    width: 50%;
+  }
+}

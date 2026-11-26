@@ -27,6 +27,7 @@ const Post = lazyPage(() => import('./pages/Blog/Post.jsx'));
 const Contact = lazyPage(() => import('./pages/Contact'));
 const Stores = lazyPage(() => import('./pages/Stores'));
 const District = lazyPage(() => import('./pages/Stores/District.jsx'));
+const Shop = lazyPage(() => import('./pages/Stores/Shop.jsx'));
 const Checkout = lazyPage(() => import('./pages/Checkout'), (m) => m.default);
 const OrderConfirmed = lazyPage(() => import('./pages/Checkout'), (m) => m.OrderConfirmed);
 const Policy = lazyPage(() => import('./pages/Policy'));
@@ -40,6 +41,7 @@ const PAGES = [
   [/^\/blog\/./, Post],
   [/^\/contact\/?$/, Contact],
   [/^\/stores\/?$/, Stores],
+  [/^\/stores\/[^/]+\/./, Shop],
   [/^\/stores\/./, District],
   [/^\/checkout\/confirmed/, OrderConfirmed],
   [/^\/checkout/, Checkout],
@@ -99,6 +101,8 @@ function AppShell() {
           <Route path="/stores" element={<Stores />} />
           {/* One page per district: "Cholan rice shops in Erode". */}
           <Route path="/stores/:district" element={<District />} />
+          {/* One page per shop, also the website of its Google listing. */}
+          <Route path="/stores/:district/:shop" element={<Shop />} />
           <Route path="/store-locator" element={<Navigate to="/stores" replace />} />
           <Route
             path="/checkout"

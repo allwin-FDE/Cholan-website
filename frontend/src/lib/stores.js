@@ -17,6 +17,11 @@ async function call(path, init) {
 // Every open store (for the list and the map).
 export const fetchStores = () => call('');
 
+// Addresses on the site: "Coimbatore" -> "coimbatore", and each shop's own
+// page, /stores/<district>/<shop> (owner, 2026-11-26).
+export const slugify = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+export const shopPath = (s) => `/stores/${slugify(s.district || 'other')}/${slugify(s.name)}`;
+
 // The nearest stores to a point ({ lat, lng, accuracy }) or a typed place ({ q }),
 // for a customer's name and mobile number (one search per number; a repeat
 // gets the first answer again, with repeat: true). from: 'popup' for the
