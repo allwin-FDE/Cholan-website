@@ -538,10 +538,10 @@
 /* Below the first screens: skipped by the browser until they come near, so
    the first layout and the font swap re-layout are cheap (PageSpeed,
    2026-11-26). The sizes are a first guess; the browser keeps the real one
-   once it has drawn them. */
+   once it has drawn them. Not the footer: its background then reads wrong to
+   accessibility checks (the copyright line's contrast). */
 .reviews,
-.home-shops,
-.footer {
+.home-shops {
   content-visibility: auto;
   contain-intrinsic-size: auto 900px;
 }
