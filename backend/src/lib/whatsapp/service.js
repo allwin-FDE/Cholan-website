@@ -16,11 +16,12 @@ import { readFileSync } from 'node:fs';
 // only single-field indexes (Firestore makes those by itself).
 import { FieldValue } from '@google-cloud/firestore';
 import { Storage } from '@google-cloud/storage';
-import { config } from '../../config.js';
+import { config, salesDaddyEnabled } from '../../config.js';
 import { collection } from '../firestore.js';
 import { dbEnabled, query } from '../../db/pool.js';
 import { buildTemplate, renderText, slotsOf } from './templates.js';
-import { isStart, isStop, locationRequestMessage, menuMessage, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber } from './messages.js';
+import { isStart, isStop, locationRequestMessage, menuMessage, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber, websiteOrder } from './messages.js';
+import { pushTaggedLead } from '../salesdaddy.js';
 import { activeAsk, finderText, mobileOf, placeFrom, storesReply, usableName } from './storefinder.js';
 import { nearestFor, savedSearch } from '../stores/service.js';
 
@@ -732,6 +733,13 @@ export async function handleNotification(g, { incoming, statuses, templates }) {
     if (isStop(m.text)) Object.assign(patch, { optedOut: true, optedOutAt: now(), consent: false });
     if (isStart(m.text)) Object.assign(patch, { optedOut: false, optedOutAt: null, consent: true });
     await ref.set(patch, { merge: true });
+    // The website's "Order on WhatsApp": a lead in Sales Daddy tagged
+    // Whatsapp order, and the contact tagged here too (owner, 2026-11-26).
+    const order = websiteOrder(m.text);
+    if (order) {
+      await ref.set({ tags: FieldValue.arrayUnion('whatsapp-order'), lastOrderAt: m.at }, { merge: true });
+      await orderToSalesDaddy(m.id, { wa: m.from, name: cur.data()?.name || m.name, text: m.text, order });
+    }
     // A reply to a campaign message counts for that campaign, once.
     if (m.replyTo) {
       const orig = (await col.messages().doc(m.replyTo).get()).data();
@@ -1161,4 +1169,64 @@ export async function reports(fromDate, toDate) {
     errors,
     hours,
   };
+}
+
+// ---- Website "Order on WhatsApp" -> Sales Daddy lead ----
+
+function orderNote({ order, text }) {
+  return [
+    'Order on WhatsApp from the website',
+    `Product: ${order.product}${order.size ? ` — ${order.size}` : ''}${order.price ? ` (${order.price})` : ''}`,
+    order.page && `Product page: ${order.page}`,
+    `Message: ${String(text).slice(0, 600)}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+// Sends one order message's lead; the outcome stays on the message (crm), so
+// a failed one is tried again by the sync worker. Never throws.
+async function orderToSalesDaddy(messageId, { wa, name, text, order }) {
+  const ref = col.messages().doc(messageId);
+  if (!salesDaddyEnabled || !config.salesDaddy.waOrderTag) return;
+  const phone = mobileOf(wa);
+  if (!phone) {
+    await ref.set({ crm: { state: 'skipped', reason: 'not an Indian mobile', at: now() } }, { merge: true });
+    return;
+  }
+  const lead = { name: usableName(name) || 'WhatsApp customer', phone, source: 'whatsapp', note: orderNote({ order, text }) };
+  try {
+    let untagged = false;
+    let result;
+    try {
+      result = await pushTaggedLead({ ...lead, tag: config.salesDaddy.waOrderTag });
+    } catch (error) {
+      // Refused (4xx), e.g. the tag isn't set up in Sales Daddy yet: the lead
+      // still goes in, without the tag, rather than being lost.
+      if (!/Sales Daddy 4\d\d/.test(error.message)) throw error;
+      console.error('[whatsapp] order lead refused with the tag, sending without it:', error.message);
+      result = await pushTaggedLead({ ...lead, tag: '' });
+      untagged = true;
+    }
+    await ref.set({ crm: { state: 'sent', leadId: result.leadId, duplicate: result.duplicate, ...(untagged ? { untagged: true } : {}), at: now() } }, { merge: true });
+  } catch (error) {
+    const prev = (await ref.get()).data()?.crm || {};
+    await ref.set({ crm: { state: 'failed', error: String(error.message).slice(0, 300), tries: (prev.tries || 0) + 1, at: now() } }, { merge: true });
+    console.error('[whatsapp] order lead to Sales Daddy failed:', error.message);
+  }
+}
+
+// Order leads that didn't reach Sales Daddy (a few at a time, up to 5 tries,
+// for two days), called by the sync worker.
+export async function retryOrderLeads() {
+  if (!salesDaddyEnabled) return 0;
+  const since = new Date(Date.now() - 2 * DAY).toISOString();
+  const failed = docs(await col.messages().where('crm.state', '==', 'failed').limit(50).get()).filter((m) => m.at >= since && (m.crm.tries || 0) < 5).slice(0, 10);
+  for (const m of failed) {
+    const order = websiteOrder(m.text);
+    if (!order) continue;
+    const contact = (await col.contacts().doc(m.wa).get()).data() || {};
+    await orderToSalesDaddy(m.id, { wa: m.wa, name: contact.name, text: m.text, order });
+  }
+  return failed.length;
 }

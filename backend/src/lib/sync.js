@@ -103,6 +103,10 @@ export function startSyncWorker() {
       import('./stores/service.js')
         .then((m) => m.retryFinderLeads())
         .catch((error) => console.error('[sync] store-finder leads:', error?.message || error));
+      // Website "Order on WhatsApp" leads that didn't reach Sales Daddy.
+      import('./whatsapp/service.js')
+        .then((m) => m.retryOrderLeads())
+        .catch((error) => console.error('[sync] WhatsApp order leads:', error?.message || error));
     }
   };
 

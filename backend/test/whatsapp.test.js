@@ -159,3 +159,18 @@ test('the bot menu is buttons for up to 3 choices and a list above that; taps ar
   assert.equal(n.incoming[0].replyId, 'prices');
   assert.equal(n.incoming[0].text, 'Today’s prices');
 });
+
+// The website's "Order on WhatsApp" message, read back (owner, 2026-11-26).
+import { websiteOrder } from '../src/lib/whatsapp/messages.js';
+test('websiteOrder: reads the website order message, ignores others', () => {
+  assert.deepEqual(websiteOrder('Hello Cholan Rice, I would like to order Karikalan Ponni Rice — 26 kg (₹2,450).\nhttps://www.cholanrice.in/products/karikalan-rice'), {
+    product: 'Karikalan Ponni Rice',
+    size: '26 kg',
+    price: '₹2,450',
+    page: 'https://www.cholanrice.in/products/karikalan-rice',
+  });
+  assert.equal(websiteOrder('Hello Cholan Rice, I would like to order Basmati Rice.\nhttps://www.cholanrice.in/products/basmati-rice').product, 'Basmati Rice');
+  assert.equal(websiteOrder('Hello Cholan Rice, I would like to enquire about "Karikalan". Please share price and availability.'), null);
+  assert.equal(websiteOrder('hi'), null);
+  assert.equal(websiteOrder(''), null);
+});

@@ -78,6 +78,9 @@ export const config = {
     // The tag on leads from the store finder (name and mobile before a search).
     // It must already exist in Sales Daddy; empty = no tag.
     finderTag: process.env.SALESDADDY_FINDER_TAG || '',
+    // Someone pressing "Order on WhatsApp" on the website and sending the
+    // message: a lead with this tag (owner, 2026-11-26). Must exist in Sales Daddy.
+    waOrderTag: process.env.SALESDADDY_WA_ORDER_TAG ?? 'Whatsapp order',
   },
 
   // WhatsApp Cloud API (Meta), for the /whatsapp dashboard. The access token

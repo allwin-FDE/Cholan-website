@@ -249,3 +249,15 @@ const ERRORS = {
   100: 'Meta refused a value in the message.',
 };
 export const plainError = (code, fallback) => ERRORS[code] || fallback || 'WhatsApp could not deliver this message.';
+
+// The message the website's "Order on WhatsApp" button types (frontend
+// lib/whatsapp.js whatsappOrderLink): "Hello Cholan Rice, I would like to
+// order <product> — <size> (₹<price>).\n<product page>". Returns what was
+// ordered, or null for any other message. Tolerant of small edits.
+export function websiteOrder(text) {
+  const t = String(text || '').trim();
+  const m = t.match(/i would like to order\s+(.+?)(?:\s+[—–-]\s+([^()\n]+?))?(?:\s*\((₹\s?[\d,]+)\))?\.?\s*(?:\n|$)/i);
+  if (!m) return null;
+  const page = (t.match(/https?:\/\/(?:www\.)?cholanrice\.in\/products\/[\w-]+/i) || [])[0] || '';
+  return { product: m[1].trim(), size: (m[2] || '').trim(), price: (m[3] || '').replace(/\s/g, ''), page };
+}
