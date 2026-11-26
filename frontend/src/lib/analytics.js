@@ -42,10 +42,17 @@ function load() {
   // Page views are sent by hand on each route change (trackPageView), since
   // the site changes pages without reloading.
   gtag('config', GA_ID, { send_page_view: false });
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-  document.head.appendChild(script);
+  // Google's script waits until the page has loaded and the browser is idle,
+  // so it never slows the first view (PageSpeed, 2026-11-26).
+  const add = () => {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(script);
+  };
+  const later = () => ('requestIdleCallback' in window ? window.requestIdleCallback(add, { timeout: 5000 }) : setTimeout(add, 3000));
+  if (document.readyState === 'complete') later();
+  else window.addEventListener('load', later, { once: true });
   document.addEventListener('click', trackLinkClick, true);
   startTracking();
 }

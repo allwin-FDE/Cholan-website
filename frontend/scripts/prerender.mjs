@@ -196,6 +196,9 @@ async function capturePage(route) {
     // Anything that opened over the page (a popup, its scroll lock) is left
     // out, in case it opened anyway.
     document.querySelectorAll('body > .storepop, .cookie-note').forEach((el) => el.remove());
+    // Links the app added while running here (page preloads) carry this
+    // machine's address (http://localhost:…): they'd fail on the real site.
+    document.querySelectorAll('link[href^="http://localhost"], link[href^="http://127.0.0.1"], script[src^="http://localhost"]').forEach((el) => el.remove());
     document.documentElement.style.removeProperty('overflow');
     // Head tags React placed for this page: marked so the app can remove them
     // before it renders its own (otherwise each would appear twice).

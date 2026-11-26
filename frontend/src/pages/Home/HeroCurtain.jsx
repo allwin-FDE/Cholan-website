@@ -3,14 +3,16 @@ import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { site } from '../../config/site.js';
 import { useSnapScroll } from '../../hooks/useSnapScroll.js';
 
+// Each bag has a phone-sized copy (-480) and a lighter full one (-2).
 const packs = [
   {
     src: '/images/hero-chennai-pattanam-white-ponni.webp',
+    w: 634,
     alt: 'Chennai Pattanam Special Rajabhogam White Ponni rice bag',
     cls: 'side-l',
   },
-  { src: '/images/hero-karikalan-super-ponni.webp', alt: 'Karikalan Super Ponni Rice bag', cls: 'hero' },
-  { src: '/images/hero-moongil-poompuhar-ponni.webp', alt: 'Cholan Moongil Poompuhar Ponni rice bag', cls: 'side-r' },
+  { src: '/images/hero-karikalan-super-ponni.webp', w: 648, alt: 'Karikalan Super Ponni Rice bag', cls: 'hero' },
+  { src: '/images/hero-moongil-poompuhar-ponni.webp', w: 615, alt: 'Cholan Moongil Poompuhar Ponni rice bag', cls: 'side-r' },
 ];
 
 const lede = 'Carefully selected grains, packed with purpose.';
@@ -28,7 +30,7 @@ export default function HeroCurtain() {
       const words = gsap.utils.toArray('.curtain__w', root);
       const packLeft = root.querySelector('.curtain__pack--side-l');
       const packRight = root.querySelector('.curtain__pack--side-r');
-      if (reduced) return;
+      if (reduced || window.__savedPageShown) return;
       gsap.set(words, { opacity: 0, y: 18, filter: 'blur(6px)' });
       gsap.set([packLeft, packRight], { opacity: 0 });
       gsap.set(packLeft, { '--slide': '45%' });
@@ -102,13 +104,17 @@ export default function HeroCurtain() {
           <div className="curtain__kolam" aria-hidden="true" />
           <img
             className="curtain__pillar curtain__pillar--l"
-            src="/images/hero-pillar-carved.webp"
+            src="/images/hero-pillar-carved-2.webp"
+            width="329"
+            height="1645"
             alt=""
             aria-hidden="true"
           />
           <img
             className="curtain__pillar curtain__pillar--r"
-            src="/images/hero-pillar-carved.webp"
+            src="/images/hero-pillar-carved-2.webp"
+            width="329"
+            height="1645"
             alt=""
             aria-hidden="true"
           />
@@ -129,9 +135,15 @@ export default function HeroCurtain() {
                   <img
                     key={pack.src}
                     className={`curtain__pack curtain__pack--${pack.cls}`}
-                    src={pack.src}
+                    src={pack.src.replace(/\.webp$/, '-2.webp')}
+                    srcSet={`${pack.src.replace(/\.webp$/, '-480.webp')} 480w, ${pack.src.replace(/\.webp$/, '-2.webp')} ${pack.w}w`}
+                    sizes="(max-width: 700px) 42vw, 300px"
+                    width={pack.w}
+                    height="900"
                     alt={pack.alt}
-                    decoding="async"
+                    // The centre bag is the first thing people see: fetched first.
+                    fetchPriority={pack.cls === 'hero' ? 'high' : 'auto'}
+                    decoding={pack.cls === 'hero' ? 'sync' : 'async'}
                   />
                 ))}
               </div>

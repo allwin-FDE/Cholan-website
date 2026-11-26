@@ -70,10 +70,11 @@ export default function PageTransition() {
   useLayoutEffect(() => {
     if (lastPathRef.current === pathname) return;
     lastPathRef.current = pathname;
-    // The logo splash plays once per visit (the audit: it ran ~2 s on every
-    // page load). A later page load in the same visit opens at once.
+    // The first load opens at once, with no logo splash (it held the home
+    // page back ~3 s on a phone: PageSpeed, 2026-11-26); page changes wipe.
     const seen = splashSeen();
-    if (!wipeRef.current || prefersReducedMotion() || (firstLoadRef.current && seen)) {
+    if (!wipeRef.current || prefersReducedMotion() || firstLoadRef.current) {
+      if (firstLoadRef.current && !seen) markSplashSeen();
       firstLoadRef.current = false;
       if (wipeRef.current) gsap.set(wipeRef.current, { autoAlpha: 0 });
       window.dispatchEvent(new Event('fx:reveal'));
@@ -163,7 +164,7 @@ export default function PageTransition() {
       <div className="fx-wipe__panel fx-wipe__panel--gold" />
       <div className="fx-wipe__panel fx-wipe__panel--green" />
       <div className="fx-wipe__panel fx-wipe__panel--cream">
-        <img className="fx-wipe__mark" src="/images/cholan-logo.png" alt="" />
+        <img className="fx-wipe__mark" src="/images/cholan-logo.webp" width="404" height="200" alt="" />
       </div>
     </div>
   );

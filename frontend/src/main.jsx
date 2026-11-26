@@ -29,6 +29,9 @@ import './styles/dashboard-frame.css';
 // Its head tags are marked data-pre; drop them so the app's own are the only
 // ones, and let the app replace the saved body as it renders.
 document.querySelectorAll('[data-pre]').forEach((el) => el.remove());
+// The saved copy is already on screen: the home hero skips its intro so its
+// words and bags don't vanish and come back.
+window.__savedPageShown = Boolean(document.getElementById('root')?.firstElementChild);
 
 // Inside the dashboard's heatmap preview (an iframe with ?heatmap): the page
 // as a visitor first sees it, without the intro, chat button or cookie banner

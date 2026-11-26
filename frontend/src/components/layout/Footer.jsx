@@ -19,7 +19,7 @@ export default function Footer() {
           <div className="footer__brand">
             <Link to="/" className="footer__logo" aria-label={`${site.name} home`}>
               <img
-                src="/images/cholan-logo.png"
+                src="/images/cholan-logo.webp"
                 alt={site.name}
                 width="404"
                 height="200"
@@ -33,7 +33,7 @@ export default function Footer() {
             </p>
           </div>
           <nav className="footer__col" aria-label="Quick links">
-            <h4>Quick Links</h4>
+            <h2>Quick Links</h2>
             <ul>
               {footerNav.map((link) => (
                 <li key={link.to}>
@@ -43,7 +43,7 @@ export default function Footer() {
             </ul>
           </nav>
           <nav className="footer__col" aria-label="Our products">
-            <h4>Our Products</h4>
+            <h2>Our Products</h2>
             <ul>
               {categories.map((category) => (
                 <li key={category.slug}>
@@ -56,7 +56,7 @@ export default function Footer() {
             </ul>
           </nav>
           <div className="footer__col">
-            <h4>Contact Us</h4>
+            <h2>Contact Us</h2>
             <ul className="footer__contact">
               <li>
                 <Icon d={iconPaths.phone} />
@@ -83,10 +83,10 @@ export default function Footer() {
             </ul>
           </div>
           <div className="footer__col footer__news">
-            <h4>Subscribe to Updates</h4>
+            <h2>Subscribe to Updates</h2>
             <p>Get the latest on our products, offers and stories from the Chola land.</p>
             <Subscribe />
-            <h4 className="footer__follow">Follow Us</h4>
+            <h2 className="footer__follow">Follow Us</h2>
             <div className="footer__social">
               <a href={site.social.facebook} target="_blank" rel="noreferrer" aria-label="Facebook">
                 <Icon d={iconPaths.facebook} />

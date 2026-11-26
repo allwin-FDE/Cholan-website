@@ -259,7 +259,8 @@
   font-size: 0.82rem;
   line-height: 1.8;
 }
-.footer h4 {
+.footer h4,
+.footer h2 {
   font-family: var(--font-body);
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -463,6 +464,9 @@
 .footer__legal button {
   color: var(--f-ink);
   transition: color 0.2s;
+  /* Big enough to tap on a phone (PageSpeed). */
+  display: inline-block;
+  padding: 8px 0;
 }
 .footer__legal button {
   cursor: pointer;

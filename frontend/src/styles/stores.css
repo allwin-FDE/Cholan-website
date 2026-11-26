@@ -767,7 +767,7 @@
   padding: 0 7px;
   border-radius: 999px;
   background: var(--gold-100);
-  color: var(--gold-600);
+  color: #6b4a10;
   font-size: 0.85em;
 }
 .tnmap__name:hover,
@@ -1045,4 +1045,9 @@
   .shop-page__map svg {
     width: 50%;
   }
+}
+
+/* Until the shop list arrives, hold roughly the map's place (no jump). */
+.home-shops--wait {
+  min-height: 640px;
 }

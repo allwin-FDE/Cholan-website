@@ -247,3 +247,11 @@
 .curtain + .section {
   padding-top: max(var(--section-y), calc(var(--header-h, 74px) + 24px));
 }
+
+/* Very narrow phones: the headline takes 4 lines once the web font arrives;
+   keep that room from the start so nothing jumps (PageSpeed, 2026-11-26). */
+@media (max-width: 380px) {
+  .curtain__lede {
+    min-height: calc(4 * 0.98em);
+  }
+}

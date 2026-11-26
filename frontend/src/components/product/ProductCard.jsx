@@ -31,7 +31,16 @@ export default function ProductCard({ product }) {
     <article className="card" data-cat={product.category}>
       <Link to={href} className="card__media" tabIndex={-1} aria-hidden="true">
         {hasProductImage(product) ? (
-          <img src={product.image} alt={`${product.fullName || product.name} pack`} loading="lazy" decoding="async" width="600" height="600" />
+          <img
+            src={product.image}
+            srcSet={`${product.image.replace(/\.webp$/, '-320.webp')} 320w, ${product.image.replace(/\.webp$/, '-480.webp')} 480w, ${product.image} 700w`}
+            sizes="(max-width: 600px) 46vw, (max-width: 1100px) 30vw, 270px"
+            alt={`${product.fullName || product.name} pack`}
+            loading="lazy"
+            decoding="async"
+            width="480"
+            height="700"
+          />
         ) : (
           <span className="card__monogram">
             <span className="card__initial">{product.name.charAt(0)}</span>
@@ -71,7 +80,7 @@ export default function ProductCard({ product }) {
             </p>
           )}
           <div className="card__actions">
-            <Link to={href} className="card__details">
+            <Link to={href} className="card__details" aria-label={`Details: ${product.name}`}>
               Details
             </Link>
             {buyable ? (

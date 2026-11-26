@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { hasBackend } from '../../lib/api.js';
 import { fetchStores } from '../../lib/stores.js';
@@ -8,15 +8,33 @@ import ShopsByDistrict from '../Stores/ShopsByDistrict.jsx';
 // (owner, 2026-11-25). The same map as the Stores page.
 export default function ShopsMapSection() {
   const [data, setData] = useState(null);
+  const ref = useRef(null);
+  // Fetched when the section is about a screen away, not with the first view.
   useEffect(() => {
-    if (!hasBackend) return;
-    fetchStores()
-      .then(setData)
-      .catch(() => {});
+    if (!hasBackend || !ref.current) return undefined;
+    const load = () =>
+      fetchStores()
+        .then(setData)
+        .catch(() => {});
+    if (!('IntersectionObserver' in window)) {
+      load();
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          load();
+        }
+      },
+      { rootMargin: '1200px 0px' },
+    );
+    io.observe(ref.current);
+    return () => io.disconnect();
   }, []);
-  if (!data) return null;
+  if (!data) return <section className="section home-shops home-shops--wait" ref={ref} aria-hidden="true" />;
   return (
-    <section className="section home-shops">
+    <section className="section home-shops" ref={ref}>
       <div className="container">
         <ShopsByDistrict data={data} />
         <p className="home-shops__more">

@@ -179,31 +179,46 @@ export default function RailStory() {
           <div className="rs__world">
             <img
               className="rs__layer rs__fields"
-              src="/images/rail/fields.webp"
+              src="/images/rail/fields-2.webp"
+              width="2400"
+              height="491"
+              loading="lazy"
               alt=""
               decoding="async"
             />
             <img
               className="rs__layer rs__bridge"
-              src="/images/rail/bridge.webp"
+              src="/images/rail/bridge-2.webp"
+              width="2400"
+              height="853"
+              loading="lazy"
               alt=""
               decoding="async"
             />
             <img
               className="rs__layer rs__board"
-              src="/images/rail/cholan-board.webp"
+              src="/images/rail/cholan-board-2.webp"
+              width="600"
+              height="711"
+              loading="lazy"
               alt="Cholan station nameboard"
               decoding="async"
             />
             <img
               className="rs__layer rs__train"
-              src="/images/rail/full-train-cholan.webp"
+              src="/images/rail/full-train-cholan-2.webp"
+              width="1400"
+              height="204"
+              loading="lazy"
               alt="The Cholan Express crossing the bridge over the paddy fields"
               decoding="async"
             />
             <img
               className="rs__layer rs__paddy"
-              src="/images/rail/paddy.webp"
+              src="/images/rail/paddy-2.webp"
+              width="2400"
+              height="506"
+              loading="lazy"
               alt=""
               decoding="async"
             />
@@ -213,11 +228,14 @@ export default function RailStory() {
           <h2 className="rs__title">Travels through a journey of care and quality.</h2>
         </div>
         <div className="rs__sky">
-          <img className="rs__clouds" src="/images/rail/clouds.webp" alt="" decoding="async" />
+          <img className="rs__clouds" src="/images/rail/clouds.webp" width="1920" height="745" alt="" decoding="async" loading="lazy" />
           <div className="rs__temple-pos">
             <img
               className="rs__temple"
-              src="/images/rail/temple-cut.webp"
+              src="/images/rail/temple-cut-2.webp"
+              width="1720"
+              height="1014"
+              loading="lazy"
               alt="The Brihadeeswarar temple rising through the clouds"
               decoding="async"
             />

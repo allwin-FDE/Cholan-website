@@ -58,7 +58,7 @@ export default function Header() {
           <Link to="/" className="brand" aria-label={`${site.name} home`} onClick={onLinkClick}>
             <img
               className="brand__logo"
-              src="/images/cholan-logo.png"
+              src="/images/cholan-logo.webp"
               alt={site.name}
               width="404"
               height="200"
