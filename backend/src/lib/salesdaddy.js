@@ -94,3 +94,8 @@ export async function pushTaggedLead({ name, phone, city, note, source: from, ta
   }
   return { leadId: id || '', duplicate: Boolean(lead.duplicate) };
 }
+
+// A note on a lead (e.g. the delivery location an order customer sent later).
+export async function addLeadNote(leadId, text) {
+  await call(`/leads/${encodeURIComponent(leadId)}/notes`, { body: String(text).slice(0, 2000) }, { timeoutMs: 5000 });
+}

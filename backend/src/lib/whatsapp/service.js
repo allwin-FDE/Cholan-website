@@ -21,7 +21,7 @@ import { collection } from '../firestore.js';
 import { dbEnabled, query } from '../../db/pool.js';
 import { buildTemplate, renderText, slotsOf } from './templates.js';
 import { isStart, isStop, locationRequestMessage, menuMessage, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber, websiteOrder } from './messages.js';
-import { pushTaggedLead } from '../salesdaddy.js';
+import { addLeadNote, pushTaggedLead } from '../salesdaddy.js';
 import { activeAsk, finderText, mobileOf, placeFrom, storesReply, usableName } from './storefinder.js';
 import { nearestFor, savedSearch } from '../stores/service.js';
 
@@ -753,7 +753,14 @@ export async function handleNotification(g, { incoming, statuses, templates }) {
       else if (isStart(m.text)) await sendNow(g, { wa: m.from, kind: 'text', text: settings.optInReply, by: 'auto' });
       else {
         const name = cur.data()?.name || m.name;
-        const handled = await runBot(g, { wa: m.from, name, text: m.text, replyId: m.replyId, location: m.location, first, contact: cur.data() || {} });
+        const contact = cur.data() || {};
+        // A website order: ask where to deliver (not the bot's menu). The
+        // answer that follows (a location, pincode or area) goes on the lead
+        // and the customer is told the sales team will call (owner, 2026-11-26).
+        let handled = false;
+        if (order) handled = await askOrderWhere(g, { wa: m.from, messageId: m.id, order, contact });
+        else if (activeOrderAsk(contact) && !m.replyId && !(await isBotTrigger(m.text))) handled = await orderWhereStep(g, { wa: m.from, text: m.text, location: m.location, contact });
+        if (!handled) handled = await runBot(g, { wa: m.from, name, text: m.text, replyId: m.replyId, location: m.location, first, contact });
         if (!handled) {
           if (first) await runAutomations('new_contact', { wa: m.from, name, text: m.text });
           if (m.text) await runAutomations('keyword', { wa: m.from, name, text: m.text });
@@ -1173,12 +1180,13 @@ export async function reports(fromDate, toDate) {
 
 // ---- Website "Order on WhatsApp" -> Sales Daddy lead ----
 
-function orderNote({ order, text }) {
+function orderNote({ order, text, where }) {
   return [
     'Order on WhatsApp from the website',
     `Product: ${order.product}${order.size ? ` — ${order.size}` : ''}${order.price ? ` (${order.price})` : ''}`,
     order.page && `Product page: ${order.page}`,
     `Message: ${String(text).slice(0, 600)}`,
+    where && whereLine(where),
   ]
     .filter(Boolean)
     .join('\n');
@@ -1186,7 +1194,7 @@ function orderNote({ order, text }) {
 
 // Sends one order message's lead; the outcome stays on the message (crm), so
 // a failed one is tried again by the sync worker. Never throws.
-async function orderToSalesDaddy(messageId, { wa, name, text, order }) {
+async function orderToSalesDaddy(messageId, { wa, name, text, order, where }) {
   const ref = col.messages().doc(messageId);
   if (!salesDaddyEnabled || !config.salesDaddy.waOrderTag) return;
   const phone = mobileOf(wa);
@@ -1194,7 +1202,7 @@ async function orderToSalesDaddy(messageId, { wa, name, text, order }) {
     await ref.set({ crm: { state: 'skipped', reason: 'not an Indian mobile', at: now() } }, { merge: true });
     return;
   }
-  const lead = { name: usableName(name) || 'WhatsApp customer', phone, source: 'whatsapp', note: orderNote({ order, text }) };
+  const lead = { name: usableName(name) || 'WhatsApp customer', phone, source: 'whatsapp', note: orderNote({ order, text, where }) };
   try {
     let untagged = false;
     let result;
@@ -1226,7 +1234,88 @@ export async function retryOrderLeads() {
     const order = websiteOrder(m.text);
     if (!order) continue;
     const contact = (await col.contacts().doc(m.wa).get()).data() || {};
-    await orderToSalesDaddy(m.id, { wa: m.wa, name: contact.name, text: m.text, order });
+    await orderToSalesDaddy(m.id, { wa: m.wa, name: contact.name, text: m.text, order, where: m.orderWhere });
   }
   return failed.length;
+}
+
+// ---- Order: where to deliver, then "the sales team will call" ----
+
+const ORDER_ASK_MINUTES = 60;
+const ORDER_TEXT = {
+  en: {
+    ask: (o) => `Thank you for your order${o ? `: ${o}` : ''}. 🙏\nPlease share your delivery location: tap the button below, or type your pincode.`,
+    again: 'Please type your 6-digit pincode or your area, or share your location with the button below.',
+    done: 'Thank you! We have noted your location. 📍\nOur sales team will call you shortly on this number to confirm your order and delivery. 📞',
+  },
+  ta: {
+    ask: (o) => `உங்கள் ஆர்டருக்கு நன்றி${o ? `: ${o}` : ''}. 🙏\nடெலிவரி இடத்தைப் பகிரவும்: கீழே உள்ள பட்டனைத் தட்டவும், அல்லது உங்கள் பின்கோடை அனுப்பவும்.`,
+    again: 'உங்கள் 6 இலக்க பின்கோடு அல்லது பகுதியின் பெயரை அனுப்பவும், அல்லது கீழே உள்ள பட்டனில் இருப்பிடத்தைப் பகிரவும்.',
+    done: 'நன்றி! உங்கள் இருப்பிடத்தைக் குறித்துக் கொண்டோம். 📍\nஆர்டர் மற்றும் டெலிவரியை உறுதிப்படுத்த எங்கள் விற்பனைக் குழு இந்த எண்ணில் விரைவில் உங்களை அழைக்கும். 📞',
+  },
+};
+const orderText = (contact) => ORDER_TEXT[contact?.lang === 'ta' ? 'ta' : 'en'];
+const orderLabel = (o) => `${o.product}${o.size ? ` — ${o.size}` : ''}${o.price ? ` (${o.price})` : ''}`;
+
+function activeOrderAsk(contact, nowMs = Date.now()) {
+  const ask = contact?.orderAsk;
+  return ask?.at && nowMs - Date.parse(ask.at) < ORDER_ASK_MINUTES * 60_000 ? ask : null;
+}
+// "hi", "menu" and the like still open the bot's menu while we wait.
+async function isBotTrigger(text) {
+  const t = String(text || '').trim().toLowerCase();
+  if (!t) return false;
+  return (await getBot()).triggerWords.includes(t);
+}
+
+// What the customer sent for "where": a shared location, a pincode, or an area.
+export function orderWhere({ text, location }) {
+  if (location && Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lng))) {
+    const lat = Number(location.lat);
+    const lng = Number(location.lng);
+    return { kind: 'location', lat, lng, label: [location.name, location.address].filter(Boolean).join(', ') };
+  }
+  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  // 641402, or 641 402 as people often type it.
+  const pin = t.match(/\b(6\d{2})\s?(\d{3})\b/);
+  if (pin) return { kind: 'pincode', pincode: pin[1] + pin[2], text: t.slice(0, 200) };
+  if (t.length >= 3 && t.length <= 200 && /\p{L}/u.test(t)) return { kind: 'area', text: t };
+  return null;
+}
+function whereLine(w) {
+  if (w.kind === 'location') return `Delivery location (shared on WhatsApp): https://maps.google.com/?q=${w.lat},${w.lng}${w.label ? ` (${w.label})` : ''}`;
+  if (w.kind === 'pincode') return `Delivery pincode: ${w.pincode}${w.text && w.text !== w.pincode ? ` (they wrote: ${w.text})` : ''}`;
+  return `Delivery area (as typed): ${w.text}`;
+}
+
+async function askOrderWhere(g, { wa, messageId, order, contact }) {
+  await col.contacts().doc(wa).set({ orderAsk: { at: now(), messageId } }, { merge: true });
+  await sendNow(g, { wa, kind: 'location_request', text: orderText(contact).ask(orderLabel(order)), by: 'bot' });
+  return true;
+}
+
+async function orderWhereStep(g, { wa, text, location, contact }) {
+  const ask = activeOrderAsk(contact);
+  const say = orderText(contact);
+  const where = orderWhere({ text, location });
+  const ref = col.contacts().doc(wa);
+  if (!where) {
+    await ref.set({ orderAsk: { ...ask, at: now() } }, { merge: true });
+    await sendNow(g, { wa, kind: 'location_request', text: say.again, by: 'bot' });
+    return true;
+  }
+  const msgRef = col.messages().doc(ask.messageId);
+  await msgRef.set({ orderWhere: { ...where, at: now() } }, { merge: true });
+  await ref.set({ orderAsk: FieldValue.delete(), lastOrderWhere: { ...where, at: now() } }, { merge: true });
+  // On the lead already in Sales Daddy; a lead still waiting gets it with its note.
+  const crm = (await msgRef.get()).data()?.crm;
+  if (crm?.state === 'sent' && crm.leadId) {
+    try {
+      await addLeadNote(crm.leadId, whereLine(where));
+    } catch (error) {
+      console.error('[whatsapp] order location to Sales Daddy failed:', error.message);
+    }
+  }
+  await sendNow(g, { wa, kind: 'text', text: say.done, by: 'bot' });
+  return true;
 }
