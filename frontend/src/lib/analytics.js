@@ -42,17 +42,25 @@ function load() {
   // Page views are sent by hand on each route change (trackPageView), since
   // the site changes pages without reloading.
   gtag('config', GA_ID, { send_page_view: false });
-  // Google's script waits until the page has loaded and the browser is idle,
-  // so it never slows the first view (PageSpeed, 2026-11-26).
+  // Google's script waits for the visitor's first touch, scroll or key (or
+  // 8 s), so it never slows the first view (PageSpeed, 2026-11-26). Events
+  // before then wait in dataLayer and are sent when it loads.
   const add = () => {
     const script = document.createElement('script');
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
     document.head.appendChild(script);
   };
-  const later = () => ('requestIdleCallback' in window ? window.requestIdleCallback(add, { timeout: 5000 }) : setTimeout(add, 3000));
-  if (document.readyState === 'complete') later();
-  else window.addEventListener('load', later, { once: true });
+  let done = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    EVENTS.forEach((e) => window.removeEventListener(e, go, true));
+    add();
+  };
+  const EVENTS = ['pointerdown', 'keydown', 'scroll', 'touchstart'];
+  EVENTS.forEach((e) => window.addEventListener(e, go, { capture: true, passive: true, once: true }));
+  setTimeout(go, 8000);
   document.addEventListener('click', trackLinkClick, true);
   startTracking();
 }

@@ -1,6 +1,6 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App, { preloadAllPages, preloadPage } from './App.jsx';
+// The app's code (React, the pages, animations) is fetched only after a
+// saved page's main picture is on screen, so on a slow phone the picture
+// isn't sharing the connection with ~200 KB of code (PageSpeed, 2026-11-26).
 
 // Stylesheets: import order == original cascade order. Do not reorder. See README.md.
 import './styles/base.css';
@@ -40,12 +40,32 @@ if (window.top !== window.self && new URLSearchParams(window.location.search).ha
   document.documentElement.classList.add('heatmap-mode');
 }
 
+// With a saved copy on screen, its main picture is shown before the app
+// loads and replaces the page (PageSpeed measures that first picture), but
+// never waiting more than 2.5 s; links on the saved copy work meanwhile.
+if (window.__savedPageShown) {
+  await new Promise((resolve) => {
+    if (document.readyState === 'complete') return resolve();
+    window.addEventListener('load', resolve, { once: true });
+    setTimeout(resolve, 2500);
+  });
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+const [{ StrictMode, startTransition }, { createRoot }, { default: App, preloadAllPages, preloadPage }] = await Promise.all([
+  import('react'),
+  import('react-dom/client'),
+  import('./App.jsx'),
+]);
 // The page being opened is fetched first (pages load as their own files), so
 // the saved copy is replaced by the finished page, never by a blank one.
 await preloadPage(window.location.pathname);
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+// A transition render works in short slices instead of one long block.
+const root = createRoot(document.getElementById('root'));
+startTransition(() => {
+  root.render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+});
 preloadAllPages();

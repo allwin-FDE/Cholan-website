@@ -1,11 +1,14 @@
 /* Home page: the round hall the visitor stands inside (pages/Home/RiceHall.jsx). */
+.hall.is-near {
+  background-image: url('/images/rice-hall-poster-2.webp');
+}
 .hall {
   position: relative;
   height: 100vh;
   height: 100svh;
   min-height: 560px;
   overflow: hidden;
-  background: #6b4416 url('/images/rice-hall-poster-2.webp') center / cover no-repeat;
+  background: #6b4416 center / cover no-repeat;
   cursor: grab;
   touch-action: pan-y;
   user-select: none;

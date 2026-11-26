@@ -8,9 +8,9 @@ import { createDust } from './hallDust.js';
 // The hall is one picture wrapped around them (scripts/build-rice-hall.py), so
 // its strip is a slot of 120 degrees per bag, with the bag's courtyard centred.
 const STOPS = [
-  { id: 'chennai-pattanam-rice', bag: '/images/hero-chennai-pattanam-white-ponni.webp' },
-  { id: 'moongil-ponni', bag: '/images/hero-moongil-poompuhar-ponni.webp' },
-  { id: 'karikalan-rice', bag: '/images/hero-karikalan-super-ponni.webp' },
+  { id: 'chennai-pattanam-rice', bag: '/images/hero-chennai-pattanam-white-ponni-480.webp' },
+  { id: 'moongil-ponni', bag: '/images/hero-moongil-poompuhar-ponni-480.webp' },
+  { id: 'karikalan-rice', bag: '/images/hero-karikalan-super-ponni-480.webp' },
 ].map((stop) => ({ ...stop, product: products.find((p) => p.id === stop.id) }));
 
 const TURN = (Math.PI * 2) / STOPS.length;
@@ -81,6 +81,20 @@ const smooth = (t) => {
 
 export default function RiceHall() {
   const hallRef = useRef(null);
+  // The poster picture is fetched once the hall is about a screen away.
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = hallRef.current;
+    if (!el || !('IntersectionObserver' in window)) return setNear(true);
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        setNear(true);
+        io.disconnect();
+      }
+    }, { rootMargin: '900px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const canvasRef = useRef(null);
   const dustRef = useRef(null);
   const bagsRef = useRef([]);
@@ -249,7 +263,7 @@ export default function RiceHall() {
   const current = STOPS[active];
   return (
     <section
-      className={`hall${ready ? ' is-ready' : ''}`}
+      className={`hall${ready ? ' is-ready' : ''}${near ? ' is-near' : ''}`}
       ref={hallRef}
       aria-roledescription="carousel"
       aria-label="Our rice, in the Cholan hall"

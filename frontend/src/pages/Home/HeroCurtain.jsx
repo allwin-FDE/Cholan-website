@@ -105,6 +105,7 @@ export default function HeroCurtain() {
           <img
             className="curtain__pillar curtain__pillar--l"
             src="/images/hero-pillar-carved-2.webp"
+            fetchPriority="low"
             width="329"
             height="1645"
             alt=""
@@ -113,6 +114,7 @@ export default function HeroCurtain() {
           <img
             className="curtain__pillar curtain__pillar--r"
             src="/images/hero-pillar-carved-2.webp"
+            fetchPriority="low"
             width="329"
             height="1645"
             alt=""
@@ -142,7 +144,7 @@ export default function HeroCurtain() {
                     height="900"
                     alt={pack.alt}
                     // The centre bag is the first thing people see: fetched first.
-                    fetchPriority={pack.cls === 'hero' ? 'high' : 'auto'}
+                    fetchPriority={pack.cls === 'hero' ? 'high' : 'low'}
                     decoding={pack.cls === 'hero' ? 'sync' : 'async'}
                   />
                 ))}

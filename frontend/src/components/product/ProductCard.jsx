@@ -34,7 +34,7 @@ export default function ProductCard({ product }) {
           <img
             src={product.image}
             srcSet={`${product.image.replace(/\.webp$/, '-320.webp')} 320w, ${product.image.replace(/\.webp$/, '-480.webp')} 480w, ${product.image} 700w`}
-            sizes="(max-width: 600px) 46vw, (max-width: 1100px) 30vw, 270px"
+            sizes="(max-width: 600px) 40vw, (max-width: 1100px) 28vw, 260px"
             alt={`${product.fullName || product.name} pack`}
             loading="lazy"
             decoding="async"

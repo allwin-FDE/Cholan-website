@@ -199,6 +199,12 @@ async function capturePage(route) {
     // Links the app added while running here (page preloads) carry this
     // machine's address (http://localhost:…): they'd fail on the real site.
     document.querySelectorAll('link[href^="http://localhost"], link[href^="http://127.0.0.1"], script[src^="http://localhost"]').forEach((el) => el.remove());
+    // The font links switch themselves to stylesheets once loaded; saved that
+    // way they'd hold every page back again. Back to "load without blocking".
+    document.head.querySelectorAll('link[onload][href^="https://fonts.googleapis.com/"]').forEach((el) => {
+      el.setAttribute('rel', 'preload');
+      el.setAttribute('as', 'style');
+    });
     document.documentElement.style.removeProperty('overflow');
     // Head tags React placed for this page: marked so the app can remove them
     // before it renders its own (otherwise each would appear twice).
