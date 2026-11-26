@@ -199,6 +199,21 @@ async function capturePage(route) {
     // Links the app added while running here (page preloads) carry this
     // machine's address (http://localhost:…): they'd fail on the real site.
     document.querySelectorAll('link[href^="http://localhost"], link[href^="http://127.0.0.1"], script[src^="http://localhost"]').forEach((el) => el.remove());
+    // The home page's main picture (the centre bag): asked for from the
+    // head, before anything else, so it arrives first (PageSpeed LCP).
+    const hero = location.pathname === '/' && document.querySelector('.curtain__pack--hero');
+    if (hero && !document.head.querySelector('link[rel="preload"][as="image"]')) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.setAttribute('imagesrcset', hero.getAttribute('srcset'));
+      link.setAttribute('imagesizes', hero.getAttribute('sizes'));
+      link.setAttribute('fetchpriority', 'high');
+      // After the viewport tag: the picture's size is read from the screen width.
+      const viewport = document.head.querySelector('meta[name="viewport"]');
+      if (viewport) viewport.after(link);
+      else document.head.prepend(link);
+    }
     // The font links switch themselves to stylesheets once loaded; saved that
     // way they'd hold every page back again. Back to "load without blocking".
     document.head.querySelectorAll('link[onload][href^="https://fonts.googleapis.com/"]').forEach((el) => {

@@ -3,7 +3,7 @@ import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { site } from '../../config/site.js';
 import { useSnapScroll } from '../../hooks/useSnapScroll.js';
 
-// Each bag has a phone-sized copy (-480) and a lighter full one (-2).
+// Each bag has phone-sized copies (-360, -480) and a lighter full one (-2).
 const packs = [
   {
     src: '/images/hero-chennai-pattanam-white-ponni.webp',
@@ -138,7 +138,7 @@ export default function HeroCurtain() {
                     key={pack.src}
                     className={`curtain__pack curtain__pack--${pack.cls}`}
                     src={pack.src.replace(/\.webp$/, '-2.webp')}
-                    srcSet={`${pack.src.replace(/\.webp$/, '-480.webp')} 480w, ${pack.src.replace(/\.webp$/, '-2.webp')} ${pack.w}w`}
+                    srcSet={`${pack.src.replace(/\.webp$/, '-360.webp')} 360w, ${pack.src.replace(/\.webp$/, '-480.webp')} 480w, ${pack.src.replace(/\.webp$/, '-2.webp')} ${pack.w}w`}
                     sizes="(max-width: 700px) 42vw, 300px"
                     width={pack.w}
                     height="900"
