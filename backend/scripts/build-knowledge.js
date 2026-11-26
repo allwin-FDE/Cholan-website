@@ -204,7 +204,6 @@ function pageText(rel) {
 
 const pages = [
   ['page-home', 'Home page', '/', ['pages/Home/HeroCurtain.jsx', 'pages/Home/RailStory.jsx', 'pages/Home/FeaturedProducts.jsx']],
-  ['page-bulk', 'Bulk and wholesale supply', '/contact', ['pages/Home/BulkSection.jsx']],
   ['page-about', 'About page', '/about', ['pages/About/index.jsx']],
   ['page-contact', 'Contact page', '/contact', ['pages/Contact/index.jsx']],
   ['page-blog', 'Blog page', '/blog', ['pages/Blog/index.jsx']],
@@ -224,7 +223,7 @@ fs.writeFileSync(
       builtAt: new Date().toISOString(),
       phone: site.phone,
       website: 'https://www.cholanrice.in',
-      products: products.map((p) => ({ name: p.name, slug: p.id, category: categoryName(p.category), packs: p.packs.map((k) => ({ size: k.size, price: k.price })) })),
+      products: products.map((p) => ({ name: p.name, tamil: p.tamil || '', slug: p.id, category: categoryName(p.category), packs: p.packs.map((k) => ({ size: k.size, price: k.price })) })),
     },
     null,
     2,

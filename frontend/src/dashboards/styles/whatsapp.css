@@ -988,3 +988,10 @@
     max-width: 360px;
   }
 }
+
+/* Bot preview: English or Tamil. */
+.wa-lang-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}

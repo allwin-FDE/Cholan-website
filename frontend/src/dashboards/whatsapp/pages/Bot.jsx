@@ -8,18 +8,24 @@ import { useWa } from '../shared.jsx';
 // with a menu, as buttons (up to 3) or a list (up to 10). Each choice sends a
 // message, today's prices from the plant, their latest order's status, or
 // hands the chat to a person (the bot then stays quiet with them for a while).
+// First it asks for the language, Tamil or English (owner, 2026-11-25): each
+// text has a Tamil box beside it, and an empty Tamil box sends the English.
 const ACTION_HELP = {
   reply: 'Sends the message you type.',
-  catalogue: 'Sends the list of products with their pack sizes (no prices).',
+  catalogue: 'Sends the list of products with their pack sizes (no prices); in Tamil, with the Tamil names.',
   prices: 'Sends today’s website prices for every pack, from the plant’s price list.',
   order_status: 'Finds their latest orders by their number and sends where each one is.',
   handoff: 'Sends your message, marks the chat “needs a person” in the Inbox, and the bot stays quiet with them.',
   stores: 'The website’s store finder in chat: asks them to share their location (or type a pincode or area) and sends the 3 nearest shops with directions. One search per mobile number, shared with the website; their WhatsApp name is used (the bot asks if it isn’t a real name). They go to Sales Daddy tagged Store. No message needed here.',
 };
 
-function MenuPreview({ bot }) {
-  const welcome = (bot.welcome || '').replace(/\{name\}/g, 'Lakshmi');
+const pick = (ta, en, tamil) => (tamil && String(ta || '').trim() ? ta : en);
+
+function MenuPreview({ bot, tamil }) {
+  const welcome = pick(bot.welcomeTa, bot.welcome, tamil).replace(/\{name\}/g, 'Lakshmi');
   const buttons = bot.options.length <= 3;
+  const title = (o) => pick(o.titleTa, o.title, tamil);
+  const description = (o) => pick(o.descriptionTa, o.description, tamil);
   return (
     <div className="wa-phone" aria-label="Preview">
       <div className="wa-phone__bar">
@@ -35,21 +41,35 @@ function MenuPreview({ bot }) {
         <div className="wa-bubble wa-bubble--in-demo">
           <p className="wa-bubble__body">Hi</p>
         </div>
+        {bot.askLanguage !== false && (
+          <>
+            <div className="wa-bubble">
+              <p className="wa-bubble__body" style={{ whiteSpace: 'pre-line' }}>
+                {bot.languageText}
+              </p>
+              <span className="wa-bubble__time">10:24</span>
+            </div>
+            <div className="wa-bubble__button">↩ தமிழ்</div>
+            <div className="wa-bubble__button">↩ English</div>
+            <div className="wa-bubble wa-bubble--in-demo">
+              <p className="wa-bubble__body">{tamil ? 'தமிழ்' : 'English'}</p>
+            </div>
+          </>
+        )}
         {bot.showCatalogue && (
           <div className="wa-bubble">
             <p className="wa-bubble__body">
               {bot.showCatalogue && (
                 <>
-                  🌾 <strong>Cholan Rice: our products</strong>
+                  🌾 <strong>{tamil ? 'சோழன் அரிசி: எங்கள் பொருட்கள்' : 'Cholan Rice: our products'}</strong>
                   <br />
-                  1. Chennai Pattanam Ponni · 1 kg · 5 kg · 10 kg…
+                  {tamil ? '1. சென்னைப்பட்டினம் பொன்னி · 1 கிலோ · 5 கிலோ…' : '1. Chennai Pattanam Ponni · 1 kg · 5 kg · 10 kg…'}
                   <br />
-                  2. Karikalan · 5 kg…
+                  {tamil ? '2. கரிகாலன் · 5 கிலோ…' : '2. Karikalan · 5 kg…'}
                   <br />…
                   <br />
                 </>
               )}
-              <span style={{ whiteSpace: 'pre-line' }}>{bot.contact}</span>
             </p>
             <span className="wa-bubble__time">10:24</span>
           </div>
@@ -61,19 +81,19 @@ function MenuPreview({ bot }) {
         {buttons ? (
           bot.options.map((o) => (
             <div key={o.id} className="wa-bubble__button">
-              ↩ {o.title || 'Option'}
+              ↩ {title(o) || 'Option'}
             </div>
           ))
         ) : (
           <>
-            <div className="wa-bubble__button">☰ {bot.button || 'Choose'}</div>
+            <div className="wa-bubble__button">☰ {pick(bot.buttonTa, bot.button, tamil) || 'Choose'}</div>
             <div className="wa-list-demo">
               {bot.options.map((o, i) => (
                 <div key={o.id}>
                   <strong>
-                    {i + 1}. {o.title || 'Option'}
+                    {i + 1}. {title(o) || 'Option'}
                   </strong>
-                  {o.description && <small>{o.description}</small>}
+                  {description(o) && <small>{description(o)}</small>}
                 </div>
               ))}
             </div>
@@ -92,6 +112,7 @@ export default function Bot() {
   const [problem, setProblem] = useState(null);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
+  const [tamil, setTamil] = useState(false);
   useEffect(() => {
     if (saved.data && !bot) setBot({ ...saved.data, triggerWords: (saved.data.triggerWords || []).join(', ') });
   }, [saved.data, bot]);
@@ -126,7 +147,7 @@ export default function Bot() {
     <div className="dash-page">
       <PageHead
         title="Bot"
-        intro="Answers by itself when someone says hi with a menu: the catalogue, today’s prices, their order’s status, or a hand-over to your team."
+        intro="Answers by itself when someone says hi: first Tamil or English, then a menu in that language: the catalogue, today’s prices, their order’s status, or a hand-over to your team."
         range={false}
         actions={
           <label className="wa-switch-row">
@@ -151,22 +172,37 @@ export default function Bot() {
                 <input type="checkbox" checked={bot.onFirstMessage} onChange={(e) => set({ onFirstMessage: e.target.checked })} disabled={!editor} /> Also when someone writes for the first time
               </label>
               <label className="dash-check biz-wide">
-                <input type="checkbox" checked={bot.showCatalogue !== false} onChange={(e) => set({ showCatalogue: e.target.checked })} disabled={!editor} /> First send our products list (every product with its pack sizes)
+                <input type="checkbox" checked={bot.askLanguage !== false} onChange={(e) => set({ askLanguage: e.target.checked })} disabled={!editor} /> First ask for the language: தமிழ் or English (buttons)
               </label>
-              <label className="dash-field biz-wide">
-                <span className="dash-field__label">Contact details (sent with the catalogue)</span>
-                <textarea className="dash-textarea" rows={3} value={bot.contact || ''} onChange={(e) => set({ contact: e.target.value })} disabled={!editor} placeholder={'📞 Call us: +91 90922 66667'} />
+              {bot.askLanguage !== false && (
+                <label className="dash-field biz-wide">
+                  <span className="dash-field__label">The language question</span>
+                  <textarea className="dash-textarea" rows={2} value={bot.languageText || ''} onChange={(e) => set({ languageText: e.target.value })} disabled={!editor} />
+                </label>
+              )}
+              <label className="dash-check biz-wide">
+                <input type="checkbox" checked={bot.showCatalogue !== false} onChange={(e) => set({ showCatalogue: e.target.checked })} disabled={!editor} /> Send our products list before the menu (every product with its pack sizes)
               </label>
-              <label className="dash-field biz-wide">
+              <label className="dash-field">
                 <span className="dash-field__label">Welcome message ({'{name}'} becomes their first name)</span>
                 <textarea className="dash-textarea" rows={3} value={bot.welcome} onChange={(e) => set({ welcome: e.target.value })} disabled={!editor} />
                 {problem?.fields?.welcome && <span className="dash-field-error">{problem.fields.welcome}</span>}
               </label>
+              <label className="dash-field">
+                <span className="dash-field__label">Welcome message in Tamil</span>
+                <textarea className="dash-textarea" rows={3} value={bot.welcomeTa || ''} onChange={(e) => set({ welcomeTa: e.target.value })} disabled={!editor} lang="ta" />
+              </label>
               {bot.options.length > 3 && (
-                <label className="dash-field">
-                  <span className="dash-field__label">List button text</span>
-                  <input value={bot.button} maxLength={20} onChange={(e) => set({ button: e.target.value })} disabled={!editor} />
-                </label>
+                <>
+                  <label className="dash-field">
+                    <span className="dash-field__label">List button text</span>
+                    <input value={bot.button} maxLength={20} onChange={(e) => set({ button: e.target.value })} disabled={!editor} />
+                  </label>
+                  <label className="dash-field">
+                    <span className="dash-field__label">List button text in Tamil</span>
+                    <input value={bot.buttonTa || ''} maxLength={20} onChange={(e) => set({ buttonTa: e.target.value })} disabled={!editor} lang="ta" />
+                  </label>
+                </>
               )}
             </div>
           </section>
@@ -204,7 +240,9 @@ export default function Bot() {
                       </span>
                     )}
                   </div>
+                  <input value={o.titleTa || ''} maxLength={bot.options.length <= 3 ? 20 : 24} onChange={(e) => setOpt(i, { titleTa: e.target.value })} placeholder="Title in Tamil, e.g. பொருட்கள்" aria-label="Title in Tamil" disabled={!editor} lang="ta" />
                   {bot.options.length > 3 && <input value={o.description || ''} maxLength={72} onChange={(e) => setOpt(i, { description: e.target.value })} placeholder="A line under it (optional)" aria-label="Description" disabled={!editor} />}
+                  {bot.options.length > 3 && <input value={o.descriptionTa || ''} maxLength={72} onChange={(e) => setOpt(i, { descriptionTa: e.target.value })} placeholder="The line under it in Tamil (optional)" aria-label="Description in Tamil" disabled={!editor} lang="ta" />}
                   {o.action !== 'stores' && <textarea
                     className="dash-textarea"
                     rows={2}
@@ -213,7 +251,10 @@ export default function Bot() {
                     disabled={!editor}
                     placeholder={o.action === 'reply' ? 'The message it sends' : o.action === 'handoff' ? 'What it says before a person takes over' : 'Sent if the plant’s data can’t be reached (optional)'}
                     aria-label="Message"
-                  />}
+                  />
+                  {['reply', 'handoff'].includes(o.action) && (
+                    <textarea className="dash-textarea" rows={2} value={o.replyTa || ''} onChange={(e) => setOpt(i, { replyTa: e.target.value })} disabled={!editor} placeholder="The same message in Tamil" aria-label="Message in Tamil" lang="ta" />
+                  )}}
                   <span className="dash-field__hint">
                     {ACTION_HELP[o.action]} {runs[o.id] ? `Chosen ${runs[o.id]} times.` : ''}
                   </span>
@@ -234,6 +275,10 @@ export default function Bot() {
                 <span className="dash-field__label">If they reply with something else just after the menu</span>
                 <input value={bot.fallback} onChange={(e) => set({ fallback: e.target.value })} disabled={!editor} />
               </label>
+              <label className="dash-field biz-wide">
+                <span className="dash-field__label">The same in Tamil</span>
+                <input value={bot.fallbackTa || ''} onChange={(e) => set({ fallbackTa: e.target.value })} disabled={!editor} lang="ta" />
+              </label>
               <label className="dash-field">
                 <span className="dash-field__label">After a hand-over, stay quiet for (hours)</span>
                 <input value={bot.pauseHours} onChange={(e) => set({ pauseHours: e.target.value })} inputMode="numeric" disabled={!editor} />
@@ -252,7 +297,15 @@ export default function Bot() {
           {runs.menu > 0 && <p className="dash-muted dash-small">Menu shown {runs.menu} times.</p>}
         </div>
         <div className="wa-sticky">
-          <MenuPreview bot={bot} />
+          <div className="wa-lang-toggle" role="group" aria-label="Preview language">
+            <button type="button" className={`dash-btn dash-btn--sm ${tamil ? 'dash-btn--ghost' : ''}`} onClick={() => setTamil(false)} aria-pressed={!tamil}>
+              English
+            </button>
+            <button type="button" className={`dash-btn dash-btn--sm ${tamil ? '' : 'dash-btn--ghost'}`} onClick={() => setTamil(true)} aria-pressed={tamil}>
+              தமிழ்
+            </button>
+          </div>
+          <MenuPreview bot={bot} tamil={tamil} />
         </div>
       </div>
     </div>

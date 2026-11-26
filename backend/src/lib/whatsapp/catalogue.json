@@ -1,10 +1,11 @@
 {
-  "builtAt": "2026-11-24T07:01:49.740Z",
+  "builtAt": "2026-11-26T05:23:22.204Z",
   "phone": "+91 90922 66667",
   "website": "https://www.cholanrice.in",
   "products": [
     {
       "name": "Chennai Pattanam Ponni",
+      "tamil": "சென்னைப்பட்டினம் பொன்னி",
       "slug": "chennai-pattanam-rice",
       "category": "Rice",
       "packs": [
@@ -28,6 +29,7 @@
     },
     {
       "name": "Karikalan",
+      "tamil": "கரிகாலன்",
       "slug": "karikalan-rice",
       "category": "Rice",
       "packs": [
@@ -47,6 +49,7 @@
     },
     {
       "name": "Kettimelam",
+      "tamil": "கெட்டிமேளம்",
       "slug": "kettimelam-rice",
       "category": "Rice",
       "packs": [
@@ -58,6 +61,7 @@
     },
     {
       "name": "Moongil Poompuhar Ponni",
+      "tamil": "மூங்கில் பூம்புகார் பொன்னி",
       "slug": "moongil-ponni",
       "category": "Rice",
       "packs": [
@@ -77,6 +81,7 @@
     },
     {
       "name": "Senthura",
+      "tamil": "செந்தூரா",
       "slug": "senthoora",
       "category": "Rice",
       "packs": [
@@ -88,6 +93,7 @@
     },
     {
       "name": "Senthura Half Boil",
+      "tamil": "செந்தூரா",
       "slug": "senthoora-half-boil",
       "category": "Rice",
       "packs": [
@@ -99,6 +105,7 @@
     },
     {
       "name": "Thooya Malli Ponni Raw Rice",
+      "tamil": "தூயமல்லி",
       "slug": "thooyamalli-ponni-raw-rice",
       "category": "Rice",
       "packs": [
@@ -118,6 +125,7 @@
     },
     {
       "name": "Chennai Pattanam Idli Rice",
+      "tamil": "சென்னைப்பட்டினம் இட்லி",
       "slug": "chennai-pattanam-idli-rice",
       "category": "Rice",
       "packs": [
@@ -133,6 +141,7 @@
     },
     {
       "name": "Kurunai Rice",
+      "tamil": "குருணை அரிசி",
       "slug": "kurunai-rice",
       "category": "Rice",
       "packs": [
@@ -144,6 +153,7 @@
     },
     {
       "name": "Basmati Rice",
+      "tamil": "பாசுமதி அரிசி",
       "slug": "basmati-rice",
       "category": "Rice",
       "packs": [
@@ -155,6 +165,7 @@
     },
     {
       "name": "Seeraga Samba",
+      "tamil": "சீரக சம்பா",
       "slug": "seeraga-samba",
       "category": "Rice",
       "packs": [

@@ -21,7 +21,7 @@ import { collection } from '../firestore.js';
 import { dbEnabled, query } from '../../db/pool.js';
 import { buildTemplate, renderText, slotsOf } from './templates.js';
 import { isStart, isStop, locationRequestMessage, menuMessage, missingValues, plainError, showNumber, templateMessage, textMessage, valuesFor, waNumber } from './messages.js';
-import { ASK_NAME, ASK_WHERE, activeAsk, mobileOf, placeFrom, storesReply, usableName, WEBSITE_STORES } from './storefinder.js';
+import { activeAsk, finderText, mobileOf, placeFrom, storesReply, usableName } from './storefinder.js';
 import { nearestFor, savedSearch } from '../stores/service.js';
 
 export class WaError extends Error {
@@ -830,33 +830,59 @@ try {
   // No catalogue file: the catalogue message is just the website link.
 }
 // The products and their pack sizes only: no prices and nothing else
-// (owner, 2026-11-25).
-export function catalogueText() {
-  const lines = CATALOGUE.products.map((p, i) => `${i + 1}. *${p.name}*\n    ${p.packs.length ? p.packs.map((k) => k.size).join(' · ') : 'sizes on request'}`);
-  const text = ['🌾 *Cholan Rice: our products*', lines.join('\n')].join('\n\n');
+// (owner, 2026-11-25). In Tamil: the Tamil name with the English one after it.
+const kgTa = (size) => String(size).replace(/\bkg\b/i, 'கிலோ');
+export function catalogueText(lang = 'en') {
+  const ta = lang === 'ta';
+  const lines = CATALOGUE.products.map((p, i) => {
+    const sizes = p.packs.length ? p.packs.map((k) => (ta ? kgTa(k.size) : k.size)).join(' · ') : ta ? 'அளவுகளுக்கு எங்களைக் கேளுங்கள்' : 'sizes on request';
+    const name = ta && p.tamil ? `*${p.tamil}* (${p.name})` : `*${p.name}*`;
+    return `${i + 1}. ${name}\n    ${sizes}`;
+  });
+  const text = [ta ? '🌾 *சோழன் அரிசி: எங்கள் பொருட்கள்*' : '🌾 *Cholan Rice: our products*', lines.join('\n')].join('\n\n');
   return text.length > 4000 ? `${text.slice(0, 3990)}…` : text;
 }
 const DEFAULT_CONTACT = `📞 Call us: ${CATALOGUE.phone || '+91 90922 66667'}\n💬 Or reply here on WhatsApp\n🌐 www.cholanrice.in`;
+const TALK_TA = '📞 எங்களை அழைக்க: +91 90922 66667\n(காலை 10 மணி முதல் மாலை 6 மணி வரை)';
 export const DEFAULT_BOT = {
   enabled: false,
   onFirstMessage: true,
   // On hi: only the menu (the products list when chosen).
   showCatalogue: false,
   contact: DEFAULT_CONTACT,
-  triggerWords: ['hi', 'hello', 'hai', 'vanakkam', 'menu', 'help'],
+  triggerWords: ['hi', 'hello', 'hai', 'vanakkam', 'menu', 'help', 'வணக்கம்', 'மெனு'],
+  // First the choice of Tamil or English (owner, 2026-11-25); everything
+  // after is in that language. The Tamil texts sit beside the English ones.
+  askLanguage: true,
+  languageText: 'Please choose your language.\nஉங்கள் மொழியைத் தேர்ந்தெடுக்கவும்.',
   welcome: 'Vanakkam {name}! Welcome to Cholan Rice. What would you like to do?',
+  welcomeTa: 'வணக்கம் {name}! சோழன் அரிசிக்கு உங்களை வரவேற்கிறோம். உங்களுக்கு என்ன வேண்டும்?',
   button: 'Choose',
+  buttonTa: 'தேர்வு செய்க',
+  // The menu the owner settled on (2026-11-25), in English and Tamil.
   options: [
-    { id: 'catalogue', title: 'Our catalogue', description: 'Rice, pack sizes and prices', action: 'catalogue', reply: '' },
-    { id: 'order', title: 'My order status', description: 'Where is my order?', action: 'order_status', reply: '' },
-    { id: 'buy', title: 'Place an order', description: 'Order on WhatsApp', action: 'reply', reply: 'Tell us the rice and pack size (for example: Moongil Poompuhar Ponni 26 kg × 2) and your area, and we will confirm the price and delivery.' },
-    { id: 'bulk', title: 'Bulk / hotel rates', description: 'For hotels, caterers, shops', action: 'reply', reply: 'We supply hotels, caterers and shops across Coimbatore. Tell us the rice and how many bags a month, and we’ll send you our best rate.' },
-    { id: 'stores', title: 'Find nearest store', description: 'Cholan shops near you', action: 'stores', reply: '' },
-    { id: 'human', title: 'Talk to us', description: 'A person replies', action: 'handoff', reply: 'Thank you! Someone from our team will reply shortly (9 am to 8 pm).' },
+    { id: 'catalogue', title: 'Products', description: 'Rice and pack sizes', action: 'catalogue', reply: '', titleTa: 'பொருட்கள்', descriptionTa: 'அரிசி வகைகள், பை அளவுகள்', replyTa: '' },
+    { id: 'stores', title: 'Find nearest store', description: 'Cholan shops near you', action: 'stores', reply: '', titleTa: 'அருகிலுள்ள கடை', descriptionTa: 'உங்கள் அருகிலுள்ள சோழன் கடைகள்', replyTa: '' },
+    { id: 'human', title: 'Talk to us', description: 'Call us', action: 'reply', reply: '📞 Call us: +91 90922 66667\n(10 am to 6 pm)', titleTa: 'எங்களுடன் பேச', descriptionTa: 'எங்களை அழைக்கவும்', replyTa: TALK_TA },
   ],
   fallback: 'Sorry, I didn’t get that. Reply MENU to see the options.',
+  fallbackTa: 'மன்னிக்கவும், புரியவில்லை. விருப்பங்களைப் பார்க்க MENU என்று அனுப்பவும்.',
   pauseHours: 12,
 };
+// The two language buttons' codes (never an option's code).
+const LANG_IDS = { lang_ta: 'ta', lang_en: 'en' };
+const LANG_WORDS = { tamil: 'ta', 'தமிழ்': 'ta', english: 'en', 'ஆங்கிலம்': 'en' };
+const inLang = (lang, en, ta) => (lang === 'ta' && String(ta || '').trim() ? ta : en);
+// The menu as sent, in the contact's language.
+function menuFor(bot, lang, name) {
+  const first = String(name || '').split(' ')[0] || (lang === 'ta' ? 'நண்பரே' : 'there');
+  return {
+    text: inLang(lang, bot.welcome, bot.welcomeTa).replace(/\{name\}/g, first),
+    button: inLang(lang, bot.button, bot.buttonTa),
+    section: lang === 'ta' ? 'விருப்பங்கள்' : 'Options',
+    options: bot.options.map((o) => ({ ...o, title: inLang(lang, o.title, o.titleTa), description: inLang(lang, o.description, o.descriptionTa) })),
+  };
+}
 export async function getBot() {
   const doc = await col.settings().doc('bot').get();
   return { ...DEFAULT_BOT, ...(doc.exists ? doc.data() : {}) };
@@ -870,12 +896,15 @@ export async function saveBot(body, by) {
       description: String(o.description || '').trim().slice(0, 72),
       action: BOT_ACTIONS[o.action] ? o.action : 'reply',
       reply: String(o.reply || '').trim().slice(0, 1000),
+      titleTa: String(o.titleTa || '').trim().slice(0, 24),
+      descriptionTa: String(o.descriptionTa || '').trim().slice(0, 72),
+      replyTa: String(o.replyTa || '').trim().slice(0, 1000),
     }))
     .filter((o) => o.title);
   const fields = {};
   if (!options.length) fields.options = 'Add at least one option.';
-  if (options.length <= 3 && options.some((o) => o.title.length > 20)) fields.options = 'With 3 options or fewer they show as buttons: keep each title to 20 characters.';
-  if (new Set(options.map((o) => o.id)).size !== options.length) fields.options = 'Each option needs a different code.';
+  if (options.length <= 3 && options.some((o) => o.title.length > 20 || o.titleTa.length > 20)) fields.options = 'With 3 options or fewer they show as buttons: keep each title to 20 characters.';
+  if (new Set(options.map((o) => o.id)).size !== options.length || options.some((o) => LANG_IDS[o.id])) fields.options = 'Each option needs a different code.';
   if (options.some((o) => o.action === 'reply' && !o.reply)) fields.options = 'Type the message for each “Send a message” option.';
   if (!String(body.welcome || '').trim()) fields.welcome = 'Type the welcome message.';
   if (Object.keys(fields).length) throw new WaError('Please check the highlighted details.', { fields });
@@ -885,10 +914,15 @@ export async function saveBot(body, by) {
     showCatalogue: body.showCatalogue !== false,
     contact: String(body.contact ?? DEFAULT_CONTACT).trim().slice(0, 600),
     triggerWords: String(Array.isArray(body.triggerWords) ? body.triggerWords.join(',') : body.triggerWords || '').split(',').map((w) => w.trim().toLowerCase()).filter(Boolean).slice(0, 20),
+    askLanguage: body.askLanguage !== false,
+    languageText: String(body.languageText || DEFAULT_BOT.languageText).trim().slice(0, 1000),
     welcome: String(body.welcome).trim().slice(0, 1000),
+    welcomeTa: String(body.welcomeTa || '').trim().slice(0, 1000),
     button: String(body.button || 'Choose').trim().slice(0, 20),
+    buttonTa: String(body.buttonTa || '').trim().slice(0, 20),
     options,
     fallback: String(body.fallback || '').trim().slice(0, 1000),
+    fallbackTa: String(body.fallbackTa || '').trim().slice(0, 1000),
     pauseHours: Math.min(Math.max(Number(body.pauseHours) || 12, 1), 72),
     updatedAt: now(),
     updatedBy: by,
@@ -898,11 +932,12 @@ export async function saveBot(body, by) {
 }
 
 const ORDER_WORDS = { awaiting_payment: 'waiting for payment', new: 'received, we will confirm it shortly', confirmed: 'confirmed', packing: 'being packed', packed: 'packed and ready to go', dispatched: 'on its way', delivered: 'delivered', cancelled: 'cancelled', returned: 'returned' };
-async function botAnswer(option, { wa, name, bot }) {
-  const first = String(name || '').split(' ')[0] || 'there';
-  if (option.action === 'catalogue') return catalogueText();
+async function botAnswer(option, { wa, name, lang = 'en' }) {
+  const first = String(name || '').split(' ')[0] || (lang === 'ta' ? 'நண்பரே' : 'there');
+  const own = inLang(lang, option.reply, option.replyTa);
+  if (option.action === 'catalogue') return catalogueText(lang);
   if (option.action === 'prices') {
-    if (!dbEnabled()) return option.reply || 'Please call us for today’s prices.';
+    if (!dbEnabled()) return own || (lang === 'ta' ? 'இன்றைய விலைக்கு எங்களை அழைக்கவும்.' : 'Please call us for today’s prices.');
     const { rows } = await query(
       `SELECT p.name AS product, i.pack_label, li.price_paise
        FROM catalog.items i JOIN catalog.products p ON p.id = i.product_id
@@ -910,11 +945,11 @@ async function botAnswer(option, { wa, name, bot }) {
        JOIN price.price_lists pl ON pl.id = li.price_list_id AND pl.is_default AND pl.active
        WHERE i.kind = 'finished' AND i.active AND p.active ORDER BY p.name, i.net_weight_g LIMIT 40`,
     );
-    if (!rows.length) return option.reply || 'Please call us for today’s prices.';
+    if (!rows.length) return own || (lang === 'ta' ? 'இன்றைய விலைக்கு எங்களை அழைக்கவும்.' : 'Please call us for today’s prices.');
     return `Today’s prices at Cholan Rice:\n${rows.map((r) => `• ${r.product} ${r.pack_label}: ₹${(r.price_paise / 100).toLocaleString('en-IN')}`).join('\n')}\n\nReply with what you need, and we will confirm the price and delivery.`;
   }
   if (option.action === 'order_status') {
-    if (!dbEnabled()) return option.reply || 'Please call us and we will check your order.';
+    if (!dbEnabled()) return own || (lang === 'ta' ? 'எங்களை அழைக்கவும், உங்கள் ஆர்டரைப் பார்த்துச் சொல்கிறோம்.' : 'Please call us and we will check your order.');
     const { rows } = await query(
       `SELECT o.number, o.status, o.order_date::text AS d FROM sales.orders o JOIN party.parties p ON p.id = o.party_id
        WHERE p.phone = $1 ORDER BY o.id DESC LIMIT 3`,
@@ -923,7 +958,7 @@ async function botAnswer(option, { wa, name, bot }) {
     if (!rows.length) return `Hi ${first}, we couldn’t find an order for this number. If you ordered with another number, please send us the order number.`;
     return `Hi ${first}, here ${rows.length === 1 ? 'is your order' : 'are your latest orders'}:\n${rows.map((r) => `• ${r.number} (${r.d}): ${ORDER_WORDS[r.status] || r.status}`).join('\n')}`;
   }
-  return String(option.reply || '').replace(/\{name\}/g, first);
+  return String(own || '').replace(/\{name\}/g, first);
 }
 
 // ---- The bot's store finder (same search and records as the website's) ----
@@ -931,48 +966,50 @@ async function botAnswer(option, { wa, name, bot }) {
 // Chosen from the menu: a number that already searched (here or on the
 // website) gets its first answer again; otherwise the bot asks for the name
 // (only when the WhatsApp name won't do) and then the place.
-async function startStoreSearch(g, { wa, name }) {
+async function startStoreSearch(g, { wa, name, lang = 'en' }) {
+  const say = finderText(lang);
   const mobile = mobileOf(wa);
   if (!mobile) {
-    await sendNow(g, { wa, kind: 'text', text: `The store finder works for Indian mobile numbers. See all our shops here: ${WEBSITE_STORES}`, by: 'bot' });
+    await sendNow(g, { wa, kind: 'text', text: say.notIndian, by: 'bot' });
     return true;
   }
   const saved = await savedSearch(mobile);
   if (saved) {
-    await sendNow(g, { wa, kind: 'text', text: storesReply(saved, { repeat: true, firstAt: saved.person?.firstAt }), by: 'bot' });
+    await sendNow(g, { wa, kind: 'text', text: storesReply(saved, { repeat: true, firstAt: saved.person?.firstAt, lang }), by: 'bot' });
     return true;
   }
   const n = usableName(name);
   if (!n) {
     await col.contacts().doc(wa).set({ storeAsk: { stage: 'name', at: now() } }, { merge: true });
-    await sendNow(g, { wa, kind: 'text', text: ASK_NAME, by: 'bot' });
+    await sendNow(g, { wa, kind: 'text', text: say.askName, by: 'bot' });
     return true;
   }
   await col.contacts().doc(wa).set({ storeAsk: { stage: 'where', name: n, at: now() } }, { merge: true });
-  await sendNow(g, { wa, kind: 'location_request', text: ASK_WHERE, by: 'bot' });
+  await sendNow(g, { wa, kind: 'location_request', text: say.askWhere, by: 'bot' });
   return true;
 }
 
 // Their answer to the bot's question: the name, then the place; then the search.
-async function storeStep(g, { wa, name, text, location, ask }) {
+async function storeStep(g, { wa, name, text, location, ask, lang = 'en' }) {
+  const say = finderText(lang);
   const ref = col.contacts().doc(wa);
   const mobile = mobileOf(wa);
-  if (!mobile) return startStoreSearch(g, { wa, name });
+  if (!mobile) return startStoreSearch(g, { wa, name, lang });
   if (ask.stage === 'name') {
     const n = usableName(text);
     if (!n) {
       await ref.set({ storeAsk: { stage: 'name', at: now() } }, { merge: true });
-      await sendNow(g, { wa, kind: 'text', text: 'Please type your name using letters only (for example: Lakshmi R).', by: 'bot' });
+      await sendNow(g, { wa, kind: 'text', text: say.nameAgain, by: 'bot' });
       return true;
     }
     await ref.set({ storeAsk: { stage: 'where', name: n, at: now() } }, { merge: true });
-    await sendNow(g, { wa, kind: 'location_request', text: `Thank you, ${n.split(' ')[0]}! ${ASK_WHERE}`, by: 'bot' });
+    await sendNow(g, { wa, kind: 'location_request', text: say.thanks(n.split(' ')[0]), by: 'bot' });
     return true;
   }
   const where = placeFrom({ text, location });
   if (!where) {
     await ref.set({ storeAsk: { ...ask, at: now() } }, { merge: true });
-    await sendNow(g, { wa, kind: 'location_request', text: ASK_WHERE, by: 'bot' });
+    await sendNow(g, { wa, kind: 'location_request', text: say.askWhere, by: 'bot' });
     return true;
   }
   const who = ask.name || usableName(name);
@@ -980,26 +1017,23 @@ async function storeStep(g, { wa, name, text, location, ask }) {
     // A location shared out of the blue by someone whose WhatsApp name won't do.
     const saved = await savedSearch(mobile);
     if (saved) {
-      await sendNow(g, { wa, kind: 'text', text: storesReply(saved, { repeat: true, firstAt: saved.person?.firstAt }), by: 'bot' });
+      await sendNow(g, { wa, kind: 'text', text: storesReply(saved, { repeat: true, firstAt: saved.person?.firstAt, lang }), by: 'bot' });
       return true;
     }
     await ref.set({ storeAsk: { stage: 'name', at: now() } }, { merge: true });
-    await sendNow(g, { wa, kind: 'text', text: ASK_NAME, by: 'bot' });
+    await sendNow(g, { wa, kind: 'text', text: say.askName, by: 'bot' });
     return true;
   }
   try {
     const found = await nearestFor({ name: who, phone: mobile, from: 'whatsapp', where: { ...where, limit: 20 } });
     await ref.set({ storeAsk: FieldValue.delete() }, { merge: true });
-    await sendNow(g, { wa, kind: 'text', text: storesReply(found, { repeat: found.repeat, firstAt: found.person?.firstAt }), by: 'bot' });
+    await sendNow(g, { wa, kind: 'text', text: storesReply(found, { repeat: found.repeat, firstAt: found.person?.firstAt, lang }), by: 'bot' });
   } catch (error) {
     // A place Google can't find: ask again. Anything else: say so and stop.
     const again = error.status === 400 && !error.fields;
     await ref.set({ storeAsk: again ? { ...ask, at: now() } : FieldValue.delete() }, { merge: true });
-    const msg = again
-      ? `${error.message} Please share your location with the button below, or type a 6-digit pincode.`
-      : error.status && error.status < 500
-        ? error.message
-        : `Sorry, the store finder isn’t working right now. See all our shops: ${WEBSITE_STORES} or call +91 90922 66667.`;
+    // The search's own messages are in English; in Tamil, a plain Tamil one.
+    const msg = again ? say.placeAgain(error.message) : error.status && error.status < 500 && lang !== 'ta' ? error.message : say.broken;
     await sendNow(g, { wa, kind: again ? 'location_request' : 'text', text: msg, by: 'bot' });
     if (!error.status || error.status >= 500) console.error('[whatsapp] store finder failed:', error.message);
   }
@@ -1011,42 +1045,64 @@ export async function runBot(g, { wa, name, text, replyId, location, first, cont
   const bot = await getBot();
   if (!bot.enabled || !bot.options.length) return false;
   if (contact.botPausedUntil && contact.botPausedUntil > now()) return false;
+  const ref = col.contacts().doc(wa);
   const t = String(text || '').trim().toLowerCase();
+  let lang = contact.lang === 'ta' ? 'ta' : 'en';
+  // The menu in the chosen language (the products list first, if switched on).
+  const showMenu = async () => {
+    if (bot.showCatalogue) await sendNow(g, { wa, kind: 'text', text: catalogueText(lang), by: 'bot' });
+    await sendNow(g, { wa, kind: 'menu', menu: menuFor(bot, lang, name), by: 'bot' });
+    await ref.set({ botMenuAt: now() }, { merge: true });
+    await col.settings().doc('bot').set({ 'runs.menu': FieldValue.increment(1) }, { merge: true });
+    return true;
+  };
+  // Tamil or English chosen (a tap, or typed just after the question).
+  const askedLang = contact.botLangAt && Date.now() - Date.parse(contact.botLangAt) < 30 * 60_000;
+  const chosen = LANG_IDS[replyId] || (askedLang ? LANG_WORDS[t] : null);
+  if (chosen) {
+    lang = chosen;
+    await ref.set({ lang, langAt: now(), botLangAt: FieldValue.delete() }, { merge: true });
+    await col.settings().doc('bot').set({ [`runs.lang_${lang}`]: FieldValue.increment(1) }, { merge: true });
+    return showMenu();
+  }
   const byTap = replyId && bot.options.find((o) => o.id === replyId);
   const byNumber = /^\d{1,2}$/.test(t) && contact.botMenuAt && Date.now() - Date.parse(contact.botMenuAt) < 30 * 60_000 ? bot.options[Number(t) - 1] : null;
-  const byTitle = bot.options.find((o) => o.title.toLowerCase() === t);
+  const byTitle = bot.options.find((o) => o.title.toLowerCase() === t || (o.titleTa && o.titleTa.toLowerCase() === t));
   const option = byTap || byNumber || byTitle;
   const storesOn = bot.options.some((o) => o.action === 'stores');
+  const isTrigger = bot.triggerWords.includes(t);
   // Waiting for the store finder's name or place: the answer goes there,
   // unless they chose something from the menu or asked for the menu again.
   const ask = storesOn ? activeAsk(contact) : null;
-  if (ask && !option && !bot.triggerWords.includes(t)) return storeStep(g, { wa, name, text, location, ask });
-  if (ask) await col.contacts().doc(wa).set({ storeAsk: FieldValue.delete() }, { merge: true });
+  if (ask && !option && !isTrigger) return storeStep(g, { wa, name, text, location, ask, lang });
+  if (ask) await ref.set({ storeAsk: FieldValue.delete() }, { merge: true });
   // A location shared out of the blue: look for the nearest shops too.
-  if (!option && storesOn && location) return storeStep(g, { wa, name, text, location, ask: { stage: 'where', name: usableName(name) } });
+  if (!option && storesOn && location) return storeStep(g, { wa, name, text, location, ask: { stage: 'where', name: usableName(name) }, lang });
   if (option?.action === 'stores') {
     await col.settings().doc('bot').set({ [`runs.${option.id}`]: FieldValue.increment(1) }, { merge: true });
-    return startStoreSearch(g, { wa, name });
+    return startStoreSearch(g, { wa, name, lang });
   }
   if (option) {
-    await sendNow(g, { wa, kind: 'text', text: await botAnswer(option, { wa, name, bot }), by: 'bot' });
-    if (option.action === 'handoff') await col.contacts().doc(wa).set({ needsHuman: true, botPausedUntil: new Date(Date.now() + bot.pauseHours * 3600_000).toISOString() }, { merge: true });
+    await sendNow(g, { wa, kind: 'text', text: await botAnswer(option, { wa, name, lang }), by: 'bot' });
+    if (option.action === 'handoff') await ref.set({ needsHuman: true, botPausedUntil: new Date(Date.now() + bot.pauseHours * 3600_000).toISOString() }, { merge: true });
     await col.settings().doc('bot').set({ [`runs.${option.id}`]: FieldValue.increment(1) }, { merge: true });
     return true;
   }
-  if (bot.triggerWords.includes(t) || (first && bot.onFirstMessage)) {
-    const welcome = bot.welcome.replace(/\{name\}/g, String(name || '').split(' ')[0] || 'there');
-    // Only the menu (owner, 2026-11-25); the catalogue first only if switched
-    // on. The contact details go with the catalogue when someone picks it.
-    if (bot.showCatalogue) await sendNow(g, { wa, kind: 'text', text: catalogueText(), by: 'bot' });
-    await sendNow(g, { wa, kind: 'menu', menu: { text: welcome, button: bot.button, options: bot.options }, by: 'bot' });
-    await col.contacts().doc(wa).set({ botMenuAt: now() }, { merge: true });
-    await col.settings().doc('bot').set({ 'runs.menu': FieldValue.increment(1) }, { merge: true });
-    return true;
+  if (isTrigger || (first && bot.onFirstMessage)) {
+    // First the language (owner, 2026-11-25), then the menu in it.
+    if (bot.askLanguage !== false) {
+      const choose = { text: bot.languageText || DEFAULT_BOT.languageText, options: [{ id: 'lang_ta', title: 'தமிழ்' }, { id: 'lang_en', title: 'English' }] };
+      await sendNow(g, { wa, kind: 'menu', menu: choose, by: 'bot' });
+      await ref.set({ botLangAt: now() }, { merge: true });
+      return true;
+    }
+    return showMenu();
   }
-  // Just shown the menu and the answer isn't one of the options.
-  if (bot.fallback && contact.botMenuAt && Date.now() - Date.parse(contact.botMenuAt) < 15 * 60_000) {
-    await sendNow(g, { wa, kind: 'text', text: bot.fallback, by: 'bot' });
+  // Just shown the menu (or the language question) and the answer isn't one of the options.
+  const recent = (at) => at && Date.now() - Date.parse(at) < 15 * 60_000;
+  const fallback = inLang(lang, bot.fallback, bot.fallbackTa);
+  if (fallback && (recent(contact.botMenuAt) || recent(contact.botLangAt))) {
+    await sendNow(g, { wa, kind: 'text', text: fallback, by: 'bot' });
     return true;
   }
   return false;

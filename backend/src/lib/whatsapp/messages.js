@@ -138,7 +138,7 @@ export function templateMessage(to, template, values) {
 }
 
 // A bot menu: up to 3 choices as buttons, more as a list (up to 10).
-export function menuMessage(to, { text, button = 'Choose', options }) {
+export function menuMessage(to, { text, button = 'Choose', section = 'Options', options }) {
   const opts = options.slice(0, 10);
   if (opts.length <= 3) {
     return { to, type: 'interactive', interactive: { type: 'button', body: { text: String(text).slice(0, 1024) }, action: { buttons: opts.map((o) => ({ type: 'reply', reply: { id: o.id, title: String(o.title).slice(0, 20) } })) } } };
@@ -149,7 +149,7 @@ export function menuMessage(to, { text, button = 'Choose', options }) {
     interactive: {
       type: 'list',
       body: { text: String(text).slice(0, 1024) },
-      action: { button: String(button || 'Choose').slice(0, 20), sections: [{ title: 'Options', rows: opts.map((o) => ({ id: o.id, title: String(o.title).slice(0, 24), ...(o.description ? { description: String(o.description).slice(0, 72) } : {}) })) }] },
+      action: { button: String(button || 'Choose').slice(0, 20), sections: [{ title: String(section || 'Options').slice(0, 24), rows: opts.map((o) => ({ id: o.id, title: String(o.title).slice(0, 24), ...(o.description ? { description: String(o.description).slice(0, 72) } : {}) })) }] },
     },
   };
 }
