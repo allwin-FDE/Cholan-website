@@ -251,10 +251,10 @@ export default function Bot() {
                     disabled={!editor}
                     placeholder={o.action === 'reply' ? 'The message it sends' : o.action === 'handoff' ? 'What it says before a person takes over' : 'Sent if the plant’s data can’t be reached (optional)'}
                     aria-label="Message"
-                  />
+                  />}
                   {['reply', 'handoff'].includes(o.action) && (
                     <textarea className="dash-textarea" rows={2} value={o.replyTa || ''} onChange={(e) => setOpt(i, { replyTa: e.target.value })} disabled={!editor} placeholder="The same message in Tamil" aria-label="Message in Tamil" lang="ta" />
-                  )}}
+                  )}
                   <span className="dash-field__hint">
                     {ACTION_HELP[o.action]} {runs[o.id] ? `Chosen ${runs[o.id]} times.` : ''}
                   </span>
