@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { prefersReducedMotion } from '../../lib/motion.js';
@@ -28,6 +28,16 @@ const OWN_ANIMATION = '.ab, .curtain, .rs';
 export default function PageTransition() {
   const { pathname } = useLocation();
   const wipeRef = useRef(null);
+  const [markSrc, setMarkSrc] = useState(undefined);
+  useEffect(() => {
+    const set = () => setMarkSrc('/images/cholan-logo.webp');
+    if (document.readyState === 'complete') set();
+    else {
+      window.addEventListener('load', set, { once: true });
+      return () => window.removeEventListener('load', set);
+    }
+    return undefined;
+  }, []);
   const firstLoadRef = useRef(true);
   const homeViaLogoRef = useRef(false); // set when the logo is clicked from another page
   const timelineRef = useRef(null);
@@ -164,7 +174,8 @@ export default function PageTransition() {
       <div className="fx-wipe__panel fx-wipe__panel--gold" />
       <div className="fx-wipe__panel fx-wipe__panel--green" />
       <div className="fx-wipe__panel fx-wipe__panel--cream">
-        <img className="fx-wipe__mark" src="/images/cholan-logo.webp" width="404" height="200" alt="" />
+        {/* Fetched after the page has loaded: it only shows in the page-to-page wipe. */}
+        <img className="fx-wipe__mark" src={markSrc} width="404" height="200" alt="" />
       </div>
     </div>
   );

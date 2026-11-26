@@ -3,7 +3,7 @@ import { gsap, ScrollTrigger } from '../../lib/gsap.js';
 import { site } from '../../config/site.js';
 import { useSnapScroll } from '../../hooks/useSnapScroll.js';
 
-// Each bag has phone-sized copies (-360, -480) and a lighter full one (-2).
+// Each bag has phone-sized copies (-280, -360, -480) and a lighter full one (-2).
 const packs = [
   {
     src: '/images/hero-chennai-pattanam-white-ponni.webp',
@@ -106,6 +106,8 @@ export default function HeroCurtain() {
             className="curtain__pillar curtain__pillar--l"
             src="/images/hero-pillar-carved-2.webp"
             fetchPriority="low"
+            // Hidden on phones: lazy, so phones never download them.
+            loading="lazy"
             width="329"
             height="1645"
             alt=""
@@ -115,6 +117,8 @@ export default function HeroCurtain() {
             className="curtain__pillar curtain__pillar--r"
             src="/images/hero-pillar-carved-2.webp"
             fetchPriority="low"
+            // Hidden on phones: lazy, so phones never download them.
+            loading="lazy"
             width="329"
             height="1645"
             alt=""
@@ -138,8 +142,9 @@ export default function HeroCurtain() {
                     key={pack.src}
                     className={`curtain__pack curtain__pack--${pack.cls}`}
                     src={pack.src.replace(/\.webp$/, '-2.webp')}
-                    srcSet={`${pack.src.replace(/\.webp$/, '-360.webp')} 360w, ${pack.src.replace(/\.webp$/, '-480.webp')} 480w, ${pack.src.replace(/\.webp$/, '-2.webp')} ${pack.w}w`}
-                    sizes="(max-width: 700px) 42vw, 300px"
+                    srcSet={`${pack.src.replace(/\.webp$/, '-280.webp')} 280w, ${pack.src.replace(/\.webp$/, '-360.webp')} 360w, ${pack.src.replace(/\.webp$/, '-480.webp')} 480w, ${pack.src.replace(/\.webp$/, '-2.webp')} ${pack.w}w`}
+                    // The size each bag shows at on a phone (the centre one a little bigger).
+                    sizes={pack.cls === 'hero' ? '(max-width: 700px) 38vw, 300px' : '(max-width: 700px) 35vw, 260px'}
                     width={pack.w}
                     height="900"
                     alt={pack.alt}

@@ -59,6 +59,8 @@ export default function Header() {
             <img
               className="brand__logo"
               src="/images/cholan-logo.webp"
+              srcSet="/images/cholan-logo-160.webp 160w, /images/cholan-logo.webp 404w"
+              sizes="(max-width: 900px) 70px, 94px"
               alt={site.name}
               width="404"
               height="200"

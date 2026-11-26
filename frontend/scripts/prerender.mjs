@@ -199,6 +199,8 @@ async function capturePage(route) {
     // Links the app added while running here (page preloads) carry this
     // machine's address (http://localhost:…): they'd fail on the real site.
     document.querySelectorAll('link[href^="http://localhost"], link[href^="http://127.0.0.1"], script[src^="http://localhost"]').forEach((el) => el.remove());
+    // The wipe's logo is fetched by the app after load; not by saved pages.
+    document.querySelectorAll('.fx-wipe__mark').forEach((el) => el.removeAttribute('src'));
     // The home page's main picture (the centre bag): asked for from the
     // head, before anything else, so it arrives first (PageSpeed LCP).
     const hero = location.pathname === '/' && document.querySelector('.curtain__pack--hero');
