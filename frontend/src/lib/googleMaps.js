@@ -2,7 +2,9 @@
 // public by design: Google only accepts it from cholanrice.in (and the
 // preview addresses), and only for showing maps. Without a key the store
 // finder still works, just without the map.
-const key = import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY || '';
+// Only the key itself: a value pasted as "NAME=key" once sent Google the
+// whole line and the map refused to load (InvalidKeyMapError, 28 Nov 2026).
+const key = String(import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY || '').trim().replace(/^[A-Z_]+=/, '');
 export const mapsAvailable = Boolean(key);
 
 let loading = null;
