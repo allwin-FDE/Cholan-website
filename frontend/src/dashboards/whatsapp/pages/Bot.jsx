@@ -16,6 +16,7 @@ const ACTION_HELP = {
   prices: 'Sends today’s website prices for every pack, from the plant’s price list.',
   order_status: 'Finds their latest orders by their number and sends where each one is.',
   handoff: 'Sends your message, marks the chat “needs a person” in the Inbox, and the bot stays quiet with them.',
+  bulk: 'Asks 5 short questions (business type, name, delivery area, rice, bags a month), then thanks them and says the sales team will call. The answers go to Sales Daddy tagged Bulk enquiry. No message needed here.',
   stores: 'The website’s store finder in chat: asks them to share their location (or type a pincode or area) and sends the 3 nearest shops with directions. One search per mobile number, shared with the website; their WhatsApp name is used (the bot asks if it isn’t a real name). They go to Sales Daddy tagged Store. No message needed here.',
 };
 
@@ -243,7 +244,7 @@ export default function Bot() {
                   <input value={o.titleTa || ''} maxLength={bot.options.length <= 3 ? 20 : 24} onChange={(e) => setOpt(i, { titleTa: e.target.value })} placeholder="Title in Tamil, e.g. பொருட்கள்" aria-label="Title in Tamil" disabled={!editor} lang="ta" />
                   {bot.options.length > 3 && <input value={o.description || ''} maxLength={72} onChange={(e) => setOpt(i, { description: e.target.value })} placeholder="A line under it (optional)" aria-label="Description" disabled={!editor} />}
                   {bot.options.length > 3 && <input value={o.descriptionTa || ''} maxLength={72} onChange={(e) => setOpt(i, { descriptionTa: e.target.value })} placeholder="The line under it in Tamil (optional)" aria-label="Description in Tamil" disabled={!editor} lang="ta" />}
-                  {o.action !== 'stores' && <textarea
+                  {!['stores', 'bulk'].includes(o.action) && <textarea
                     className="dash-textarea"
                     rows={2}
                     value={o.reply}

@@ -81,6 +81,8 @@ export const config = {
     // Someone pressing "Order on WhatsApp" on the website and sending the
     // message: a lead with this tag (owner, 2026-11-26). Must exist in Sales Daddy.
     waOrderTag: process.env.SALESDADDY_WA_ORDER_TAG ?? 'Whatsapp order',
+    // The WhatsApp bot's "Bulk enquiry" questions (owner, 2026-11-28). Must exist in Sales Daddy.
+    bulkTag: process.env.SALESDADDY_BULK_TAG ?? 'Bulk enquiry',
   },
 
   // WhatsApp Cloud API (Meta), for the /whatsapp dashboard. The access token

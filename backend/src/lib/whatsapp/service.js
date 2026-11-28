@@ -42,6 +42,7 @@ const col = {
   queue: () => collection('wa_queue'),
   messages: () => collection('wa_messages'),
   automations: () => collection('wa_automations'),
+  bulk: () => collection('wa_bulk_enquiries'),
 };
 const now = () => new Date().toISOString();
 const DAY = 86_400_000;
@@ -760,6 +761,7 @@ export async function handleNotification(g, { incoming, statuses, templates }) {
         let handled = false;
         if (order) handled = await askOrderWhere(g, { wa: m.from, messageId: m.id, order, contact });
         else if (activeOrderAsk(contact) && !m.replyId && !(await isBotTrigger(m.text))) handled = await orderWhereStep(g, { wa: m.from, text: m.text, location: m.location, contact });
+        else if (activeBulkAsk(contact) && (m.replyId ? m.replyId.startsWith('bulk_') : !(await isBotTrigger(m.text)))) handled = await bulkStep(g, { wa: m.from, name, text: m.text, replyId: m.replyId, location: m.location, contact });
         if (!handled) handled = await runBot(g, { wa: m.from, name, text: m.text, replyId: m.replyId, location: m.location, first, contact });
         if (!handled) {
           if (first) await runAutomations('new_contact', { wa: m.from, name, text: m.text });
@@ -834,7 +836,7 @@ export { showNumber };
 // A menu that answers by itself: someone says hi (or writes for the first
 // time) and gets buttons or a list; a tap (or the option's number) gets the
 // answer: a message, today's prices, their order's status, or a person.
-export const BOT_ACTIONS = { reply: 'Send a message', catalogue: 'Our catalogue (products, packs and prices)', prices: 'Today’s prices (from the plant)', order_status: 'Their latest order’s status', handoff: 'Hand over to a person', stores: 'Find the nearest store' };
+export const BOT_ACTIONS = { bulk: 'Bulk enquiry (asks 5 questions)', reply: 'Send a message', catalogue: 'Our catalogue (products, packs and prices)', prices: 'Today’s prices (from the plant)', order_status: 'Their latest order’s status', handoff: 'Hand over to a person', stores: 'Find the nearest store' };
 
 // The website's products, pack sizes and prices (npm run knowledge writes
 // catalogue.json from the frontend's data), sent as the bot's catalogue.
@@ -878,6 +880,7 @@ export const DEFAULT_BOT = {
   options: [
     { id: 'catalogue', title: 'Products', description: 'Rice and pack sizes', action: 'catalogue', reply: '', titleTa: 'பொருட்கள்', descriptionTa: 'அரிசி வகைகள், பை அளவுகள்', replyTa: '' },
     { id: 'stores', title: 'Find nearest store', description: 'Cholan shops near you', action: 'stores', reply: '', titleTa: 'அருகிலுள்ள கடை', descriptionTa: 'உங்கள் அருகிலுள்ள சோழன் கடைகள்', replyTa: '' },
+    { id: 'bulk', title: 'Bulk enquiry', description: 'For hotels, messes, caterers and shops', action: 'bulk', reply: '', titleTa: 'மொத்த ஆர்டர்', descriptionTa: 'ஹோட்டல், மெஸ், கேட்டரிங், கடைகளுக்கு', replyTa: '' },
     { id: 'human', title: 'Talk to us', description: 'Call us', action: 'reply', reply: '📞 Call us: +91 90922 66667\n(10 am to 6 pm)', titleTa: 'எங்களுடன் பேச', descriptionTa: 'எங்களை அழைக்கவும்', replyTa: TALK_TA },
   ],
   fallback: 'Sorry, I didn’t get that. Reply MENU to see the options.',
@@ -1097,6 +1100,10 @@ export async function runBot(g, { wa, name, text, replyId, location, first, cont
     await col.settings().doc('bot').set({ [`runs.${option.id}`]: FieldValue.increment(1) }, { merge: true });
     return startStoreSearch(g, { wa, name, lang });
   }
+  if (option?.action === 'bulk') {
+    await col.settings().doc('bot').set({ [`runs.${option.id}`]: FieldValue.increment(1) }, { merge: true });
+    return startBulk(g, { wa, lang });
+  }
   if (option) {
     await sendNow(g, { wa, kind: 'text', text: await botAnswer(option, { wa, name, lang }), by: 'bot' });
     if (option.action === 'handoff') await ref.set({ needsHuman: true, botPausedUntil: new Date(Date.now() + bot.pauseHours * 3600_000).toISOString() }, { merge: true });
@@ -1228,6 +1235,7 @@ async function orderToSalesDaddy(messageId, { wa, name, text, order, where }) {
 // for two days), called by the sync worker.
 export async function retryOrderLeads() {
   if (!salesDaddyEnabled) return 0;
+  await retryBulkLeads();
   const since = new Date(Date.now() - 2 * DAY).toISOString();
   const failed = docs(await col.messages().where('crm.state', '==', 'failed').limit(50).get()).filter((m) => m.at >= since && (m.crm.tries || 0) < 5).slice(0, 10);
   for (const m of failed) {
@@ -1318,4 +1326,194 @@ async function orderWhereStep(g, { wa, text, location, contact }) {
   }
   await sendNow(g, { wa, kind: 'text', text: say.done, by: 'bot' });
   return true;
+}
+
+// ---- Bulk enquiry: five short questions, then a Sales Daddy lead ----
+// (owner, 2026-11-28). Choices come as WhatsApp lists (or typed); the answers
+// are kept in wa_bulk_enquiries and sent to Sales Daddy tagged Bulk enquiry.
+
+const BULK_MINUTES = 60;
+export const BULK_CHOICES = {
+  type: [
+    ['hotel', 'Hotel / Restaurant', 'ஹோட்டல் / உணவகம்'],
+    ['mess', 'Mess / Hostel', 'மெஸ் / விடுதி'],
+    ['caterer', 'Caterer / Events', 'கேட்டரிங் / விழாக்கள்'],
+    ['shop', 'Shop / Retailer', 'கடை / வியாபாரி'],
+    ['other', 'Other', 'மற்றவை'],
+  ],
+  rice: [
+    ['ponni', 'Ponni rice', 'பொன்னி அரிசி', 'Chennai Pattanam, Karikalan, Moongil, Kettimelam', 'சென்னைப்பட்டினம், கரிகாலன், மூங்கில், கெட்டிமேளம்'],
+    ['senthura', 'Senthura', 'செந்தூரா', 'Raw or half boiled', 'பச்சரிசி அல்லது அரை வேக வைத்தது'],
+    ['raw', 'Raw rice (Thooya Malli)', 'பச்சரிசி (தூயமல்லி)'],
+    ['idli', 'Idli rice', 'இட்லி அரிசி'],
+    ['kurunai', 'Kurunai (broken rice)', 'குருணை அரிசி'],
+    ['biryani', 'Basmati / Seeraga Samba', 'பாசுமதி / சீரக சம்பா'],
+    ['mixed', 'More than one kind', 'பல வகைகள்'],
+    ['advice', 'Not sure, advise me', 'ஆலோசனை தேவை'],
+  ],
+  qty: [
+    ['10', 'Up to 10 bags', '10 மூட்டை வரை'],
+    ['50', '10 to 50 bags', '10 முதல் 50 மூட்டை'],
+    ['200', '50 to 200 bags', '50 முதல் 200 மூட்டை'],
+    ['more', 'More than 200 bags', '200 மூட்டைக்கு மேல்'],
+  ],
+};
+const BULK_TEXT = {
+  en: {
+    type: 'Thank you for your interest in buying in bulk! 🌾\nA few quick questions so our team can send you the best rate.\n\n1/5. What kind of business is it?',
+    name: '2/5. Your name and your business name?\n(for example: Ravi, Sri Murugan Mess)',
+    nameAgain: 'Please type your name and business name (for example: Ravi, Sri Murugan Mess).',
+    where: '3/5. Where should we deliver? Type your area or pincode, or share your location with the button below.',
+    whereAgain: 'Please type your 6-digit pincode or your area, or share your location with the button below.',
+    rice: '4/5. Which rice do you need?',
+    qty: '5/5. About how much rice a month? (26 kg bags)',
+    qtyNote: '26 kg bags a month',
+    button: 'Choose',
+    done: (first, lines) => `Thank you${first ? `, ${first}` : ''}! 🙏\nHere is what we noted:\n${lines}\n\nOur sales team will call you on this number shortly with our best bulk rate. 📞`,
+    labels: { type: 'Business', name: 'Name', where: 'Delivery', rice: 'Rice', qty: 'Every month' },
+  },
+  ta: {
+    type: 'மொத்தமாக வாங்க ஆர்வம் காட்டியதற்கு நன்றி! 🌾\nஎங்கள் குழு சிறந்த விலையை அனுப்ப சில சிறிய கேள்விகள்.\n\n1/5. உங்கள் வணிகம் எந்த வகை?',
+    name: '2/5. உங்கள் பெயர் மற்றும் வணிகத்தின் பெயர்?\n(எ.கா. ரவி, ஸ்ரீ முருகன் மெஸ்)',
+    nameAgain: 'உங்கள் பெயர் மற்றும் வணிகத்தின் பெயரை அனுப்பவும் (எ.கா. ரவி, ஸ்ரீ முருகன் மெஸ்).',
+    where: '3/5. எங்கு டெலிவரி செய்ய வேண்டும்? உங்கள் பகுதி அல்லது பின்கோடை அனுப்பவும், அல்லது கீழே உள்ள பட்டனில் இருப்பிடத்தைப் பகிரவும்.',
+    whereAgain: 'உங்கள் 6 இலக்க பின்கோடு அல்லது பகுதியின் பெயரை அனுப்பவும், அல்லது கீழே உள்ள பட்டனில் இருப்பிடத்தைப் பகிரவும்.',
+    rice: '4/5. எந்த அரிசி வேண்டும்?',
+    qty: '5/5. மாதம் சுமார் எவ்வளவு அரிசி? (26 கிலோ மூட்டைகள்)',
+    qtyNote: 'மாதம், 26 கிலோ மூட்டைகள்',
+    button: 'தேர்வு செய்க',
+    done: (first, lines) => `நன்றி${first ? `, ${first}` : ''}! 🙏\nநாங்கள் குறித்துக் கொண்டவை:\n${lines}\n\nஎங்கள் விற்பனைக் குழு சிறந்த மொத்த விலையுடன் இந்த எண்ணில் விரைவில் உங்களை அழைக்கும். 📞`,
+    labels: { type: 'வணிகம்', name: 'பெயர்', where: 'டெலிவரி', rice: 'அரிசி', qty: 'மாதம்' },
+  },
+};
+const bulkLang = (contact) => (contact?.lang === 'ta' ? 'ta' : 'en');
+
+export function activeBulkAsk(contact, nowMs = Date.now()) {
+  const ask = contact?.bulkAsk;
+  return ask?.at && nowMs - Date.parse(ask.at) < BULK_MINUTES * 60_000 ? ask : null;
+}
+
+// A WhatsApp list of one question's choices, in the contact's language.
+function bulkList(step, lang) {
+  const t = BULK_TEXT[lang];
+  return {
+    text: t[step],
+    button: t.button,
+    section: lang === 'ta' ? 'தேர்வுகள்' : 'Choices',
+    options: BULK_CHOICES[step].map(([id, en, ta, dEn, dTa]) => ({
+      id: `bulk_${step}_${id}`,
+      title: lang === 'ta' ? ta : en,
+      description: step === 'qty' ? t.qtyNote : (lang === 'ta' ? dTa : dEn) || '',
+    })),
+  };
+}
+async function askBulk(g, wa, step, lang, again = false) {
+  const t = BULK_TEXT[lang];
+  if (step === 'name') return sendNow(g, { wa, kind: 'text', text: again ? t.nameAgain : t.name, by: 'bot' });
+  if (step === 'where') return sendNow(g, { wa, kind: 'location_request', text: again ? t.whereAgain : t.where, by: 'bot' });
+  return sendNow(g, { wa, kind: 'menu', menu: bulkList(step, lang), by: 'bot' });
+}
+
+async function startBulk(g, { wa, lang }) {
+  await col.contacts().doc(wa).set({ bulkAsk: { step: 'type', answers: {}, at: now() } }, { merge: true });
+  await askBulk(g, wa, 'type', lang);
+  return true;
+}
+
+// One answer: a tapped choice, typed text, or (for the delivery place) a location.
+export function bulkAnswer(step, { text, replyId, location }) {
+  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  if (['type', 'rice', 'qty'].includes(step)) {
+    const id = String(replyId || '').startsWith(`bulk_${step}_`) ? replyId.slice(`bulk_${step}_`.length) : null;
+    const hit = id && BULK_CHOICES[step].find(([k]) => k === id);
+    if (hit) return { value: hit[1], code: hit[0] };
+    return t.length >= 2 ? { value: t.slice(0, 200) } : null;
+  }
+  if (step === 'name') return t.length >= 2 && /\p{L}/u.test(t) ? { value: t.slice(0, 200) } : null;
+  if (step === 'where') {
+    const w = orderWhere({ text, location });
+    return w ? { value: w.kind === 'location' ? `Location ${w.lat},${w.lng}` : w.kind === 'pincode' ? w.pincode : w.text, where: w } : null;
+  }
+  return null;
+}
+const BULK_STEPS = ['type', 'name', 'where', 'rice', 'qty'];
+
+async function bulkStep(g, { wa, name, text, replyId, location, contact }) {
+  const ask = activeBulkAsk(contact);
+  const lang = bulkLang(contact);
+  const ref = col.contacts().doc(wa);
+  const got = bulkAnswer(ask.step, { text, replyId, location });
+  if (!got) {
+    await ref.set({ bulkAsk: { ...ask, at: now() } }, { merge: true });
+    await askBulk(g, wa, ask.step, lang, true);
+    return true;
+  }
+  const answers = { ...ask.answers, [ask.step]: got.value, ...(got.where ? { whereDetail: got.where } : {}) };
+  const next = BULK_STEPS[BULK_STEPS.indexOf(ask.step) + 1];
+  if (next) {
+    await ref.set({ bulkAsk: { step: next, answers, at: now() } }, { merge: true });
+    await askBulk(g, wa, next, lang);
+    return true;
+  }
+  // All five: keep it, tell them, and send it to Sales Daddy.
+  await ref.set({ bulkAsk: FieldValue.delete(), tags: FieldValue.arrayUnion('bulk-enquiry'), lastBulkAt: now() }, { merge: true });
+  const doc = col.bulk().doc();
+  await doc.set({ wa, whatsappName: name || '', lang, answers, at: now() });
+  const L = BULK_TEXT[lang].labels;
+  const first = String(answers.name || '').split(/[,\-–]/)[0].trim().split(' ')[0];
+  const lines = BULK_STEPS.map((k) => `• ${L[k]}: ${answers[k]}`).join('\n');
+  await sendNow(g, { wa, kind: 'text', text: BULK_TEXT[lang].done(first, lines), by: 'bot' });
+  await bulkToSalesDaddy(doc.id);
+  return true;
+}
+
+function bulkNote(e) {
+  const a = e.answers || {};
+  return [
+    'Bulk enquiry on WhatsApp (bot questions)',
+    `Business type: ${a.type}`,
+    `Name / business: ${a.name}`,
+    a.whereDetail ? whereLine(a.whereDetail) : `Delivery: ${a.where}`,
+    `Rice: ${a.rice}`,
+    `Quantity a month: ${a.qty}`,
+    e.whatsappName && `WhatsApp name: ${e.whatsappName}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+// Sends one enquiry's lead (never throws); the outcome stays on the enquiry.
+async function bulkToSalesDaddy(id) {
+  const ref = col.bulk().doc(id);
+  const e = (await ref.get()).data();
+  if (!e || !salesDaddyEnabled) return;
+  const phone = mobileOf(e.wa);
+  if (!phone) {
+    await ref.set({ crm: { state: 'skipped', reason: 'not an Indian mobile', at: now() } }, { merge: true });
+    return;
+  }
+  const person = String(e.answers?.name || '').split(/[,\-–]/)[0].trim();
+  const lead = { name: usableName(person) || usableName(e.whatsappName) || 'WhatsApp bulk customer', phone, source: 'whatsapp', note: bulkNote(e) };
+  try {
+    let untagged = false;
+    let result;
+    try {
+      result = await pushTaggedLead({ ...lead, tag: config.salesDaddy.bulkTag });
+    } catch (error) {
+      if (!/Sales Daddy 4\d\d/.test(error.message)) throw error;
+      console.error('[whatsapp] bulk lead refused with the tag, sending without it:', error.message);
+      result = await pushTaggedLead({ ...lead, tag: '' });
+      untagged = true;
+    }
+    await ref.set({ crm: { state: 'sent', leadId: result.leadId, duplicate: result.duplicate, ...(untagged ? { untagged: true } : {}), at: now() } }, { merge: true });
+  } catch (error) {
+    const tries = ((e.crm && e.crm.tries) || 0) + 1;
+    await ref.set({ crm: { state: 'failed', error: String(error.message).slice(0, 300), tries, at: now() } }, { merge: true });
+    console.error('[whatsapp] bulk lead to Sales Daddy failed:', error.message);
+  }
+}
+async function retryBulkLeads() {
+  const since = new Date(Date.now() - 2 * DAY).toISOString();
+  const failed = docs(await col.bulk().where('crm.state', '==', 'failed').limit(50).get()).filter((e) => e.at >= since && (e.crm.tries || 0) < 5).slice(0, 10);
+  for (const e of failed) await bulkToSalesDaddy(e.id);
 }
