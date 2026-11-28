@@ -95,6 +95,15 @@ export default function RiceHall() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+  // Ready to draw before they're needed: fetched and decoded as soon as the hall is near.
+  useEffect(() => {
+    if (!near) return;
+    STOPS.forEach((stop) => {
+      const img = new Image();
+      img.src = stop.bag;
+      img.decode?.().catch(() => {});
+    });
+  }, [near]);
   const canvasRef = useRef(null);
   const dustRef = useRef(null);
   const bagsRef = useRef([]);
@@ -281,10 +290,12 @@ export default function RiceHall() {
             bagsRef.current[i] = el;
           }}
           className="hall__bag"
-          src={stop.bag}
+          // All three bags load together once the hall is near, so the next
+          // one is already there when the hall turns to it (owner, 2026-11-28).
+          src={near ? stop.bag : undefined}
           alt={i === active ? `${stop.product.name} rice bag` : ''}
           draggable="false"
-          loading="lazy"
+          decoding="sync"
         />
       ))}
       <canvas className="hall__dust" ref={dustRef} aria-hidden="true" />
