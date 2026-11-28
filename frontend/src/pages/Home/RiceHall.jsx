@@ -144,7 +144,10 @@ export default function RiceHall() {
         if (!el) return;
         const off = wrapAngle(FIRST + i * TURN - yaw);
         const near = Math.cos(off);
-        const shown = 1 - smooth((Math.abs(off) - 0.12) / 0.5);
+        // Fully there whenever it's in view, so the next bag is already on its
+        // stand as the camera turns to it (owner, 2026-11-28); it only fades
+        // once it's well past the edge of the screen.
+        const shown = 1 - smooth((Math.abs(off) - 1.1) / 0.25);
         if (near < 0.2 || shown <= 0) {
           el.style.visibility = 'hidden';
           return;
